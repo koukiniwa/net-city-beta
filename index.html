@@ -30,6 +30,15 @@
     <!-- Google Search Console 所有権確認 -->
     <meta name="google-site-verification" content="DQ4f3ZK41KRYM1Ca53K1rgqnH0sCnkjbVuMYAyVVSxY" />
 
+    <!-- PWA対応 -->
+    <meta name="theme-color" content="#00ffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NET CITY">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+
     <!-- スタイルシートを読み込み -->
     <link rel="stylesheet" href="css/index.css">
 </head>
@@ -73,5 +82,21 @@
 
     <!-- JavaScriptを読み込み -->
     <script src="js/index.js"></script>
+
+    <!-- Service Worker 登録 -->
+    <script>
+        // Service Worker がサポートされているかチェック
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/net-city-beta/service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker 登録成功:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Service Worker 登録失敗:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

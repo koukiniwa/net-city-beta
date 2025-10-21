@@ -1,0 +1,28 @@
+{
+  "name": "NET CITY β - リアルタイムチャット",
+  "short_name": "NET CITY",
+  "description": "みんながつながる仮想の街。リアルタイムでチャットを楽しもう！",
+  "start_url": "/net-city-beta/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ffff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "entertainment"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "チャットに入る",
+      "short_name": "チャット",
+      "description": "すぐにチャットを開始",
+      "url": "/net-city-beta/city.html"
+    }
+  ]
+}
