@@ -1,0 +1,12 @@
+# NET CITY β - robots.txt
+# 検索エンジンのクローラーへの指示
+
+# 全てのクローラーを許可
+User-agent: *
+Allow: /
+
+# サイトマップの場所を指定
+Sitemap: https://koukiniwa.github.io/net-city-beta/sitemap.xml
+
+# クロール速度を調整（サーバー負荷を軽減）
+Crawl-delay: 1
