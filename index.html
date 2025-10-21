@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NET CITY β - 入場</title>
+    <!-- スタイルシートを読み込み -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <!-- 背景用のグラデーション -->
+    <div class="background"></div>
+
+    <!-- メインコンテナ -->
+    <div class="container">
+        <!-- タイトル部分 -->
+        <div class="title-area">
+            <h1 class="main-title">NET CITY β</h1>
+            <p class="subtitle">ネットシティへようこそ</p>
+        </div>
+
+        <!-- 入場フォーム -->
+        <div class="entry-form">
+            <label for="username">あなたの名前</label>
+            <input
+                type="text"
+                id="username"
+                placeholder="名前を入力してください"
+                maxlength="20"
+                autocomplete="off"
+            >
+            <!-- エラーメッセージ表示エリア -->
+            <p class="error-message" id="errorMessage"></p>
+
+            <!-- 入場ボタン -->
+            <button id="enterButton" class="enter-button">
+                <span>入場する</span>
+            </button>
+        </div>
+
+        <!-- 説明文 -->
+        <div class="description">
+            <p>みんながつながる仮想の街</p>
+            <p>リアルタイムでチャットしよう</p>
+        </div>
+    </div>
+
+    <!-- JavaScriptを読み込み -->
+    <script src="js/index.js"></script>
+</body>
+</html>
