@@ -160,12 +160,13 @@ body {
 
 .chat-container {
     position: fixed;
-    bottom: 20px;
+    top: 80px; /* ヘッダーの下に配置 */
     left: 50%;
     transform: translateX(-50%); /* 中央に配置 */
     width: 90%;
     max-width: 800px;
-    height: 500px;
+    height: calc(100vh - 100px); /* 画面の高さいっぱいに（上下20pxの余白） */
+    max-height: 700px; /* 最大の高さを設定 */
     background: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
     backdrop-filter: blur(15px); /* ぼかし */
     border: 1px solid rgba(0, 255, 255, 0.3);
@@ -404,8 +405,9 @@ body {
 
     .chat-container {
         width: 95%;
-        height: 60vh;
-        bottom: 10px;
+        top: 60px; /* ヘッダーの下 */
+        height: calc(100vh - 80px); /* 画面いっぱい */
+        max-height: none; /* 最大高さ制限を解除 */
     }
 
     .input-area {
