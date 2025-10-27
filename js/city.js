@@ -3,7 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, remove } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
 // ========================================
 // 初期化処理
@@ -95,6 +95,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('メッセージの送信に失敗しました。Firebaseの設定を確認してください。');
             });
     }
+
+    // ========================================
+    // 古いメッセージの削除処理
+    // ========================================
+
+    // 1週間(7日)前のタイムスタンプを計算
+    function getOneWeekAgoTimestamp() {
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 7日間のミリ秒
+        return Date.now() - oneWeekInMs;
+    }
+
+    // 古いメッセージを削除する関数
+    async function deleteOldMessages() {
+        try {
+            const oneWeekAgo = getOneWeekAgoTimestamp();
+
+            // 7日より古いメッセージを検索
+            const oldMessagesQuery = query(
+                messagesRef,
+                orderByChild('timestamp'),
+                endAt(oneWeekAgo)
+            );
+
+            // 古いメッセージを取得
+            const snapshot = await get(oldMessagesQuery);
+
+            if (snapshot.exists()) {
+                const oldMessages = snapshot.val();
+                let deletedCount = 0;
+
+                // 各メッセージを削除
+                for (const messageId in oldMessages) {
+                    await remove(ref(database, `messages/${messageId}`));
+                    deletedCount++;
+                }
+
+                console.log(`${deletedCount}件の古いメッセージを削除しました`);
+            }
+        } catch (error) {
+            console.error('古いメッセージの削除エラー:', error);
+        }
+    }
+
+    // ページ読み込み時に一度実行
+    deleteOldMessages();
+
+    // 1時間ごとに古いメッセージをチェックして削除
+    setInterval(deleteOldMessages, 60 * 60 * 1000); // 1時間 = 60分 × 60秒 × 1000ミリ秒
 
     // ========================================
     // メッセージの受信とリアルタイム表示

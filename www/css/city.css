@@ -1,0 +1,420 @@
+/* ========================================
+   全体の設定
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background-color: #000000; /* 黒背景 */
+    color: #ffffff;
+    overflow: hidden; /* スクロールバーを隠す */
+    height: 100vh;
+}
+
+/* ========================================
+   街の背景
+   ======================================== */
+
+.city-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* 一番後ろに配置 */
+    overflow: hidden;
+}
+
+/* 空のグラデーション */
+.sky-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 夜空のグラデーション（上から下へ：濃い紫→紫→青紫→暗い青） */
+    background: linear-gradient(
+        to bottom,
+        #0a0015 0%,
+        #1a0033 30%,
+        #2d1b4e 60%,
+        #0d1b2a 100%
+    );
+}
+
+/* 街のスカイライン（建物のシルエット） */
+.city-skyline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 400px;
+}
+
+/* 建物（黒いシルエット） */
+.building {
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(
+        to top,
+        #000000 0%,
+        #0a0a0a 100%
+    );
+    border-top: 2px solid #00ffff; /* 上部をネオンブルーで光らせる */
+    box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    animation: buildingGlow 3s ease-in-out infinite; /* 光るアニメーション */
+}
+
+/* 建物が光るアニメーション */
+@keyframes buildingGlow {
+    0%, 100% {
+        border-top-color: #00ffff;
+        box-shadow:
+            0 0 10px rgba(0, 255, 255, 0.3),
+            inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+    50% {
+        border-top-color: #8b5cf6;
+        box-shadow:
+            0 0 20px rgba(139, 92, 246, 0.5),
+            inset 0 0 30px rgba(139, 92, 246, 0.2);
+    }
+}
+
+/* ========================================
+   ヘッダー（上部のバー）
+   ======================================== */
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.8); /* 半透明の黒 */
+    backdrop-filter: blur(10px); /* ぼかし */
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    display: flex;
+    justify-content: space-between; /* 左右に配置 */
+    align-items: center;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+/* 左側：タイトル */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.city-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #00ffff;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+/* 右側：ユーザー名と退出ボタン */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 要素間の間隔 */
+}
+
+.username-display {
+    font-size: 1rem;
+    color: #ffffff;
+    padding: 8px 15px;
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+}
+
+.logout-button {
+    padding: 8px 20px;
+    background: rgba(255, 51, 102, 0.2);
+    border: 1px solid rgba(255, 51, 102, 0.5);
+    border-radius: 20px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.logout-button:hover {
+    background: rgba(255, 51, 102, 0.4);
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+}
+
+/* ========================================
+   チャットコンテナ
+   ======================================== */
+
+.chat-container {
+    position: fixed;
+    top: 80px; /* ヘッダーの下に配置 */
+    left: 50%;
+    transform: translateX(-50%); /* 中央に配置 */
+    width: 90%;
+    max-width: 800px;
+    height: calc(100vh - 100px); /* 画面の高さいっぱいに（上下20pxの余白） */
+    max-height: 700px; /* 最大の高さを設定 */
+    background: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
+    backdrop-filter: blur(15px); /* ぼかし */
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ========================================
+   チャットヘッダー
+   ======================================== */
+
+.chat-header {
+    padding: 15px 20px;
+    background: rgba(0, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* オンラインインジケーター（緑の点） */
+.online-indicator {
+    width: 10px;
+    height: 10px;
+    background: #00ff88;
+    border-radius: 50%; /* 円形 */
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    animation: pulse 2s ease-in-out infinite; /* 点滅アニメーション */
+}
+
+/* 点滅アニメーション */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+.chat-header span {
+    font-size: 1rem;
+    color: #00ffff;
+    flex: 1;
+}
+
+.online-count {
+    font-size: 0.85rem;
+    color: #888888;
+}
+
+/* ========================================
+   メッセージ表示エリア
+   ======================================== */
+
+.messages-area {
+    flex: 1; /* 残りのスペースを全て使う */
+    padding: 20px;
+    overflow-y: auto; /* 縦スクロール可能 */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* メッセージ間の間隔 */
+}
+
+/* スクロールバーのカスタマイズ（Webkit系ブラウザ） */
+.messages-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-area::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.messages-area::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+.messages-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.5);
+}
+
+/* ウェルカムメッセージ */
+.welcome-message {
+    text-align: center;
+    color: #666666;
+    padding: 40px 20px;
+    line-height: 1.8;
+}
+
+/* ========================================
+   メッセージのスタイル
+   ======================================== */
+
+.message {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    animation: messageSlideIn 0.3s ease; /* 出現アニメーション */
+}
+
+/* メッセージが出現するアニメーション */
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* メッセージヘッダー（名前と時刻） */
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+}
+
+.message-username {
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.message-time {
+    color: #666666;
+    font-size: 0.75rem;
+}
+
+/* メッセージ本文 */
+.message-content {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid rgba(0, 255, 255, 0.5);
+    border-radius: 8px;
+    color: #ffffff;
+    line-height: 1.5;
+    word-wrap: break-word; /* 長い文字を折り返す */
+}
+
+/* 自分のメッセージ */
+.message.own .message-username {
+    color: #8b5cf6; /* 紫色 */
+}
+
+.message.own .message-content {
+    background: rgba(139, 92, 246, 0.15);
+    border-left-color: rgba(139, 92, 246, 0.8);
+}
+
+/* ========================================
+   入力エリア
+   ======================================== */
+
+.input-area {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(0, 255, 255, 0.3);
+    display: flex;
+    gap: 10px;
+}
+
+.message-input {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 25px;
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.message-input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.message-input::placeholder {
+    color: #666666;
+}
+
+.send-button {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    border: none;
+    border-radius: 25px;
+    color: #000000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.send-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+}
+
+.send-button:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   スマホ対応
+   ======================================== */
+
+@media (max-width: 768px) {
+    .header {
+        height: 50px;
+        padding: 0 10px;
+    }
+
+    .city-title {
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
+
+    .username-display {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+
+    .logout-button {
+        padding: 6px 15px;
+        font-size: 0.85rem;
+    }
+
+    .chat-container {
+        width: 95%;
+        top: 60px; /* ヘッダーの下 */
+        height: calc(100vh - 80px); /* 画面いっぱい */
+        max-height: none; /* 最大高さ制限を解除 */
+    }
+
+    .input-area {
+        padding: 15px;
+    }
+
+    .send-button {
+        padding: 12px 20px;
+    }
+}

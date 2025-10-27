@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO対策: 基本のmetaタグ -->
+    <title>NET CITY β - リアルタイムチャット | みんながつながる仮想の街</title>
+    <meta name="description" content="NET CITY βは、ブラウザで動くリアルタイムチャットアプリ。未来的な街の雰囲気の中で、世界中の人とチャットを楽しもう。無料・登録不要ですぐに使えます。">
+    <meta name="keywords" content="チャット,リアルタイム,オンライン,NET CITY,ネットシティ,無料チャット,ブラウザチャット">
+    <meta name="author" content="koukiniwa">
+
+    <!-- OGP（Open Graph Protocol）- SNSでシェアした時の表示 -->
+    <meta property="og:title" content="NET CITY β - リアルタイムチャット">
+    <meta property="og:description" content="みんながつながる仮想の街。リアルタイムでチャットを楽しもう！">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://koukiniwa.github.io/net-city-beta/">
+    <meta property="og:site_name" content="NET CITY β">
+    <meta property="og:locale" content="ja_JP">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NET CITY β - リアルタイムチャット">
+    <meta name="twitter:description" content="みんながつながる仮想の街。リアルタイムでチャットを楽しもう！">
+
+    <!-- 検索エンジン向け -->
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://koukiniwa.github.io/net-city-beta/">
+
+    <!-- Google Search Console 所有権確認 -->
+    <meta name="google-site-verification" content="DQ4f3ZK41KRYM1Ca53K1rgqnH0sCnkjbVuMYAyVVSxY" />
+
+    <!-- PWA対応 -->
+    <meta name="theme-color" content="#00ffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NET CITY">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+
+    <!-- スタイルシートを読み込み -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <!-- 背景用のグラデーション -->
+    <div class="background"></div>
+
+    <!-- メインコンテナ -->
+    <div class="container">
+        <!-- タイトル部分 -->
+        <div class="title-area">
+            <h1 class="main-title">NET CITY β</h1>
+            <p class="subtitle">ネットシティへようこそ</p>
+        </div>
+
+        <!-- 入場フォーム -->
+        <div class="entry-form">
+            <label for="username">あなたの名前</label>
+            <input
+                type="text"
+                id="username"
+                placeholder="名前を入力してください"
+                maxlength="20"
+                autocomplete="off"
+            >
+            <!-- エラーメッセージ表示エリア -->
+            <p class="error-message" id="errorMessage"></p>
+
+            <!-- 入場ボタン -->
+            <button id="enterButton" class="enter-button">
+                <span>入場する</span>
+            </button>
+        </div>
+
+        <!-- 説明文 -->
+        <div class="description">
+            <p>みんながつながる仮想の街</p>
+            <p>リアルタイムでチャットしよう</p>
+        </div>
+    </div>
+
+    <!-- JavaScriptを読み込み -->
+    <script src="js/index.js"></script>
+
+    <!-- Capacitor Core -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@capacitor/core@latest/dist/capacitor.js"></script>
+
+    <!-- Service Worker 登録 -->
+    <script>
+        // Service Worker がサポートされているかチェック
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker 登録成功:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Service Worker 登録失敗:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

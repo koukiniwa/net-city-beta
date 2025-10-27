@@ -1,0 +1,29 @@
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.netcity.app',
+  appName: 'NET CITY β',
+  webDir: 'www',
+  bundledWebRuntime: false,
+  server: {
+    androidScheme: 'https',
+    iosScheme: 'https'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#0a0e27',
+      showSpinner: false,
+      androidSpinnerStyle: 'small',
+      iosSpinnerStyle: 'small',
+      splashFullScreen: true,
+      splashImmersive: true
+    },
+    StatusBar: {
+      style: 'dark',
+      backgroundColor: '#0a0e27'
+    }
+  }
+};
+
+export default config;

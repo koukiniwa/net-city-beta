@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>NET CITY β - システム仕様書</title>
+    <style>
+        body {
+            font-family: "Yu Gothic", "游ゴシック", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            line-height: 1.8;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background: white;
+            color: #333;
+        }
+        h1 {
+            font-size: 24pt;
+            color: #0066cc;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            page-break-before: always;
+        }
+        h1:first-of-type {
+            page-break-before: auto;
+        }
+        h2 {
+            font-size: 18pt;
+            color: #0066cc;
+            border-left: 5px solid #0066cc;
+            padding-left: 10px;
+            margin-top: 25px;
+        }
+        h3 {
+            font-size: 14pt;
+            color: #333;
+            margin-top: 20px;
+        }
+        h4 {
+            font-size: 12pt;
+            color: #666;
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .code {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: "Courier New", monospace;
+            font-size: 9pt;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 10px;
+            border-left: 4px solid #ffcc00;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        .meta {
+            text-align: right;
+            color: #666;
+            font-size: 10pt;
+            margin-bottom: 20px;
+        }
+        .cover {
+            text-align: center;
+            padding: 100px 0;
+        }
+        .cover h1 {
+            font-size: 36pt;
+            border: none;
+            margin-top: 0;
+        }
+        .cover .subtitle {
+            font-size: 18pt;
+            color: #666;
+            margin: 20px 0;
+        }
+        .cover .version {
+            font-size: 14pt;
+            margin: 10px 0;
+        }
+        @media print {
+            body { padding: 15mm; }
+            h1 { page-break-before: always; }
+            h1:first-of-type { page-break-before: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- カバーページ -->
+<div class="cover">
+    <h1>NET CITY β</h1>
+    <div class="subtitle">システム仕様書</div>
+    <div class="version">Version 1.0</div>
+    <div style="margin-top: 50px;">
+        <p>リアルタイムチャットアプリケーション</p>
+        <p>技術仕様・データ管理・運用ガイド</p>
+    </div>
+    <div style="margin-top: 100px; font-size: 12pt;">
+        <p>作成者: koukiniwa</p>
+        <p>最終更新: 2025年10月23日</p>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- 目次 -->
+<h1>目次</h1>
+<ol style="font-size: 11pt; line-height: 2;">
+    <li>プロジェクト概要</li>
+    <li>システムアーキテクチャ</li>
+    <li>機能仕様</li>
+    <li>データベース設計</li>
+    <li>ファイル構造</li>
+    <li>技術スタック</li>
+    <li>セキュリティ</li>
+    <li>デプロイメント</li>
+    <li>運用・保守</li>
+    <li>今後の拡張計画</li>
+</ol>
+
+<div class="page-break"></div>
+
+<!-- 1. プロジェクト概要 -->
+<h1>1. プロジェクト概要</h1>
+
+<h2>1.1 アプリケーション概要</h2>
+<p><strong>NET CITY β</strong>は、ブラウザベースのリアルタイムチャットアプリケーションです。未来的な街をテーマにしたビジュアルデザインで、誰でも簡単に参加できるオープンなチャット空間を提供します。</p>
+
+<table>
+    <tr>
+        <th style="width: 30%;">項目</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>アプリ名</td>
+        <td>NET CITY β（ネットシティ ベータ）</td>
+    </tr>
+    <tr>
+        <td>コンセプト</td>
+        <td>みんながつながる仮想の街 - リアルタイムチャット</td>
+    </tr>
+    <tr>
+        <td>対象ユーザー</td>
+        <td>13歳以上のインターネットユーザー</td>
+    </tr>
+    <tr>
+        <td>プラットフォーム</td>
+        <td>Web（Chrome, Firefox, Safari, Edge）<br>iOS（App Store）<br>Android（Google Play）</td>
+    </tr>
+    <tr>
+        <td>アプリID</td>
+        <td>com.netcity.app</td>
+    </tr>
+    <tr>
+        <td>公開URL</td>
+        <td>https://koukiniwa.github.io/net-city-beta/</td>
+    </tr>
+</table>
+
+<h2>1.2 主要機能</h2>
+<ul>
+    <li><strong>リアルタイムチャット</strong> - 送信したメッセージが即座に全ユーザーに配信</li>
+    <li><strong>オンライン人数表示</strong> - 現在何人が接続しているかリアルタイム表示</li>
+    <li><strong>自動メッセージ削除</strong> - 7日経過したメッセージを自動削除</li>
+    <li><strong>登録不要</strong> - メールアドレスやアカウント登録なしで利用可能</li>
+    <li><strong>PWA対応</strong> - ホーム画面に追加してアプリのように使用可能</li>
+    <li><strong>マルチプラットフォーム</strong> - Web、iOS、Android対応</li>
+</ul>
+
+<h2>1.3 デザインコンセプト</h2>
+<ul>
+    <li>サイバーパンク・未来都市をイメージ</li>
+    <li>ネオンカラー（シアン #00ffff、マゼンタ #ff3366）を基調</li>
+    <li>ダークモード（背景: #0a0e27）</li>
+    <li>グラスモーフィズムUI</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- 2. システムアーキテクチャ -->
+<h1>2. システムアーキテクチャ</h1>
+
+<h2>2.1 アーキテクチャ概要図</h2>
+<div class="code">
+┌─────────────────────────────────────────────┐
+│           クライアント（ユーザー）           │
+│  Web / iOS App / Android App                │
+└──────────────┬──────────────────────────────┘
+               │
+               │ HTTPS
+               │
+┌──────────────▼──────────────────────────────┐
+│         フロントエンド (Static)             │
+│  - HTML/CSS/JavaScript (ES6+)               │
+│  - PWA (Service Worker)                     │
+│  - GitHub Pages でホスティング              │
+└──────────────┬──────────────────────────────┘
+               │
+               │ Firebase SDK (WebSocket)
+               │
+┌──────────────▼──────────────────────────────┐
+│        バックエンド (Firebase)              │
+│  - Realtime Database (リアルタイムDB)       │
+│  - Authentication (不使用)                  │
+│  - Hosting (不使用、GitHub Pages利用)       │
+└─────────────────────────────────────────────┘
+</div>
+
+<h2>2.2 データフロー</h2>
+
+<h3>2.2.1 入場フロー</h3>
+<div class="code">
+1. ユーザーが index.html にアクセス
+   ↓
+2. 名前を入力（2〜20文字）
+   ↓
+3. バリデーション実行
+   ↓
+4. localStorage に名前を保存
+   ↓
+5. city.html へリダイレクト
+   ↓
+6. Firebase に接続
+   ↓
+7. onlineUsers にユーザー登録
+   ↓
+8. チャット画面表示
+</div>
+
+<h3>2.2.2 メッセージ送信フロー</h3>
+<div class="code">
+1. ユーザーがメッセージを入力
+   ↓
+2. 送信ボタンクリック or Enter キー
+   ↓
+3. クライアント側でバリデーション（空文字チェック）
+   ↓
+4. Firebase Realtime Database に push()
+   {
+     username: "ユーザー名",
+     text: "メッセージ本文",
+     timestamp: serverTimestamp()
+   }
+   ↓
+5. Firebase から全クライアントへリアルタイム配信
+   ↓
+6. 各クライアントで onChildAdded イベント発火
+   ↓
+7. メッセージを画面に表示
+</div>
+
+<h3>2.2.3 オンライン人数管理フロー</h3>
+<div class="code">
+1. ユーザーが city.html にアクセス
+   ↓
+2. ユニークなユーザーID生成
+   userId = timestamp + random値
+   ↓
+3. Firebase の onlineUsers/{userId} に登録
+   {
+     username: "ユーザー名",
+     joinedAt: serverTimestamp()
+   }
+   ↓
+4. onDisconnect() で自動削除を設定
+   ↓
+5. onValue() でリアルタイム監視
+   ↓
+6. 人数をカウントして表示更新
+   ↓
+7. ユーザーが退出 or タブを閉じる
+   ↓
+8. Firebase が自動的に削除
+   ↓
+9. 他のユーザーの画面で人数が更新される
+</div>
+
+<div class="page-break"></div>
+
+<!-- 3. 機能仕様 -->
+<h1>3. 機能仕様</h1>
+
+<h2>3.1 入場画面 (index.html)</h2>
+
+<h3>3.1.1 画面構成</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">要素</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>タイトル</td>
+        <td>「NET CITY β」ネオン風アニメーション</td>
+    </tr>
+    <tr>
+        <td>サブタイトル</td>
+        <td>「ネットシティへようこそ」</td>
+    </tr>
+    <tr>
+        <td>入力欄</td>
+        <td>ユーザー名入力（text input、maxlength=20）</td>
+    </tr>
+    <tr>
+        <td>エラー表示</td>
+        <td>バリデーションエラーメッセージ表示エリア</td>
+    </tr>
+    <tr>
+        <td>入場ボタン</td>
+        <td>「入場する」ボタン</td>
+    </tr>
+    <tr>
+        <td>説明文</td>
+        <td>「みんながつながる仮想の街」<br>「リアルタイムでチャットしよう」</td>
+    </tr>
+</table>
+
+<h3>3.1.2 バリデーションルール</h3>
+<table>
+    <tr>
+        <th style="width: 30%;">項目</th>
+        <th>ルール</th>
+        <th>エラーメッセージ</th>
+    </tr>
+    <tr>
+        <td>空文字チェック</td>
+        <td>trim() 後、空文字は不可</td>
+        <td>「名前を入力してください」</td>
+    </tr>
+    <tr>
+        <td>最小文字数</td>
+        <td>2文字以上</td>
+        <td>「名前は2文字以上で入力してください」</td>
+    </tr>
+    <tr>
+        <td>最大文字数</td>
+        <td>20文字以内</td>
+        <td>「名前は20文字以内で入力してください」</td>
+    </tr>
+</table>
+
+<h3>3.1.3 動作仕様</h3>
+<ul>
+    <li>Enter キーで入場可能</li>
+    <li>エラーメッセージは3秒後に自動消去</li>
+    <li>エラー時、入力欄を赤く光らせる（box-shadow）</li>
+    <li>入力中にエラーメッセージをクリア</li>
+    <li>ページ読み込み時、入力欄に自動フォーカス</li>
+</ul>
+
+<h3>3.1.4 データ保存</h3>
+<div class="code">
+// localStorage に保存
+localStorage.setItem('netcity_username', username);
+
+// データ形式
+Key: 'netcity_username'
+Value: ユーザーが入力した名前（文字列）
+</div>
+
+<h2>3.2 チャット画面 (city.html)</h2>
+
+<h3>3.2.1 画面構成</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">要素</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>ヘッダー</td>
+        <td>左: 「NET CITY β」ロゴ<br>右: ユーザー名表示 + 退出ボタン</td>
+    </tr>
+    <tr>
+        <td>背景</td>
+        <td>グラデーション空 + 建物シルエット（11棟）</td>
+    </tr>
+    <tr>
+        <td>チャットヘッダー</td>
+        <td>オンラインインジケーター + 「街のチャット」 + 人数表示</td>
+    </tr>
+    <tr>
+        <td>メッセージエリア</td>
+        <td>スクロール可能なメッセージ表示領域</td>
+    </tr>
+    <tr>
+        <td>入力エリア</td>
+        <td>メッセージ入力欄（maxlength=200） + 送信ボタン</td>
+    </tr>
+</table>
+
+<h3>3.2.2 メッセージ表示仕様</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>仕様</th>
+    </tr>
+    <tr>
+        <td>自分のメッセージ</td>
+        <td>右寄せ、青系の色（#00d4ff）</td>
+    </tr>
+    <tr>
+        <td>他人のメッセージ</td>
+        <td>左寄せ、灰色系</td>
+    </tr>
+    <tr>
+        <td>メッセージ構造</td>
+        <td>ユーザー名 | 時刻（HH:MM）<br>メッセージ本文</td>
+    </tr>
+    <tr>
+        <td>XSS対策</td>
+        <td>escapeHtml() 関数で全テキストをエスケープ</td>
+    </tr>
+    <tr>
+        <td>自動スクロール</td>
+        <td>新メッセージ受信時、最下部へ自動スクロール</td>
+    </tr>
+</table>
+
+<h3>3.2.3 オンライン人数表示</h3>
+<table>
+    <tr>
+        <th style="width: 30%;">状態</th>
+        <th>表示</th>
+    </tr>
+    <tr>
+        <td>1人のみ（自分だけ）</td>
+        <td>「あなただけ」</td>
+    </tr>
+    <tr>
+        <td>2人以上</td>
+        <td>「{count}人オンライン」</td>
+    </tr>
+    <tr>
+        <td>0人（エラー状態）</td>
+        <td>「0人オンライン」</td>
+    </tr>
+</table>
+
+<h3>3.2.4 退出機能</h3>
+<ul>
+    <li>退出ボタンクリック時、確認ダイアログ表示</li>
+    <li>OKを選択すると:
+        <ul>
+            <li>Firebase の onlineUsers から自分を削除</li>
+            <li>localStorage から名前を削除</li>
+            <li>index.html へリダイレクト</li>
+        </ul>
+    </li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- 4. データベース設計 -->
+<h1>4. データベース設計</h1>
+
+<h2>4.1 Firebase Realtime Database 構造</h2>
+
+<div class="code">
+net-city-beta (ルート)
+├── messages/                    # メッセージデータ
+│   ├── {messageId1}/
+│   │   ├── username: "太郎"
+│   │   ├── text: "こんにちは！"
+│   │   └── timestamp: 1698123456789
+│   ├── {messageId2}/
+│   │   ├── username: "花子"
+│   │   ├── text: "よろしく"
+│   │   └── timestamp: 1698123460000
+│   └── ...
+│
+└── onlineUsers/                 # オンラインユーザー
+    ├── {userId1}/
+    │   ├── username: "太郎"
+    │   └── joinedAt: 1698123456789
+    ├── {userId2}/
+    │   ├── username: "花子"
+    │   └── joinedAt: 1698123460000
+    └── ...
+</div>
+
+<h2>4.2 データスキーマ</h2>
+
+<h3>4.2.1 messages コレクション</h3>
+<table>
+    <tr>
+        <th style="width: 20%;">フィールド</th>
+        <th style="width: 15%;">型</th>
+        <th style="width: 15%;">必須</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>username</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>送信者のユーザー名（2〜20文字）</td>
+    </tr>
+    <tr>
+        <td>text</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>メッセージ本文（1〜200文字）</td>
+    </tr>
+    <tr>
+        <td>timestamp</td>
+        <td>Number</td>
+        <td>Yes</td>
+        <td>送信時刻（UNIXタイムスタンプ、ミリ秒）<br>serverTimestamp() で自動生成</td>
+    </tr>
+</table>
+
+<h3>4.2.2 onlineUsers コレクション</h3>
+<table>
+    <tr>
+        <th style="width: 20%;">フィールド</th>
+        <th style="width: 15%;">型</th>
+        <th style="width: 15%;">必須</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>username</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>ユーザー名（表示用）</td>
+    </tr>
+    <tr>
+        <td>joinedAt</td>
+        <td>Number</td>
+        <td>Yes</td>
+        <td>接続開始時刻（UNIXタイムスタンプ、ミリ秒）</td>
+    </tr>
+</table>
+
+<h2>4.3 データ削除ルール</h2>
+
+<h3>4.3.1 メッセージの自動削除</h3>
+<ul>
+    <li><strong>削除タイミング</strong>: メッセージ送信から7日（168時間）経過後</li>
+    <li><strong>削除方式</strong>: クライアント側で定期チェック
+        <ul>
+            <li>ページ読み込み時に1回実行</li>
+            <li>その後1時間ごとに実行（setInterval）</li>
+        </ul>
+    </li>
+    <li><strong>削除処理</strong>:
+        <div class="code">
+// 7日前のタイムスタンプを計算
+const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+
+// 古いメッセージを検索
+const oldMessagesQuery = query(
+    messagesRef,
+    orderByChild('timestamp'),
+    endAt(oneWeekAgo)
+);
+
+// 削除実行
+const snapshot = await get(oldMessagesQuery);
+for (const messageId in snapshot.val()) {
+    await remove(ref(database, `messages/${messageId}`));
+}
+        </div>
+    </li>
+</ul>
+
+<h3>4.3.2 オンラインユーザーの削除</h3>
+<ul>
+    <li><strong>削除タイミング</strong>: ユーザーが切断した瞬間</li>
+    <li><strong>削除方式</strong>: Firebase の onDisconnect() 機能
+        <div class="code">
+// 接続時に自動削除を設定
+const userOnlineRef = ref(database, `onlineUsers/${userId}`);
+onDisconnect(userOnlineRef).remove();
+        </div>
+    </li>
+    <li><strong>削除トリガー</strong>:
+        <ul>
+            <li>ブラウザタブを閉じる</li>
+            <li>退出ボタンをクリック</li>
+            <li>ネットワーク切断</li>
+            <li>アプリを閉じる</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>4.4 Firebase セキュリティルール</h2>
+
+<div class="highlight">
+<strong>注意</strong>: 現在は開発段階のため、セキュリティルールが緩く設定されています。本番運用前に必ず強化してください。
+</div>
+
+<h3>推奨セキュリティルール</h3>
+<div class="code">
+{
+  "rules": {
+    "messages": {
+      ".read": true,
+      ".write": true,
+      "$messageId": {
+        ".validate": "newData.hasChildren(['username', 'text', 'timestamp'])",
+        "username": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 20"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    "onlineUsers": {
+      ".read": true,
+      ".write": true,
+      "$userId": {
+        ".validate": "newData.hasChildren(['username', 'joinedAt'])",
+        "username": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 20"
+        },
+        "joinedAt": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    }
+  }
+}
+</div>
+
+<div class="page-break"></div>
+
+<!-- 5. ファイル構造 -->
+<h1>5. ファイル構造</h1>
+
+<h2>5.1 プロジェクト全体構造</h2>
+<div class="code">
+new-city/
+├── android/                        # Androidネイティブプロジェクト
+│   ├── app/
+│   │   ├── build.gradle            # アプリのビルド設定
+│   │   └── src/
+│   ├── build.gradle                # プロジェクトのビルド設定
+│   └── ...
+│
+├── ios/                            # iOSネイティブプロジェクト
+│   ├── App/
+│   │   └── App.xcodeproj
+│   └── ...
+│
+├── www/                            # Webアプリのソースコード（配布用）
+│   ├── index.html                  # 入場画面
+│   ├── city.html                   # チャット画面
+│   ├── privacy.html                # プライバシーポリシー
+│   ├── css/
+│   │   ├── index.css               # 入場画面のスタイル
+│   │   └── city.css                # チャット画面のスタイル
+│   ├── js/
+│   │   ├── index.js                # 入場画面のロジック
+│   │   └── city.js                 # チャット画面のロジック
+│   ├── icons/                      # アプリアイコン各サイズ
+│   ├── manifest.json               # PWAマニフェスト
+│   ├── service-worker.js           # Service Worker（PWA）
+│   └── ogp-image.svg               # OGP画像
+│
+├── resources/                      # アイコン・スプラッシュの元画像
+│   ├── icon.png                    # アイコン元画像
+│   └── splash.png                  # スプラッシュ元画像
+│
+├── node_modules/                   # npmパッケージ
+│
+├── capacitor.config.json           # Capacitor設定
+├── package.json                    # npm設定
+├── package-lock.json               # npmパッケージのロックファイル
+│
+├── README.md                       # プロジェクト説明
+├── ANDROID_BUILD_GUIDE.md          # Androidビルドガイド
+├── APP_STORE_PUBLISHING.md         # App Store公開ガイド
+├── APP_STORE_CHECKLIST.md          # 公開チェックリスト
+└── NET_CITY_仕様書.html            # この仕様書
+</div>
+
+<h2>5.2 主要ファイル詳細</h2>
+
+<h3>5.2.1 index.html（入場画面）</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">セクション</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>head</td>
+        <td>SEO設定、OGPタグ、PWA設定、Google Search Console認証</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td>タイトル、名前入力フォーム、エラー表示、説明文</td>
+    </tr>
+    <tr>
+        <td>script</td>
+        <td>js/index.js、Service Worker登録</td>
+    </tr>
+</table>
+
+<h3>5.2.2 city.html（チャット画面）</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">セクション</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>head</td>
+        <td>SEO設定、OGPタグ、PWA設定</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td>背景（街のシルエット）、ヘッダー、チャットコンテナ</td>
+    </tr>
+    <tr>
+        <td>script (module)</td>
+        <td>Firebase SDK初期化、js/city.js</td>
+    </tr>
+</table>
+
+<h3>5.2.3 js/index.js（入場ロジック）</h3>
+<table>
+    <tr>
+        <th>機能</th>
+    </tr>
+    <tr>
+        <td>名前入力のバリデーション</td>
+    </tr>
+    <tr>
+        <td>Enter キーハンドリング</td>
+    </tr>
+    <tr>
+        <td>エラーメッセージ表示/非表示</td>
+    </tr>
+    <tr>
+        <td>localStorage への保存</td>
+    </tr>
+    <tr>
+        <td>city.html へのリダイレクト</td>
+    </tr>
+</table>
+
+<h3>5.2.4 js/city.js（チャットロジック）</h3>
+<table>
+    <tr>
+        <th>機能</th>
+    </tr>
+    <tr>
+        <td>Firebase Realtime Database 接続</td>
+    </tr>
+    <tr>
+        <td>メッセージ送信（push）</td>
+    </tr>
+    <tr>
+        <td>メッセージ受信（onChildAdded）</td>
+    </tr>
+    <tr>
+        <td>古いメッセージの削除（7日経過）</td>
+    </tr>
+    <tr>
+        <td>オンラインユーザー管理</td>
+    </tr>
+    <tr>
+        <td>オンライン人数表示</td>
+    </tr>
+    <tr>
+        <td>XSS対策（escapeHtml）</td>
+    </tr>
+    <tr>
+        <td>退出処理</td>
+    </tr>
+</table>
+
+<h3>5.2.5 capacitor.config.json</h3>
+<div class="code">
+{
+  "appId": "com.netcity.app",
+  "appName": "NET CITY β",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0a0e27",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#0a0e27"
+    }
+  }
+}
+</div>
+
+<h3>5.2.6 manifest.json（PWA設定）</h3>
+<div class="code">
+{
+  "name": "NET CITY β",
+  "short_name": "NET CITY",
+  "start_url": "/net-city-beta/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#00ffff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+</div>
+
+<div class="page-break"></div>
+
+<!-- 6. 技術スタック -->
+<h1>6. 技術スタック</h1>
+
+<h2>6.1 フロントエンド</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">技術</th>
+        <th style="width: 20%;">バージョン</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>HTML5</td>
+        <td>-</td>
+        <td>マークアップ、セマンティックHTML</td>
+    </tr>
+    <tr>
+        <td>CSS3</td>
+        <td>-</td>
+        <td>スタイリング、アニメーション、レスポンシブデザイン</td>
+    </tr>
+    <tr>
+        <td>JavaScript</td>
+        <td>ES6+</td>
+        <td>アプリロジック、DOM操作、非同期処理</td>
+    </tr>
+    <tr>
+        <td>Firebase SDK</td>
+        <td>9.22.0</td>
+        <td>Realtime Database接続</td>
+    </tr>
+</table>
+
+<h2>6.2 バックエンド</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">サービス</th>
+        <th style="width: 20%;">提供元</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>Firebase Realtime Database</td>
+        <td>Google</td>
+        <td>リアルタイムデータ同期、メッセージ保存</td>
+    </tr>
+    <tr>
+        <td>Firebase Hosting</td>
+        <td>Google</td>
+        <td>（使用せず、GitHub Pages利用）</td>
+    </tr>
+</table>
+
+<h2>6.3 ホスティング・デプロイ</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">サービス</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>GitHub Pages</td>
+        <td>Webアプリのホスティング</td>
+    </tr>
+    <tr>
+        <td>GitHub</td>
+        <td>ソースコード管理、バージョン管理</td>
+    </tr>
+</table>
+
+<h2>6.4 モバイルアプリ</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">技術</th>
+        <th style="width: 20%;">バージョン</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>Capacitor</td>
+        <td>7.4.3</td>
+        <td>Webアプリをネイティブアプリにラップ</td>
+    </tr>
+    <tr>
+        <td>Android SDK</td>
+        <td>-</td>
+        <td>Androidアプリビルド</td>
+    </tr>
+    <tr>
+        <td>Xcode</td>
+        <td>-</td>
+        <td>iOSアプリビルド（Macのみ）</td>
+    </tr>
+</table>
+
+<h2>6.5 開発ツール</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">ツール</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>Node.js</td>
+        <td>npm、Capacitor CLIの実行環境</td>
+    </tr>
+    <tr>
+        <td>npm</td>
+        <td>パッケージ管理</td>
+    </tr>
+    <tr>
+        <td>Android Studio</td>
+        <td>Androidアプリ開発・ビルド</td>
+    </tr>
+    <tr>
+        <td>Git</td>
+        <td>バージョン管理</td>
+    </tr>
+</table>
+
+<h2>6.6 依存パッケージ</h2>
+<div class="code">
+{
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}
+</div>
+
+<div class="page-break"></div>
+
+<!-- 7. セキュリティ -->
+<h1>7. セキュリティ</h1>
+
+<h2>7.1 実装済みのセキュリティ対策</h2>
+
+<h3>7.1.1 XSS（クロスサイトスクリプティング）対策</h3>
+<ul>
+    <li><strong>実装</strong>: すべてのユーザー入力をエスケープ処理
+        <div class="code">
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+        </div>
+    </li>
+    <li><strong>対象</strong>: ユーザー名、メッセージ本文</li>
+    <li><strong>効果</strong>: &lt;script&gt; タグなどの悪意あるコードを無効化</li>
+</ul>
+
+<h3>7.1.2 入力バリデーション</h3>
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>検証内容</th>
+    </tr>
+    <tr>
+        <td>ユーザー名</td>
+        <td>2〜20文字、空文字不可、trim処理</td>
+    </tr>
+    <tr>
+        <td>メッセージ</td>
+        <td>1〜200文字、空文字不可、trim処理</td>
+    </tr>
+</table>
+
+<h3>7.1.3 HTTPS通信</h3>
+<ul>
+    <li>GitHub Pages: 自動的にHTTPS対応</li>
+    <li>Firebase: すべての通信が暗号化</li>
+    <li>CDN（Firebase SDK）: HTTPS経由で読み込み</li>
+</ul>
+
+<h3>7.1.4 個人情報保護</h3>
+<ul>
+    <li><strong>収集しない情報</strong>:
+        <ul>
+            <li>メールアドレス</li>
+            <li>電話番号</li>
+            <li>位置情報</li>
+            <li>デバイスID</li>
+        </ul>
+    </li>
+    <li><strong>自動削除</strong>: メッセージは7日後に自動削除</li>
+    <li><strong>ローカルストレージ</strong>: ユーザー名のみ保存、退出時に削除</li>
+</ul>
+
+<h2>7.2 推奨される追加セキュリティ対策</h2>
+
+<div class="highlight">
+<strong>本番運用前に実装推奨</strong>
+</div>
+
+<h3>7.2.1 レート制限（Rate Limiting）</h3>
+<ul>
+    <li><strong>目的</strong>: スパム防止、DoS攻撃対策</li>
+    <li><strong>実装案</strong>:
+        <ul>
+            <li>1ユーザーあたり1分間に最大10メッセージ</li>
+            <li>Firebase セキュリティルールで制限</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>7.2.2 不適切コンテンツフィルター</h3>
+<ul>
+    <li><strong>目的</strong>: 不適切な言葉や誹謗中傷の防止</li>
+    <li><strong>実装案</strong>:
+        <ul>
+            <li>NGワードリストでのフィルタリング</li>
+            <li>Firebase Cloud Functionsで自動チェック</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>7.2.3 ユーザー認証</h3>
+<ul>
+    <li><strong>目的</strong>: 悪質ユーザーの特定と排除</li>
+    <li><strong>実装案</strong>:
+        <ul>
+            <li>Firebase Authentication（匿名認証）</li>
+            <li>悪質ユーザーのBANリスト管理</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>7.2.4 CAPTCHA</h3>
+<ul>
+    <li><strong>目的</strong>: Bot対策</li>
+    <li><strong>実装案</strong>: reCAPTCHA v3を入場時に実装</li>
+</ul>
+
+<h2>7.3 Firebase セキュリティルール（推奨）</h2>
+<p>「4.4 Firebase セキュリティルール」を参照</p>
+
+<div class="page-break"></div>
+
+<!-- 8. デプロイメント -->
+<h1>8. デプロイメント</h1>
+
+<h2>8.1 Web版のデプロイ（GitHub Pages）</h2>
+
+<h3>8.1.1 初回デプロイ手順</h3>
+<div class="code">
+# 1. GitHubリポジトリを作成
+https://github.com/koukiniwa/net-city-beta
+
+# 2. ローカルで初期化
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/koukiniwa/net-city-beta.git
+git push -u origin main
+
+# 3. GitHub Pages設定
+# Settings → Pages → Source: main branch → /root → Save
+
+# 4. 公開URL
+https://koukiniwa.github.io/net-city-beta/
+</div>
+
+<h3>8.1.2 更新のデプロイ</h3>
+<div class="code">
+# ファイルを編集
+git add .
+git commit -m "メッセージ"
+git push
+
+# 数分後に自動デプロイ
+</div>
+
+<h2>8.2 Androidアプリのビルド</h2>
+
+<h3>8.2.1 デバッグ版APK</h3>
+<div class="code">
+# 1. 依存関係をインストール
+npm install
+
+# 2. Androidプロジェクトに同期
+npm run sync:android
+
+# 3. Android Studioで開く
+npm run open:android
+
+# 4. ビルド実行
+Build → Build Bundle(s) / APK(s) → Build APK(s)
+
+# 5. APKの場所
+android/app/build/outputs/apk/debug/app-debug.apk
+</div>
+
+<h3>8.2.2 リリース版AAB（Google Play公開用）</h3>
+<div class="code">
+# 1. 署名鍵を作成（初回のみ）
+Build → Generate Signed Bundle / APK → Create new keystore
+
+# 2. リリースビルド
+Build → Generate Signed Bundle / APK → Android App Bundle
+→ release → Finish
+
+# 3. AABの場所
+android/app/build/outputs/bundle/release/app-release.aab
+
+# 4. Google Play Consoleにアップロード
+</div>
+
+<h2>8.3 iOSアプリのビルド（Macのみ）</h2>
+
+<h3>8.3.1 Xcode プロジェクト準備</h3>
+<div class="code">
+# 1. iOSプロジェクトに同期
+npm run sync:ios
+
+# 2. Xcodeで開く
+npm run open:ios
+
+# 3. 署名設定
+Signing & Capabilities → Team: 選択
+
+# 4. アーカイブ
+Product → Archive
+
+# 5. App Store Connect にアップロード
+</div>
+
+<h2>8.4 デプロイチェックリスト</h2>
+
+<table>
+    <tr>
+        <th style="width: 10%;">✓</th>
+        <th style="width: 30%;">項目</th>
+        <th>確認内容</th>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>Firebase設定</td>
+        <td>firebaseConfig が正しいか確認</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>セキュリティルール</td>
+        <td>Firebase Console で設定を確認</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>OGP画像</td>
+        <td>ogp-image.svg が正しく表示されるか</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>PWA動作</td>
+        <td>Service Worker が正しく動作するか</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>レスポンシブ</td>
+        <td>モバイル・タブレット・デスクトップで確認</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>ブラウザ互換性</td>
+        <td>Chrome, Firefox, Safari, Edge で動作確認</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>プライバシーポリシー</td>
+        <td>privacy.html が正しく表示されるか</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>バージョン番号</td>
+        <td>build.gradle の versionCode, versionName を更新</td>
+    </tr>
+    <tr>
+        <td>□</td>
+        <td>署名鍵</td>
+        <td>鍵ストアファイルのバックアップを取る</td>
+    </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- 9. 運用・保守 -->
+<h1>9. 運用・保守</h1>
+
+<h2>9.1 日常的な運用タスク</h2>
+
+<table>
+    <tr>
+        <th style="width: 25%;">タスク</th>
+        <th style="width: 20%;">頻度</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>Firebase 使用量確認</td>
+        <td>週1回</td>
+        <td>Firebase Console で帯域幅、ストレージ使用量を確認<br>無料枠（Spark プラン）を超えないか監視</td>
+    </tr>
+    <tr>
+        <td>メッセージ監視</td>
+        <td>毎日</td>
+        <td>Firebase Console でメッセージ内容を確認<br>不適切な投稿がないかチェック</td>
+    </tr>
+    <tr>
+        <td>エラーログ確認</td>
+        <td>週1回</td>
+        <td>ブラウザのコンソールエラーを確認<br>Firebase のエラーログを確認</td>
+    </tr>
+    <tr>
+        <td>ユーザーフィードバック</td>
+        <td>随時</td>
+        <td>GitHub Issues、メールでの問い合わせに対応</td>
+    </tr>
+</table>
+
+<h2>9.2 メンテナンスタスク</h2>
+
+<table>
+    <tr>
+        <th style="width: 25%;">タスク</th>
+        <th style="width: 20%;">頻度</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>依存パッケージ更新</td>
+        <td>月1回</td>
+        <td>npm update で最新版に更新<br>脆弱性があれば即座に対応</td>
+    </tr>
+    <tr>
+        <td>Firebase SDK更新</td>
+        <td>3ヶ月に1回</td>
+        <td>Firebase SDK のバージョンアップ<br>Breaking changes の確認</td>
+    </tr>
+    <tr>
+        <td>セキュリティ監査</td>
+        <td>半年に1回</td>
+        <td>セキュリティルールの見直し<br>脆弱性スキャン</td>
+    </tr>
+    <tr>
+        <td>バックアップ</td>
+        <td>月1回</td>
+        <td>Firebase データのエクスポート<br>コードのGitHubバックアップ確認</td>
+    </tr>
+</table>
+
+<h2>9.3 Firebase 無料枠の制限</h2>
+
+<h3>9.3.1 Spark プラン（無料）の制限</h3>
+<table>
+    <tr>
+        <th style="width: 30%;">項目</th>
+        <th style="width: 25%;">制限</th>
+        <th>備考</th>
+    </tr>
+    <tr>
+        <td>同時接続数</td>
+        <td>100接続</td>
+        <td>超過すると新規接続拒否</td>
+    </tr>
+    <tr>
+        <td>ストレージ</td>
+        <td>1 GB</td>
+        <td>メッセージデータの保存容量</td>
+    </tr>
+    <tr>
+        <td>ダウンロード</td>
+        <td>10 GB/月</td>
+        <td>データ読み取りの帯域幅</td>
+    </tr>
+</table>
+
+<h3>9.3.2 使用量の目安</h3>
+<ul>
+    <li><strong>1メッセージ</strong>: 約200バイト（ユーザー名 + テキスト + タイムスタンプ）</li>
+    <li><strong>7日間で削除</strong>: ストレージ消費を抑制</li>
+    <li><strong>想定</strong>: 月10万メッセージ = 約20MB（無料枠内で十分）</li>
+</ul>
+
+<h2>9.4 トラブルシューティング</h2>
+
+<h3>9.4.1 よくある問題と解決策</h3>
+
+<table>
+    <tr>
+        <th style="width: 30%;">問題</th>
+        <th>原因</th>
+        <th>解決策</th>
+    </tr>
+    <tr>
+        <td>メッセージが送信できない</td>
+        <td>Firebase接続エラー</td>
+        <td>Firebase Console でステータス確認<br>firebaseConfig の設定確認</td>
+    </tr>
+    <tr>
+        <td>オンライン人数が0人</td>
+        <td>onlineUsers の削除エラー</td>
+        <td>ブラウザのキャッシュクリア<br>Firebase セキュリティルール確認</td>
+    </tr>
+    <tr>
+        <td>名前が保存されない</td>
+        <td>localStorage無効化</td>
+        <td>プライベートブラウジングモードを確認<br>ブラウザ設定で localStorage 有効化</td>
+    </tr>
+    <tr>
+        <td>Service Worker エラー</td>
+        <td>キャッシュの不整合</td>
+        <td>Service Worker の登録解除<br>ブラウザキャッシュクリア</td>
+    </tr>
+    <tr>
+        <td>古いメッセージが削除されない</td>
+        <td>削除処理が実行されていない</td>
+        <td>ブラウザコンソールでエラー確認<br>Firebase権限確認</td>
+    </tr>
+</table>
+
+<h3>9.4.2 緊急時の対応</h3>
+
+<div class="highlight">
+<strong>不適切な投稿が発生した場合</strong>
+</div>
+
+<ol>
+    <li>Firebase Console にアクセス</li>
+    <li>Realtime Database → messages を開く</li>
+    <li>該当メッセージを手動で削除</li>
+    <li>必要に応じてセキュリティルールを一時的に強化</li>
+</ol>
+
+<div class="highlight">
+<strong>大量のスパムが発生した場合</strong>
+</div>
+
+<ol>
+    <li>Firebase Console で書き込み権限を一時的に無効化
+        <div class="code">
+{
+  "rules": {
+    "messages": {
+      ".read": true,
+      ".write": false  // 一時的に無効化
+    }
+  }
+}
+        </div>
+    </li>
+    <li>スパムメッセージを全削除</li>
+    <li>セキュリティルールを強化してから再開</li>
+</ol>
+
+<h2>9.5 データバックアップ</h2>
+
+<h3>9.5.1 Firebase データのエクスポート</h3>
+<div class="code">
+# Firebase CLI をインストール
+npm install -g firebase-tools
+
+# ログイン
+firebase login
+
+# プロジェクトを初期化
+firebase init
+
+# データをエクスポート
+firebase database:get / > backup_YYYYMMDD.json
+</div>
+
+<h3>9.5.2 コードのバックアップ</h3>
+<ul>
+    <li>GitHub リポジトリで自動的にバックアップ</li>
+    <li>重要な変更前にブランチを作成</li>
+    <li>ローカルにもクローンを保持</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- 10. 今後の拡張計画 -->
+<h1>10. 今後の拡張計画</h1>
+
+<h2>10.1 短期的な改善（1〜3ヶ月）</h2>
+
+<table>
+    <tr>
+        <th style="width: 30%;">機能</th>
+        <th style="width: 20%;">優先度</th>
+        <th>概要</th>
+    </tr>
+    <tr>
+        <td>NGワードフィルター</td>
+        <td>高</td>
+        <td>不適切な言葉を自動検出してブロック</td>
+    </tr>
+    <tr>
+        <td>メッセージ編集・削除</td>
+        <td>中</td>
+        <td>自分のメッセージを編集・削除できる機能</td>
+    </tr>
+    <tr>
+        <td>絵文字サポート</td>
+        <td>中</td>
+        <td>絵文字ピッカーを追加</td>
+    </tr>
+    <tr>
+        <td>通知機能</td>
+        <td>低</td>
+        <td>新着メッセージの通知（PWA）</td>
+    </tr>
+</table>
+
+<h2>10.2 中期的な拡張（3〜6ヶ月）</h2>
+
+<table>
+    <tr>
+        <th style="width: 30%;">機能</th>
+        <th style="width: 20%;">優先度</th>
+        <th>概要</th>
+    </tr>
+    <tr>
+        <td>ルーム機能</td>
+        <td>高</td>
+        <td>複数のチャットルームを作成できる</td>
+    </tr>
+    <tr>
+        <td>ユーザー認証</td>
+        <td>高</td>
+        <td>Firebase Authentication で匿名ログイン</td>
+    </tr>
+    <tr>
+        <td>プロフィール設定</td>
+        <td>中</td>
+        <td>アバター、ステータスメッセージ設定</td>
+    </tr>
+    <tr>
+        <td>ダイレクトメッセージ</td>
+        <td>中</td>
+        <td>1対1のプライベートチャット</td>
+    </tr>
+    <tr>
+        <td>画像共有</td>
+        <td>低</td>
+        <td>Firebase Storage で画像アップロード</td>
+    </tr>
+</table>
+
+<h2>10.3 長期的な展望（6ヶ月〜1年）</h2>
+
+<table>
+    <tr>
+        <th style="width: 30%;">機能</th>
+        <th style="width: 20%;">優先度</th>
+        <th>概要</th>
+    </tr>
+    <tr>
+        <td>音声・ビデオ通話</td>
+        <td>中</td>
+        <td>WebRTC を使ったリアルタイム通話</td>
+    </tr>
+    <tr>
+        <td>翻訳機能</td>
+        <td>中</td>
+        <td>多言語サポート、自動翻訳</td>
+    </tr>
+    <tr>
+        <td>ゲーム機能</td>
+        <td>低</td>
+        <td>簡単なミニゲームを追加</td>
+    </tr>
+    <tr>
+        <td>カスタムテーマ</td>
+        <td>低</td>
+        <td>ユーザーが背景やカラーを変更可能</td>
+    </tr>
+    <tr>
+        <td>AI チャットボット</td>
+        <td>低</td>
+        <td>OpenAI API を使った会話AI</td>
+    </tr>
+</table>
+
+<h2>10.4 技術的な改善</h2>
+
+<ul>
+    <li><strong>パフォーマンス最適化</strong>
+        <ul>
+            <li>遅延読み込み（Lazy Loading）</li>
+            <li>仮想スクロール（メッセージ一覧）</li>
+            <li>画像の最適化</li>
+        </ul>
+    </li>
+    <li><strong>アクセシビリティ</strong>
+        <ul>
+            <li>ARIA ラベルの追加</li>
+            <li>キーボードナビゲーション</li>
+            <li>スクリーンリーダー対応</li>
+        </ul>
+    </li>
+    <li><strong>テスト</strong>
+        <ul>
+            <li>ユニットテスト（Jest）</li>
+            <li>E2Eテスト（Cypress）</li>
+            <li>パフォーマンステスト</li>
+        </ul>
+    </li>
+    <li><strong>CI/CD</strong>
+        <ul>
+            <li>GitHub Actions で自動デプロイ</li>
+            <li>自動テスト実行</li>
+            <li>コードレビュー自動化</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>10.5 ビジネス展開</h2>
+
+<ul>
+    <li><strong>収益化</strong>
+        <ul>
+            <li>プレミアム会員（広告なし、追加機能）</li>
+            <li>カスタムスタンプ販売</li>
+            <li>企業向けプラン</li>
+        </ul>
+    </li>
+    <li><strong>マーケティング</strong>
+        <ul>
+            <li>SNS広告（Twitter, Instagram）</li>
+            <li>インフルエンサーとのコラボ</li>
+            <li>App Store, Google Play での最適化（ASO）</li>
+        </ul>
+    </li>
+    <li><strong>コミュニティ</strong>
+        <ul>
+            <li>公式Twitter アカウント</li>
+            <li>Discord サーバー</li>
+            <li>ユーザーフォーラム</li>
+        </ul>
+    </li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- 付録 -->
+<h1>付録</h1>
+
+<h2>A. 用語集</h2>
+
+<table>
+    <tr>
+        <th style="width: 25%;">用語</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>PWA</td>
+        <td>Progressive Web App。Webアプリをネイティブアプリのように使える技術</td>
+    </tr>
+    <tr>
+        <td>Service Worker</td>
+        <td>バックグラウンドで動作するスクリプト。オフライン対応などに使用</td>
+    </tr>
+    <tr>
+        <td>Firebase</td>
+        <td>Googleが提供するモバイル・Webアプリ開発プラットフォーム</td>
+    </tr>
+    <tr>
+        <td>Realtime Database</td>
+        <td>Firebase のリアルタイムデータベース。WebSocket で双方向通信</td>
+    </tr>
+    <tr>
+        <td>Capacitor</td>
+        <td>WebアプリをiOS/Androidアプリに変換するフレームワーク</td>
+    </tr>
+    <tr>
+        <td>localStorage</td>
+        <td>ブラウザにデータを保存する仕組み。永続的に保存される</td>
+    </tr>
+    <tr>
+        <td>XSS</td>
+        <td>クロスサイトスクリプティング。Webアプリの脆弱性の一種</td>
+    </tr>
+    <tr>
+        <td>OGP</td>
+        <td>Open Graph Protocol。SNSでシェアした時の表示を制御するメタタグ</td>
+    </tr>
+    <tr>
+        <td>AAB</td>
+        <td>Android App Bundle。Google Play にアップロードする形式</td>
+    </tr>
+    <tr>
+        <td>APK</td>
+        <td>Android Package。Androidアプリのインストールファイル</td>
+    </tr>
+</table>
+
+<h2>B. 参考リンク</h2>
+
+<table>
+    <tr>
+        <th style="width: 30%;">項目</th>
+        <th>URL</th>
+    </tr>
+    <tr>
+        <td>プロジェクトURL</td>
+        <td>https://koukiniwa.github.io/net-city-beta/</td>
+    </tr>
+    <tr>
+        <td>GitHubリポジトリ</td>
+        <td>https://github.com/koukiniwa/net-city-beta</td>
+    </tr>
+    <tr>
+        <td>Firebase Console</td>
+        <td>https://console.firebase.google.com/</td>
+    </tr>
+    <tr>
+        <td>Google Play Console</td>
+        <td>https://play.google.com/console/</td>
+    </tr>
+    <tr>
+        <td>Firebase ドキュメント</td>
+        <td>https://firebase.google.com/docs</td>
+    </tr>
+    <tr>
+        <td>Capacitor ドキュメント</td>
+        <td>https://capacitorjs.com/docs</td>
+    </tr>
+    <tr>
+        <td>MDN Web Docs</td>
+        <td>https://developer.mozilla.org/</td>
+    </tr>
+</table>
+
+<h2>C. 連絡先</h2>
+
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>情報</th>
+    </tr>
+    <tr>
+        <td>開発者</td>
+        <td>koukiniwa</td>
+    </tr>
+    <tr>
+        <td>Email</td>
+        <td>koukiniwa@example.com</td>
+    </tr>
+    <tr>
+        <td>GitHub</td>
+        <td>@koukiniwa</td>
+    </tr>
+    <tr>
+        <td>Issue報告</td>
+        <td>https://github.com/koukiniwa/net-city-beta/issues</td>
+    </tr>
+</table>
+
+<hr style="margin: 40px 0; border: none; border-top: 2px solid #0066cc;">
+
+<div style="text-align: center; margin-top: 50px;">
+    <h2>NET CITY β - システム仕様書</h2>
+    <p style="font-size: 12pt; color: #666;">Version 1.0</p>
+    <p style="font-size: 10pt; color: #999;">© 2025 koukiniwa. All rights reserved.</p>
+    <p style="font-size: 10pt; color: #999;">最終更新: 2025年10月23日</p>
+</div>
+
+</body>
+</html>

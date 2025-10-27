@@ -16,43 +16,55 @@ NET CITY βは、ブラウザで動くリアルタイムチャットアプリケ
 - 🚀 **リアルタイムチャット** - Firebase Realtime Databaseを使用
 - 🎨 **未来的なデザイン** - 黒を基調としたネオン風UI
 - 👥 **オンライン人数表示** - 今誰がいるかリアルタイムで分かる
-- 📱 **レスポンシブ対応** - スマホでも快適に利用可能
+- 📱 **マルチプラットフォーム** - Web、iOS、Android対応
 - 🔒 **セキュア** - Firebaseセキュリティルールで保護
 - 🆓 **無料・登録不要** - 名前を入力するだけですぐに使える
+- 🗑️ **自動削除** - メッセージは7日後に自動削除
 
 ## 🛠️ 使用技術
 
 - **フロントエンド**: HTML5, CSS3, JavaScript (ES6+)
 - **バックエンド**: Firebase Realtime Database
 - **ホスティング**: GitHub Pages
+- **モバイルアプリ**: Capacitor (iOS/Android)
 - **デザイン**: グラスモーフィズム、ネオンエフェクト
 
 ## 🚀 使い方
 
+### Web版
 1. [NET CITY β](https://koukiniwa.github.io/net-city-beta/) にアクセス
 2. 名前を入力（2〜20文字）
 3. 「入場する」をクリック
 4. チャットを楽しもう！
 
+### モバイルアプリ版
+- **iOS**: App Store からダウンロード（準備中）
+- **Android**: Google Play からダウンロード（準備中）
+
 ## 📂 ファイル構成
 
 ```
 net-city-beta/
-├── index.html          # 入場画面
-├── city.html           # チャット画面
-├── css/
-│   ├── index.css       # 入場画面スタイル
-│   └── city.css        # チャット画面スタイル
-├── js/
-│   ├── index.js        # 入場処理
-│   └── city.js         # チャット機能
-├── sitemap.xml         # サイトマップ
-├── robots.txt          # クローラー設定
-└── README.md           # このファイル
+├── www/                      # Webアプリ（アプリ版のソース）
+│   ├── index.html           # 入場画面
+│   ├── city.html            # チャット画面
+│   ├── css/                 # スタイルシート
+│   ├── js/                  # JavaScript
+│   ├── privacy.html         # プライバシーポリシー
+│   └── manifest.json        # PWAマニフェスト
+├── android/                  # Androidネイティブプロジェクト
+├── ios/                      # iOSネイティブプロジェクト
+├── resources/                # アイコン・スプラッシュ画像
+├── capacitor.config.json     # Capacitor設定
+├── package.json              # npm設定
+├── APP_STORE_PUBLISHING.md   # App Store公開ガイド
+├── APP_STORE_CHECKLIST.md    # 公開チェックリスト
+└── README.md                 # このファイル
 ```
 
-## 🔧 ローカル環境で動かす
+## 🔧 開発環境のセットアップ
 
+### Web版の開発
 ```bash
 # リポジトリをクローン
 git clone https://github.com/koukiniwa/net-city-beta.git
@@ -60,9 +72,31 @@ git clone https://github.com/koukiniwa/net-city-beta.git
 # フォルダに移動
 cd net-city-beta
 
-# index.htmlをブラウザで開く
+# www/index.htmlをブラウザで開く
 # （Live Serverなどの拡張機能を使うと便利です）
 ```
+
+### モバイルアプリのビルド
+```bash
+# 依存関係をインストール
+npm install
+
+# アイコンとスプラッシュを生成
+npm run assets
+
+# iOSアプリをビルド（Macのみ）
+npm run sync:ios
+npm run open:ios
+
+# Androidアプリをビルド
+npm run sync:android
+npm run open:android
+```
+
+詳細は以下のドキュメントを参照:
+- [アプリビルドガイド](./CAPACITOR_BUILD.md)
+- [App Store公開ガイド](./APP_STORE_PUBLISHING.md)
+- [公開チェックリスト](./APP_STORE_CHECKLIST.md)
 
 ## 🎨 機能
 
