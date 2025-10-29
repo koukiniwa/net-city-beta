@@ -393,8 +393,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         picker.appendChild(grid);
 
-        // ピッカーを配置
-        button.parentElement.appendChild(picker);
+        // ボタンの位置を取得してピッカーを配置
+        const buttonRect = button.getBoundingClientRect();
+        picker.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
+        picker.style.top = `${buttonRect.top}px`;
+
+        // bodyに追加
+        document.body.appendChild(picker);
         currentPicker = picker;
 
         // ピッカー外をクリックしたら閉じる
