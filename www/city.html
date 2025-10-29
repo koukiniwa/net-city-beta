@@ -15,6 +15,7 @@
     <meta property="og:description" content="未来的な街の背景で、リアルタイムにチャットを楽しもう！">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://koukiniwa.github.io/net-city-beta/city.html">
+    <meta property="og:image" content="https://koukiniwa.github.io/net-city-beta/ogp-image.svg">
     <meta property="og:site_name" content="NET CITY β">
     <meta property="og:locale" content="ja_JP">
 
@@ -22,6 +23,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="NET CITY β - チャット中">
     <meta name="twitter:description" content="未来的な街の背景で、リアルタイムにチャットを楽しもう！">
+    <meta name="twitter:image" content="https://koukiniwa.github.io/net-city-beta/ogp-image.svg">
 
     <!-- 検索エンジン向け -->
     <meta name="robots" content="index, follow">
@@ -32,8 +34,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NET CITY">
     <link rel="manifest" href="manifest.json">
+
+    <!-- ファビコン設定（複数サイズ） -->
     <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.webp">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.webp">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.webp">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
     <link rel="stylesheet" href="css/city.css">
@@ -91,14 +98,18 @@
 
         <!-- メッセージ入力エリア -->
         <div class="input-area">
-            <input
-                type="text"
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            <button id="imageButton" class="image-button" title="画像を送信">
+                📷
+            </button>
+            <textarea
                 id="messageInput"
                 class="message-input"
                 placeholder="メッセージを入力..."
                 maxlength="200"
                 autocomplete="off"
-            >
+                rows="1"
+            ></textarea>
             <button id="sendButton" class="send-button">
                 <span>送信</span>
             </button>
@@ -111,6 +122,7 @@
         // Firebase SDK（バージョン9以降）をインポート
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
         // Firebaseの設定
         const firebaseConfig = {
@@ -126,14 +138,13 @@
         // Firebaseを初期化
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        const storage = getStorage(app);
 
         // グローバルに公開（city.jsで使う）
         window.firebaseApp = app;
         window.firebaseDatabase = database;
+        window.firebaseStorage = storage;
     </script>
-
-    <!-- Capacitor Core -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@capacitor/core@latest/dist/capacitor.js"></script>
 
     <!-- チャット機能のJavaScriptを読み込み -->
     <script type="module" src="js/city.js"></script>
@@ -143,7 +154,7 @@
         // Service Worker がサポートされているかチェック
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
+                navigator.serviceWorker.register('/net-city-beta/service-worker.js')
                     .then((registration) => {
                         console.log('✅ Service Worker 登録成功:', registration.scope);
                     })

@@ -98,14 +98,18 @@
 
         <!-- メッセージ入力エリア -->
         <div class="input-area">
-            <input
-                type="text"
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            <button id="imageButton" class="image-button" title="画像を送信">
+                📷
+            </button>
+            <textarea
                 id="messageInput"
                 class="message-input"
                 placeholder="メッセージを入力..."
                 maxlength="200"
                 autocomplete="off"
-            >
+                rows="1"
+            ></textarea>
             <button id="sendButton" class="send-button">
                 <span>送信</span>
             </button>
@@ -118,6 +122,7 @@
         // Firebase SDK（バージョン9以降）をインポート
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
         // Firebaseの設定
         const firebaseConfig = {
@@ -133,10 +138,12 @@
         // Firebaseを初期化
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        const storage = getStorage(app);
 
         // グローバルに公開（city.jsで使う）
         window.firebaseApp = app;
         window.firebaseDatabase = database;
+        window.firebaseStorage = storage;
     </script>
 
     <!-- チャット機能のJavaScriptを読み込み -->
