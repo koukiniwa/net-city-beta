@@ -5,13 +5,13 @@
 
 const CACHE_NAME = 'net-city-v1';
 const urlsToCache = [
-  '/net-city-beta/',
-  '/net-city-beta/index.html',
-  '/net-city-beta/city.html',
-  '/net-city-beta/css/index.css',
-  '/net-city-beta/css/city.css',
-  '/net-city-beta/js/index.js',
-  '/net-city-beta/js/city.js'
+  './',
+  './index.html',
+  './city.html',
+  './css/index.css',
+  './css/city.css',
+  './js/index.js',
+  './js/city.js'
 ];
 
 // ========================================

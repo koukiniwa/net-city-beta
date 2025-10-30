@@ -80,10 +80,20 @@
 
     <!-- チャットエリア -->
     <div class="chat-container">
+        <!-- ルーム選択バー -->
+        <div class="room-bar" id="roomBar">
+            <div class="room-tabs" id="roomTabs">
+                <!-- ルームタブがここに動的に追加される -->
+            </div>
+            <button class="create-room-btn" id="createRoomBtn" title="新しいルームを作成">
+                ➕
+            </button>
+        </div>
+
         <!-- チャットヘッダー -->
         <div class="chat-header">
             <div class="online-indicator"></div>
-            <span>街のチャット</span>
+            <span id="currentRoomName">街のチャット</span>
             <span class="online-count" id="onlineCount">接続中...</span>
         </div>
 
@@ -146,6 +156,49 @@
         window.firebaseStorage = storage;
     </script>
 
+    <!-- ルーム作成モーダル -->
+    <div class="modal" id="createRoomModal">
+        <div class="modal-content">
+            <h2 class="modal-title">新しいルームを作成</h2>
+            <div class="form-group">
+                <label for="roomName">ルーム名</label>
+                <input type="text" id="roomName" maxlength="15" placeholder="例：深夜の雑談" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>絵文字アイコン</label>
+                <div class="emoji-selector" id="emojiSelector">
+                    <button class="emoji-option" data-emoji="💬">💬</button>
+                    <button class="emoji-option" data-emoji="🎮">🎮</button>
+                    <button class="emoji-option" data-emoji="🎵">🎵</button>
+                    <button class="emoji-option" data-emoji="📚">📚</button>
+                    <button class="emoji-option" data-emoji="🎨">🎨</button>
+                    <button class="emoji-option" data-emoji="⚽">⚽</button>
+                    <button class="emoji-option" data-emoji="🍕">🍕</button>
+                    <button class="emoji-option" data-emoji="☕">☕</button>
+                    <button class="emoji-option" data-emoji="🌙">🌙</button>
+                    <button class="emoji-option" data-emoji="⭐">⭐</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>最大人数</label>
+                <div class="max-users-selector">
+                    <label><input type="radio" name="maxUsers" value="10"> 10人</label>
+                    <label><input type="radio" name="maxUsers" value="20"> 20人</label>
+                    <label><input type="radio" name="maxUsers" value="30" checked> 30人</label>
+                    <label><input type="radio" name="maxUsers" value="50"> 50人</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="roomDescription">説明（任意）</label>
+                <input type="text" id="roomDescription" maxlength="50" placeholder="このルームについて..." autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelCreateRoom">キャンセル</button>
+                <button class="btn-create" id="confirmCreateRoom">作成する</button>
+            </div>
+        </div>
+    </div>
+
     <!-- チャット機能のJavaScriptを読み込み -->
     <script type="module" src="js/city.js"></script>
 
@@ -154,7 +207,7 @@
         // Service Worker がサポートされているかチェック
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/net-city-beta/service-worker.js')
+                navigator.serviceWorker.register('./service-worker.js')
                     .then((registration) => {
                         console.log('✅ Service Worker 登録成功:', registration.scope);
                     })

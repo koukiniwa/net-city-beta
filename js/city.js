@@ -40,6 +40,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageButton = document.getElementById('imageButton'); // 画像ボタン
     const imageInput = document.getElementById('imageInput'); // 画像入力
 
+    // ルーム関連の要素
+    const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
+    const createRoomBtn = document.getElementById('createRoomBtn'); // ルーム作成ボタン
+    const currentRoomName = document.getElementById('currentRoomName'); // 現在のルーム名表示
+    const createRoomModal = document.getElementById('createRoomModal'); // ルーム作成モーダル
+    const roomNameInput = document.getElementById('roomName'); // ルーム名入力
+    const roomDescriptionInput = document.getElementById('roomDescription'); // ルーム説明入力
+    const emojiSelector = document.getElementById('emojiSelector'); // 絵文字選択エリア
+    const cancelCreateRoom = document.getElementById('cancelCreateRoom'); // キャンセルボタン
+    const confirmCreateRoom = document.getElementById('confirmCreateRoom'); // 作成ボタン
+
     // ========================================
     // ヘッダーに名前を表示
     // ========================================
@@ -52,8 +63,292 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const database = window.firebaseDatabase; // city.htmlで初期化したデータベース
     const storage = window.firebaseStorage; // city.htmlで初期化したストレージ
-    const messagesRef = ref(database, 'messages'); // 'messages'というパスにデータを保存
-    const onlineUsersRef = ref(database, 'onlineUsers'); // オンラインユーザーのリスト
+
+    // ルーム機能用の参照
+    const roomsRef = ref(database, 'rooms'); // 全ルーム情報
+    const roomUsersRef = ref(database, 'roomUsers'); // 全ルームのユーザー情報
+
+    // 現在のルーム状態
+    let currentRoomId = null; // 現在いるルームID（初期値はnull）
+    let messagesRef = null; // 現在のルームのメッセージ
+    let currentRoomUsersRef = null; // 現在のルームのユーザー
+    let currentMessagesListener = null; // メッセージリスナーの参照を保持
+    let currentUserCountListener = null; // ユーザー数リスナーの参照を保持
+
+    // ルームデータのキャッシュ
+    let roomsCache = {};
+    let selectedEmoji = '💬'; // 選択された絵文字（デフォルト）
+    let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
+
+    // ユニークなユーザーIDを生成（タイムスタンプ + ランダム値）
+    // localStorageから取得、なければ新規生成して保存
+    let userId = localStorage.getItem('netcity_userId');
+    if (!userId) {
+        userId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('netcity_userId', userId);
+        console.log('新しいユーザーIDを生成しました:', userId);
+    } else {
+        console.log('既存のユーザーIDを使用します:', userId);
+    }
+
+    // ========================================
+    // ルーム機能
+    // ========================================
+
+    // ルームの初期化
+    async function initializeRooms() {
+        try {
+            console.log('ルーム初期化開始...');
+
+            // 固定ルーム（広場）を作成または確認
+            const plazaRef = ref(database, 'rooms/plaza');
+            const plazaSnapshot = await get(plazaRef);
+
+            if (!plazaSnapshot.exists()) {
+                // 広場が存在しない場合は作成
+                console.log('広場を新規作成します');
+                await set(plazaRef, {
+                    id: 'plaza',
+                    name: '広場',
+                    emoji: '🏠',
+                    maxUsers: 0, // 0 = 無制限
+                    isPermanent: true,
+                    createdAt: Date.now(),
+                    createdBy: 'system'
+                });
+            }
+
+            // 最初に一度ルーム一覧を取得
+            const roomsSnapshot = await get(roomsRef);
+            const rooms = roomsSnapshot.val();
+
+            if (rooms) {
+                console.log('ルーム一覧を取得しました:', Object.keys(rooms));
+                roomsCache = rooms;
+                updateRoomTabs(rooms);
+            } else {
+                console.error('ルーム一覧の取得に失敗しました');
+            }
+
+            // ルーム一覧をリアルタイムで監視（2回目以降の更新用）
+            onValue(roomsRef, (snapshot) => {
+                const updatedRooms = snapshot.val();
+                if (updatedRooms) {
+                    roomsCache = updatedRooms;
+                    updateRoomTabs(updatedRooms);
+                }
+            });
+
+            // 初期ルーム（広場）に入室
+            console.log('広場に入室します...');
+            await joinRoom('plaza');
+            console.log('ルーム初期化完了');
+
+        } catch (error) {
+            console.error('ルーム初期化エラー:', error);
+            alert('ルームの初期化に失敗しました。ページを再読み込みしてください。');
+        }
+    }
+
+    // ルームタブの表示を更新
+    function updateRoomTabs(rooms) {
+        // 古いリスナーを全て削除
+        Object.keys(roomUserListeners).forEach(roomId => {
+            if (roomUserListeners[roomId]) {
+                roomUserListeners[roomId](); // off関数を実行
+            }
+        });
+        roomUserListeners = {}; // リセット
+
+        roomTabs.innerHTML = ''; // 既存のタブをクリア
+
+        // ルームを配列に変換して並び替え
+        const roomArray = Object.values(rooms);
+
+        // 固定ルーム（広場）を最初に、その後は作成日時順
+        roomArray.sort((a, b) => {
+            if (a.isPermanent) return -1;
+            if (b.isPermanent) return 1;
+            return b.createdAt - a.createdAt;
+        });
+
+        // 各ルームのタブを作成
+        roomArray.forEach(room => {
+            const tab = createRoomTab(room);
+            roomTabs.appendChild(tab);
+        });
+    }
+
+    // ルームタブを作成
+    function createRoomTab(room) {
+        const tab = document.createElement('div');
+        tab.className = 'room-tab';
+        tab.dataset.roomId = room.id;
+
+        // 現在のルームの場合はactiveクラスを追加
+        if (room.id === currentRoomId) {
+            tab.classList.add('active');
+        }
+
+        // 人数を取得（リアルタイムで更新）
+        const userCountSpan = document.createElement('span');
+        userCountSpan.className = 'room-count';
+
+        // ルームのユーザー数を監視（リスナーを保存）
+        const roomUserRef = ref(database, `roomUsers/${room.id}`);
+        const unsubscribe = onValue(roomUserRef, (snapshot) => {
+            const users = snapshot.val();
+            const count = users ? Object.keys(users).length : 0;
+
+            if (room.maxUsers === 0) {
+                // 無制限の場合
+                userCountSpan.textContent = '∞';
+                userCountSpan.classList.remove('full');
+            } else {
+                // 人数制限がある場合
+                userCountSpan.textContent = `${count}/${room.maxUsers}`;
+
+                if (count >= room.maxUsers) {
+                    userCountSpan.classList.add('full');
+                    tab.classList.add('full');
+                } else {
+                    userCountSpan.classList.remove('full');
+                    tab.classList.remove('full');
+                }
+            }
+        });
+
+        // リスナーを管理用オブジェクトに保存
+        roomUserListeners[room.id] = unsubscribe;
+
+        // タブの内容を構築
+        tab.innerHTML = `
+            <span class="room-emoji">${room.emoji}</span>
+            <span class="room-name">${room.name}</span>
+        `;
+        tab.appendChild(userCountSpan);
+
+        // クリックイベント
+        tab.addEventListener('click', () => {
+            if (!tab.classList.contains('full') || room.id === currentRoomId) {
+                joinRoom(room.id);
+            }
+        });
+
+        return tab;
+    }
+
+    // ルームに入室
+    async function joinRoom(roomId) {
+        try {
+            console.log(`ルーム入室処理開始: ${roomId}`);
+
+            if (currentRoomId === roomId) {
+                console.log('既に同じルームにいます');
+                return; // 既に同じルームにいる場合は何もしない
+            }
+
+            // 前のルームから退出
+            if (currentRoomId) {
+                console.log(`前のルーム ${currentRoomId} から退出`);
+                await leaveRoom(currentRoomId);
+            }
+
+            // 古いリスナーを削除（メモリリーク対策）
+            if (currentMessagesListener) {
+                currentMessagesListener(); // off関数を実行
+                currentMessagesListener = null;
+            }
+            if (currentUserCountListener) {
+                currentUserCountListener(); // off関数を実行
+                currentUserCountListener = null;
+            }
+
+            // 新しいルームに入室
+            currentRoomId = roomId;
+            messagesRef = ref(database, `roomMessages/${roomId}`);
+            currentRoomUsersRef = ref(database, `roomUsers/${roomId}`);
+
+            // ルーム名を更新
+            const room = roomsCache[roomId];
+            if (room) {
+                currentRoomName.textContent = `${room.emoji} ${room.name}`;
+                console.log(`ルーム名を更新: ${room.name}`);
+            } else {
+                console.warn(`ルーム情報が見つかりません: ${roomId}`);
+                currentRoomName.textContent = 'チャットルーム';
+            }
+
+            // メッセージエリアをクリア
+            messagesArea.innerHTML = '<div class="welcome-message"><p>ルームに入室しました</p></div>';
+
+            // ユーザー情報を登録
+            const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
+            await set(userRef, {
+                username: username,
+                joinedAt: Date.now(),
+                lastActive: Date.now()
+            });
+            console.log('ユーザー情報を登録しました');
+
+            // ページ閉じたら自動削除
+            onDisconnect(userRef).remove();
+
+            // 現在のルームのユーザー数を監視
+            monitorCurrentRoomUsers();
+
+            // メッセージを読み込み
+            loadRoomMessages(roomId);
+
+            // ルームタブのactiveを更新
+            document.querySelectorAll('.room-tab').forEach(tab => {
+                if (tab.dataset.roomId === roomId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            console.log(`ルーム「${room ? room.name : roomId}」に入室しました`);
+
+        } catch (error) {
+            console.error('ルーム入室エラー:', error);
+            alert('ルームへの入室に失敗しました');
+        }
+    }
+
+    // ルームから退出
+    async function leaveRoom(roomId) {
+        const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
+        await remove(userRef);
+    }
+
+    // ルームのメッセージを読み込み
+    function loadRoomMessages(roomId) {
+        const roomMessagesRef = ref(database, `roomMessages/${roomId}`);
+
+        // 一度だけ実行してウェルカムメッセージを消す
+        let isFirstMessage = true;
+
+        // onChildAddedはoff関数を返すので保存
+        currentMessagesListener = onChildAdded(roomMessagesRef, (snapshot) => {
+            const message = snapshot.val();
+            const messageId = snapshot.key;
+
+            if (isFirstMessage) {
+                messagesArea.innerHTML = '';
+                isFirstMessage = false;
+            }
+
+            displayMessage(message, messageId);
+
+            // リアクションを監視
+            const messageReactionsRef = ref(database, `roomMessages/${roomId}/${messageId}/reactions`);
+            onValue(messageReactionsRef, (reactionsSnapshot) => {
+                updateReactionsDisplay(messageId, reactionsSnapshot.val());
+            });
+        });
+    }
 
     // ========================================
     // メッセージ送信の処理
@@ -157,6 +452,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // ルームに入室していない場合は送信しない
+        if (!messagesRef) {
+            console.error('ルームに入室していません');
+            alert('ルームに入室してからメッセージを送信してください。');
+            return;
+        }
+
         // Firebaseに送信するデータ
         const messageData = {
             username: username,          // 送信者の名前
@@ -189,32 +491,53 @@ document.addEventListener('DOMContentLoaded', function() {
         return Date.now() - oneDayInMs;
     }
 
-    // 古いメッセージを削除する関数
+    // 古いメッセージを削除する関数（全ルーム対象）
     async function deleteOldMessages() {
         try {
             const oneDayAgo = getOneDayAgoTimestamp();
+            console.log(`24時間前のタイムスタンプ: ${oneDayAgo} (${new Date(oneDayAgo).toLocaleString()})`);
 
-            // 24時間より古いメッセージを検索
-            const oldMessagesQuery = query(
-                messagesRef,
-                orderByChild('timestamp'),
-                endAt(oneDayAgo)
-            );
+            // 全ルームを取得
+            const roomsSnapshot = await get(roomsRef);
+            if (!roomsSnapshot.exists()) {
+                console.log('ルームが存在しません');
+                return;
+            }
 
-            // 古いメッセージを取得
-            const snapshot = await get(oldMessagesQuery);
+            const rooms = roomsSnapshot.val();
+            let totalDeleted = 0;
 
-            if (snapshot.exists()) {
-                const oldMessages = snapshot.val();
-                let deletedCount = 0;
+            // 各ルームの古いメッセージを削除
+            for (const roomId in rooms) {
+                const roomMessagesRef = ref(database, `roomMessages/${roomId}`);
 
-                // 各メッセージを削除
-                for (const messageId in oldMessages) {
-                    await remove(ref(database, `messages/${messageId}`));
-                    deletedCount++;
+                // まず全メッセージを取得してクライアント側でフィルタリング
+                const allMessagesSnapshot = await get(roomMessagesRef);
+
+                if (allMessagesSnapshot.exists()) {
+                    const allMessages = allMessagesSnapshot.val();
+
+                    for (const messageId in allMessages) {
+                        const message = allMessages[messageId];
+
+                        // タイムスタンプが存在し、24時間以上前の場合は削除
+                        if (message.timestamp && message.timestamp < oneDayAgo) {
+                            try {
+                                await remove(ref(database, `roomMessages/${roomId}/${messageId}`));
+                                totalDeleted++;
+                                console.log(`削除: ${roomId}/${messageId} (${new Date(message.timestamp).toLocaleString()})`);
+                            } catch (removeError) {
+                                console.error(`削除失敗: ${roomId}/${messageId}`, removeError);
+                            }
+                        }
+                    }
                 }
+            }
 
-                console.log(`${deletedCount}件の古いメッセージを削除しました`);
+            if (totalDeleted > 0) {
+                console.log(`✅ ${totalDeleted}件の古いメッセージを削除しました`);
+            } else {
+                console.log('削除対象の古いメッセージはありませんでした');
             }
         } catch (error) {
             console.error('古いメッセージの削除エラー:', error);
@@ -230,31 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     // メッセージの受信とリアルタイム表示
     // ========================================
-
-    // 最初に表示されているウェルカムメッセージを消す
-    let isFirstMessage = true;
-
-    // Firebaseから新しいメッセージが追加されるたびに実行される
-    onChildAdded(messagesRef, (snapshot) => {
-        // スナップショットからデータを取得
-        const message = snapshot.val();
-        const messageId = snapshot.key; // メッセージのユニークID
-
-        // 最初のメッセージが来たらウェルカムメッセージを消す
-        if (isFirstMessage) {
-            messagesArea.innerHTML = ''; // 中身を全部消す
-            isFirstMessage = false;
-        }
-
-        // メッセージを画面に表示
-        displayMessage(message, messageId);
-
-        // このメッセージのリアクションをリアルタイムで監視
-        const messageReactionsRef = ref(database, `messages/${messageId}/reactions`);
-        onValue(messageReactionsRef, (reactionsSnapshot) => {
-            updateReactionsDisplay(messageId, reactionsSnapshot.val());
-        });
-    });
+    // ※ルーム機能により、loadRoomMessages()で処理されるため、ここでのメッセージ監視は削除
 
     // ========================================
     // メッセージを画面に表示する関数
@@ -417,7 +716,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // リアクションを追加または削除する
     async function addReaction(messageId, emoji) {
         try {
-            const reactionRef = ref(database, `messages/${messageId}/reactions/${emoji}/${userId}`);
+            const reactionRef = ref(database, `roomMessages/${currentRoomId}/${messageId}/reactions/${emoji}/${userId}`);
             const snapshot = await get(reactionRef);
 
             if (snapshot.exists()) {
@@ -478,63 +777,288 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
-    // オンライン人数の管理
+    // ルーム内のオンライン人数の管理
     // ========================================
+    // ※現在のルームの人数はcurrentRoomUsersRefで監視される
 
-    // ユニークなユーザーIDを生成（タイムスタンプ + ランダム値）
-    const userId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const userOnlineRef = ref(database, `onlineUsers/${userId}`);
-
-    // 自分がオンラインであることを登録
-    set(userOnlineRef, {
-        username: username,
-        joinedAt: serverTimestamp()
-    });
-
-    // ページを閉じたら自動的に削除（重要！）
-    onDisconnect(userOnlineRef).remove();
-
-    // オンライン人数をリアルタイムで監視
-    onValue(onlineUsersRef, (snapshot) => {
-        const onlineUsers = snapshot.val();
-
-        if (onlineUsers) {
-            // オンラインユーザーの数を数える
-            const count = Object.keys(onlineUsers).length;
-
-            // 表示を更新
-            if (count === 1) {
-                onlineCount.textContent = 'あなただけ';
-            } else {
-                onlineCount.textContent = `${count}人オンライン`;
-            }
-        } else {
-            // 誰もいない場合
-            onlineCount.textContent = '0人オンライン';
+    // 現在のルームのユーザー数をリアルタイムで監視
+    function monitorCurrentRoomUsers() {
+        if (!currentRoomUsersRef) {
+            console.error('currentRoomUsersRefが未設定です');
+            return;
         }
-    });
+
+        console.log('ユーザー数の監視を開始します');
+        currentUserCountListener = onValue(currentRoomUsersRef, (snapshot) => {
+            const roomUsers = snapshot.val();
+
+            if (roomUsers) {
+                const count = Object.keys(roomUsers).length;
+                console.log(`現在の人数: ${count}人`);
+
+                if (count === 1) {
+                    onlineCount.textContent = 'あなただけ';
+                } else {
+                    onlineCount.textContent = `${count}人`;
+                }
+            } else {
+                console.log('ルームにユーザーがいません');
+                onlineCount.textContent = '0人';
+            }
+        });
+    }
 
     // ========================================
-    // 退出ボタンの処理（オンライン情報削除も含む）
+    // 退出ボタンの処理（ルームから退出）
     // ========================================
 
-    logoutButton.addEventListener('click', function() {
+    logoutButton.addEventListener('click', async function() {
         // 確認ダイアログを表示
         if (confirm('NET CITY βから退出しますか？')) {
-            // オンライン情報を削除
-            remove(userOnlineRef).then(() => {
-                // localStorageから名前を削除
-                localStorage.removeItem('netcity_username');
-                // 入場画面に戻る
-                window.location.href = 'index.html';
-            });
+            // 現在のルームから退出
+            await leaveRoom(currentRoomId);
+            // 名前とユーザーIDは保持（次回自動的に同じ名前で入場できる）
+            // 入場画面に戻る
+            window.location.href = 'index.html';
         }
     });
 
     // ========================================
-    // 入力欄にフォーカス
+    // ルーム作成モーダルの処理
     // ========================================
 
+    // 絵文字選択の処理
+    emojiSelector.addEventListener('click', (e) => {
+        if (e.target.classList.contains('emoji-option')) {
+            // 既存の選択を解除
+            document.querySelectorAll('.emoji-option').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // 新しい選択を設定
+            e.target.classList.add('selected');
+            selectedEmoji = e.target.dataset.emoji;
+        }
+    });
+
+    // ルーム作成ボタンをクリック
+    createRoomBtn.addEventListener('click', () => {
+        // デフォルト絵文字を選択状態にする
+        document.querySelectorAll('.emoji-option').forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.dataset.emoji === '💬') {
+                btn.classList.add('selected');
+            }
+        });
+        selectedEmoji = '💬';
+        // モーダルを表示
+        createRoomModal.style.display = 'flex';
+        roomNameInput.value = '';
+        roomDescriptionInput.value = '';
+        roomNameInput.focus();
+    });
+
+    // キャンセルボタン
+    cancelCreateRoom.addEventListener('click', () => {
+        createRoomModal.style.display = 'none';
+    });
+
+    // モーダルの外側をクリックしたら閉じる
+    createRoomModal.addEventListener('click', (e) => {
+        if (e.target === createRoomModal) {
+            createRoomModal.style.display = 'none';
+        }
+    });
+
+    // ルーム作成確定ボタン
+    confirmCreateRoom.addEventListener('click', async () => {
+        const roomName = roomNameInput.value.trim();
+
+        // バリデーション
+        if (!roomName || roomName.length < 2) {
+            alert('ルーム名は2文字以上で入力してください');
+            return;
+        }
+
+        if (roomName.length > 15) {
+            alert('ルーム名は15文字以内で入力してください');
+            return;
+        }
+
+        // 選択されたmaxUsersを取得
+        const maxUsersRadio = document.querySelector('input[name="maxUsers"]:checked');
+        const maxUsers = parseInt(maxUsersRadio.value);
+
+        try {
+            // 既存のルーム数をチェック（広場を除く）
+            const roomsSnapshot = await get(roomsRef);
+            const rooms = roomsSnapshot.val() || {};
+            const customRooms = Object.values(rooms).filter(room => !room.isPermanent);
+
+            if (customRooms.length >= 8) {
+                alert('カスタムルームは最大8個までです');
+                return;
+            }
+
+            // ユーザーが既にルームを作成していないかチェック
+            const userCreatedRoom = customRooms.find(room => room.createdBy === userId);
+            if (userCreatedRoom) {
+                alert('既にルームを作成しています。作成できるルームは1つまでです。');
+                return;
+            }
+
+            // ルームIDを生成
+            const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // ルームデータを作成
+            const roomData = {
+                id: roomId,
+                name: roomName,
+                emoji: selectedEmoji,
+                maxUsers: maxUsers,
+                description: roomDescriptionInput.value.trim() || '',
+                isPermanent: false,
+                createdAt: Date.now(),
+                createdBy: userId,
+                creatorName: username
+            };
+
+            // Firebaseに保存
+            await set(ref(database, `rooms/${roomId}`), roomData);
+
+            console.log(`ルーム「${roomName}」を作成しました`);
+
+            // モーダルを閉じる
+            createRoomModal.style.display = 'none';
+
+            // 作成したルームに自動的に入室
+            await joinRoom(roomId);
+
+        } catch (error) {
+            console.error('ルーム作成エラー:', error);
+            alert('ルームの作成に失敗しました');
+        }
+    });
+
+    // ========================================
+    // 自動削除ロジック
+    // ========================================
+
+    // ルームの自動削除チェック（定期実行）
+    async function checkAndDeleteEmptyRooms() {
+        try {
+            const roomsSnapshot = await get(roomsRef);
+            if (!roomsSnapshot.exists()) return;
+
+            const rooms = roomsSnapshot.val();
+            const now = Date.now();
+            const oneHourInMs = 60 * 60 * 1000; // 1時間
+            const oneDayInMs = 24 * 60 * 60 * 1000; // 24時間
+
+            for (const roomId in rooms) {
+                const room = rooms[roomId];
+
+                // 固定ルーム（広場）はスキップ
+                if (room.isPermanent) continue;
+
+                // ルームのユーザー数を取得
+                const roomUserRef = ref(database, `roomUsers/${roomId}`);
+                const usersSnapshot = await get(roomUserRef);
+                const users = usersSnapshot.val();
+                const userCount = users ? Object.keys(users).length : 0;
+
+                // 削除条件1: 1時間以上誰もいない
+                const isEmptyForOneHour = userCount === 0 && (now - room.createdAt) > oneHourInMs;
+
+                // 削除条件2: 作成から24時間経過
+                const isOlderThanOneDay = (now - room.createdAt) > oneDayInMs;
+
+                if (isEmptyForOneHour || isOlderThanOneDay) {
+                    // ルームを削除
+                    await remove(ref(database, `rooms/${roomId}`));
+                    await remove(ref(database, `roomUsers/${roomId}`));
+                    await remove(ref(database, `roomMessages/${roomId}`));
+
+                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isOlderThanOneDay ? '24時間経過' : '1時間以上空室'}）`);
+                }
+            }
+        } catch (error) {
+            console.error('ルーム自動削除エラー:', error);
+        }
+    }
+
+    // 10分ごとに自動削除チェック
+    setInterval(checkAndDeleteEmptyRooms, 10 * 60 * 1000);
+
+    // ========================================
+    // スワイプでルーム切り替え（スマホ対応）
+    // ========================================
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    // タッチ開始
+    messagesArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    // タッチ終了
+    messagesArea.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    }, { passive: true });
+
+    // スワイプ処理
+    function handleSwipe() {
+        const swipeDistanceX = touchEndX - touchStartX;
+        const swipeDistanceY = touchEndY - touchStartY;
+
+        // 縦スクロールの方が大きい場合はスワイプとみなさない
+        if (Math.abs(swipeDistanceY) > Math.abs(swipeDistanceX)) {
+            return;
+        }
+
+        // 50px以上のスワイプで反応
+        const minSwipeDistance = 50;
+
+        if (Math.abs(swipeDistanceX) > minSwipeDistance) {
+            // 現在のルーム一覧を取得
+            const roomTabs = Array.from(document.querySelectorAll('.room-tab'));
+            const currentIndex = roomTabs.findIndex(tab => tab.dataset.roomId === currentRoomId);
+
+            if (currentIndex === -1) return;
+
+            let targetIndex = currentIndex;
+
+            // 左スワイプ = 次のルーム
+            if (swipeDistanceX < 0 && currentIndex < roomTabs.length - 1) {
+                targetIndex = currentIndex + 1;
+            }
+            // 右スワイプ = 前のルーム
+            else if (swipeDistanceX > 0 && currentIndex > 0) {
+                targetIndex = currentIndex - 1;
+            }
+
+            // ルーム切り替え
+            if (targetIndex !== currentIndex) {
+                const targetRoomId = roomTabs[targetIndex].dataset.roomId;
+                joinRoom(targetRoomId);
+                console.log(`スワイプでルーム切り替え: ${targetRoomId}`);
+            }
+        }
+    }
+
+    // ========================================
+    // 初期化
+    // ========================================
+
+    // ルーム機能を初期化
+    initializeRooms();
+
+    // 入力欄にフォーカス
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
 });

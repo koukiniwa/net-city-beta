@@ -5,6 +5,16 @@
 // ページが読み込まれたら実行される
 document.addEventListener('DOMContentLoaded', function() {
 
+    // ========================================
+    // 既に名前が保存されている場合は自動的にチャット画面へ
+    // ========================================
+    const savedUsername = localStorage.getItem('netcity_username');
+    if (savedUsername) {
+        console.log(`既存のユーザー「${savedUsername}」として自動入場します`);
+        window.location.href = 'city.html';
+        return; // ここで処理を終了
+    }
+
     // HTML要素を取得（IDで指定）
     const usernameInput = document.getElementById('username'); // 名前入力欄
     const enterButton = document.getElementById('enterButton'); // 入場ボタン
