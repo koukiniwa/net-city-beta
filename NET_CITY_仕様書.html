@@ -119,14 +119,14 @@
 <div class="cover">
     <h1>NET CITY β</h1>
     <div class="subtitle">システム仕様書</div>
-    <div class="version">Version 1.0</div>
+    <div class="version">Version 1.1.0</div>
     <div style="margin-top: 50px;">
         <p>リアルタイムチャットアプリケーション</p>
         <p>技術仕様・データ管理・運用ガイド</p>
     </div>
     <div style="margin-top: 100px; font-size: 12pt;">
         <p>作成者: koukiniwa</p>
-        <p>最終更新: 2025年10月23日</p>
+        <p>最終更新: 2025年10月30日</p>
     </div>
 </div>
 
@@ -145,6 +145,8 @@
     <li>デプロイメント</li>
     <li>運用・保守</li>
     <li>今後の拡張計画</li>
+    <li>v1.1.0アップデート内容</li>
+    <li>変更履歴</li>
 </ol>
 
 <div class="page-break"></div>
@@ -189,8 +191,14 @@
 <h2>1.2 主要機能</h2>
 <ul>
     <li><strong>リアルタイムチャット</strong> - 送信したメッセージが即座に全ユーザーに配信</li>
-    <li><strong>オンライン人数表示</strong> - 現在何人が接続しているかリアルタイム表示</li>
-    <li><strong>自動メッセージ削除</strong> - 7日経過したメッセージを自動削除</li>
+    <li><strong>マルチルーム機能</strong> - 複数のチャットルームを作成・切り替え可能</li>
+    <li><strong>スワイプ操作</strong> - スマホで左右スワイプによるルーム切り替え（v1.1.0新機能）</li>
+    <li><strong>リアクション機能</strong> - メッセージに絵文字でリアクション可能</li>
+    <li><strong>画像送信</strong> - 画像をアップロードして共有可能</li>
+    <li><strong>URLリンク化</strong> - メッセージ内のURLを自動的にリンク化</li>
+    <li><strong>オンライン人数表示</strong> - 各ルームの現在の人数をリアルタイム表示</li>
+    <li><strong>自動メッセージ削除</strong> - 24時間経過したメッセージを自動削除</li>
+    <li><strong>ルーム作成制限</strong> - 1ユーザー1ルームまで（不正対策強化済み）</li>
     <li><strong>登録不要</strong> - メールアドレスやアカウント登録なしで利用可能</li>
     <li><strong>PWA対応</strong> - ホーム画面に追加してアプリのように使用可能</li>
     <li><strong>マルチプラットフォーム</strong> - Web、iOS、Android対応</li>
@@ -485,30 +493,120 @@ Value: ユーザーが入力した名前（文字列）
 
 <div class="code">
 net-city-beta (ルート)
-├── messages/                    # メッセージデータ
-│   ├── {messageId1}/
-│   │   ├── username: "太郎"
-│   │   ├── text: "こんにちは！"
-│   │   └── timestamp: 1698123456789
-│   ├── {messageId2}/
-│   │   ├── username: "花子"
-│   │   ├── text: "よろしく"
-│   │   └── timestamp: 1698123460000
-│   └── ...
+├── rooms/                          # ルーム情報
+│   ├── plaza/                      # 広場（固定ルーム）
+│   │   ├── id: "plaza"
+│   │   ├── name: "広場"
+│   │   ├── emoji: "🏠"
+│   │   ├── maxUsers: 0             # 0 = 無制限
+│   │   ├── isPermanent: true
+│   │   ├── createdAt: 1698123456789
+│   │   └── createdBy: "system"
+│   │
+│   └── {roomId}/                   # カスタムルーム
+│       ├── id: "room_1234_abc"
+│       ├── name: "雑談"
+│       ├── emoji: "💬"
+│       ├── maxUsers: 10
+│       ├── description: "自由に話そう"
+│       ├── isPermanent: false
+│       ├── createdAt: 1698123456789
+│       ├── createdBy: "userId_xxx"
+│       └── creatorName: "太郎"
 │
-└── onlineUsers/                 # オンラインユーザー
-    ├── {userId1}/
-    │   ├── username: "太郎"
-    │   └── joinedAt: 1698123456789
-    ├── {userId2}/
-    │   ├── username: "花子"
-    │   └── joinedAt: 1698123460000
-    └── ...
+├── roomMessages/                   # ルームごとのメッセージ
+│   ├── plaza/
+│   │   ├── {messageId1}/
+│   │   │   ├── username: "太郎"
+│   │   │   ├── text: "こんにちは！"
+│   │   │   ├── timestamp: 1698123456789
+│   │   │   ├── imageUrl: "..." (オプション)
+│   │   │   └── reactions: {...} (オプション)
+│   │   └── {messageId2}/
+│   │       └── ...
+│   │
+│   └── {roomId}/
+│       └── ...
+│
+└── roomUsers/                      # ルームごとのオンラインユーザー
+    ├── plaza/
+    │   ├── {userId1}/
+    │   │   ├── username: "太郎"
+    │   │   └── timestamp: 1698123456789
+    │   └── {userId2}/
+    │       └── ...
+    │
+    └── {roomId}/
+        └── ...
 </div>
 
 <h2>4.2 データスキーマ</h2>
 
-<h3>4.2.1 messages コレクション</h3>
+<h3>4.2.1 rooms コレクション</h3>
+<table>
+    <tr>
+        <th style="width: 20%;">フィールド</th>
+        <th style="width: 15%;">型</th>
+        <th style="width: 15%;">必須</th>
+        <th>説明</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>ルームの一意識別子</td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>ルーム名（2〜20文字）</td>
+    </tr>
+    <tr>
+        <td>emoji</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>ルームを表す絵文字</td>
+    </tr>
+    <tr>
+        <td>maxUsers</td>
+        <td>Number</td>
+        <td>Yes</td>
+        <td>最大ユーザー数（0=無制限）</td>
+    </tr>
+    <tr>
+        <td>description</td>
+        <td>String</td>
+        <td>No</td>
+        <td>ルームの説明文</td>
+    </tr>
+    <tr>
+        <td>isPermanent</td>
+        <td>Boolean</td>
+        <td>Yes</td>
+        <td>永続ルームかどうか（trueの場合は削除不可）</td>
+    </tr>
+    <tr>
+        <td>createdAt</td>
+        <td>Number</td>
+        <td>Yes</td>
+        <td>作成時刻（UNIXタイムスタンプ）</td>
+    </tr>
+    <tr>
+        <td>createdBy</td>
+        <td>String</td>
+        <td>Yes</td>
+        <td>作成者のユーザーID</td>
+    </tr>
+    <tr>
+        <td>creatorName</td>
+        <td>String</td>
+        <td>No</td>
+        <td>作成者の表示名</td>
+    </tr>
+</table>
+
+<h3>4.2.2 roomMessages コレクション</h3>
 <table>
     <tr>
         <th style="width: 20%;">フィールド</th>
@@ -534,9 +632,21 @@ net-city-beta (ルート)
         <td>Yes</td>
         <td>送信時刻（UNIXタイムスタンプ、ミリ秒）<br>serverTimestamp() で自動生成</td>
     </tr>
+    <tr>
+        <td>imageUrl</td>
+        <td>String</td>
+        <td>No</td>
+        <td>画像のURL（Firebase Storageから取得）</td>
+    </tr>
+    <tr>
+        <td>reactions</td>
+        <td>Object</td>
+        <td>No</td>
+        <td>リアクション情報（絵文字: カウント数）</td>
+    </tr>
 </table>
 
-<h3>4.2.2 onlineUsers コレクション</h3>
+<h3>4.2.3 roomUsers コレクション</h3>
 <table>
     <tr>
         <th style="width: 20%;">フィールド</th>
@@ -551,10 +661,10 @@ net-city-beta (ルート)
         <td>ユーザー名（表示用）</td>
     </tr>
     <tr>
-        <td>joinedAt</td>
+        <td>timestamp</td>
         <td>Number</td>
         <td>Yes</td>
-        <td>接続開始時刻（UNIXタイムスタンプ、ミリ秒）</td>
+        <td>入室時刻（UNIXタイムスタンプ、ミリ秒）</td>
     </tr>
 </table>
 
@@ -562,31 +672,44 @@ net-city-beta (ルート)
 
 <h3>4.3.1 メッセージの自動削除</h3>
 <ul>
-    <li><strong>削除タイミング</strong>: メッセージ送信から7日（168時間）経過後</li>
+    <li><strong>削除タイミング</strong>: メッセージ送信から24時間経過後</li>
     <li><strong>削除方式</strong>: クライアント側で定期チェック
         <ul>
             <li>ページ読み込み時に1回実行</li>
             <li>その後1時間ごとに実行（setInterval）</li>
         </ul>
     </li>
-    <li><strong>削除処理</strong>:
+    <li><strong>削除処理</strong>（v1.1.0で改善）:
         <div class="code">
-// 7日前のタイムスタンプを計算
-const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+// 24時間前のタイムスタンプを計算
+const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
 
-// 古いメッセージを検索
-const oldMessagesQuery = query(
-    messagesRef,
-    orderByChild('timestamp'),
-    endAt(oneWeekAgo)
-);
+// 全メッセージを取得してクライアント側でフィルタリング
+const allMessagesSnapshot = await get(roomMessagesRef);
+if (allMessagesSnapshot.exists()) {
+    const allMessages = allMessagesSnapshot.val();
 
-// 削除実行
-const snapshot = await get(oldMessagesQuery);
-for (const messageId in snapshot.val()) {
-    await remove(ref(database, `messages/${messageId}`));
+    for (const messageId in allMessages) {
+        const message = allMessages[messageId];
+
+        // timestampが存在し、24時間以上経過している場合
+        if (message.timestamp && message.timestamp < oneDayAgo) {
+            await remove(ref(database, `roomMessages/${roomId}/${messageId}`));
+            totalDeleted++;
+            console.log(`削除: ${roomId}/${messageId}`,
+                new Date(message.timestamp).toLocaleString());
+        }
+    }
 }
         </div>
+    </li>
+    <li><strong>v1.1.0での改善点</strong>:
+        <ul>
+            <li>Firebase クエリ方式からクライアント側フィルタリング方式に変更</li>
+            <li>null値の処理エラーを解消</li>
+            <li>詳細なログ出力を追加</li>
+            <li>エラーハンドリングを強化</li>
+        </ul>
     </li>
 </ul>
 
@@ -595,9 +718,9 @@ for (const messageId in snapshot.val()) {
     <li><strong>削除タイミング</strong>: ユーザーが切断した瞬間</li>
     <li><strong>削除方式</strong>: Firebase の onDisconnect() 機能
         <div class="code">
-// 接続時に自動削除を設定
-const userOnlineRef = ref(database, `onlineUsers/${userId}`);
-onDisconnect(userOnlineRef).remove();
+// 接続時に自動削除を設定（各ルームごと）
+const userInRoomRef = ref(database, `roomUsers/${roomId}/${userId}`);
+onDisconnect(userInRoomRef).remove();
         </div>
     </li>
     <li><strong>削除トリガー</strong>:
@@ -606,6 +729,20 @@ onDisconnect(userOnlineRef).remove();
             <li>退出ボタンをクリック</li>
             <li>ネットワーク切断</li>
             <li>アプリを閉じる</li>
+            <li>別のルームに移動</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>4.3.3 空のルームの自動削除（v1.1.0新機能）</h3>
+<ul>
+    <li><strong>削除対象</strong>: 永続ルーム以外で、24時間以上人がいないルーム</li>
+    <li><strong>削除タイミング</strong>: メッセージ削除と同じ周期（1時間ごと）</li>
+    <li><strong>処理内容</strong>:
+        <ul>
+            <li>各ルームの最終活動時刻をチェック</li>
+            <li>24時間以上経過していれば、ルームとメッセージを削除</li>
+            <li>永続ルーム（plaza等）は削除対象外</li>
         </ul>
     </li>
 </ul>
@@ -1597,6 +1734,194 @@ firebase database:get / > backup_YYYYMMDD.json
 
 <div class="page-break"></div>
 
+<!-- 11. v1.1.0アップデート内容 -->
+<h1>11. v1.1.0アップデート内容</h1>
+
+<h2>11.1 アップデート概要</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>バージョン</td>
+        <td>1.1.0</td>
+    </tr>
+    <tr>
+        <td>リリース日</td>
+        <td>2025年10月30日</td>
+    </tr>
+    <tr>
+        <td>主な変更</td>
+        <td>スワイプ機能追加、ルーム作成制限強化、UI/UX改善、バグ修正</td>
+    </tr>
+</table>
+
+<h2>11.2 新機能</h2>
+
+<h3>11.2.1 スマホでの横スワイプによるルーム切り替え</h3>
+<div class="highlight">
+スマートフォンでメッセージエリアを左右にスワイプすることで、ルーム間を素早く切り替えられる機能を追加しました。
+</div>
+
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>詳細</th>
+    </tr>
+    <tr>
+        <td>操作方法</td>
+        <td>左スワイプ (←): 次のルームへ移動<br>右スワイプ (→): 前のルームへ移動<br>縦スクロール (↕): 従来通りのメッセージスクロール</td>
+    </tr>
+    <tr>
+        <td>検出距離</td>
+        <td>50px以上のスワイプで反応</td>
+    </tr>
+    <tr>
+        <td>対応デバイス</td>
+        <td>スマートフォン、タブレット、タッチスクリーン搭載PC</td>
+    </tr>
+    <tr>
+        <td>実装ファイル</td>
+        <td>js/city.js (989-1039行目)</td>
+    </tr>
+</table>
+
+<h2>11.3 機能改善</h2>
+
+<h3>11.3.1 ルーム作成制限の強化</h3>
+<p>以前は、ページをリロードするたびに新しいユーザーIDが生成されていたため、「1ユーザー1ルーム」の制限が機能していませんでした。v1.1.0では以下の改善を実施しました：</p>
+
+<table>
+    <tr>
+        <th style="width: 30%;">改善内容</th>
+        <th>効果</th>
+    </tr>
+    <tr>
+        <td>userId の localStorage 永続化</td>
+        <td>ページリロード後も同じユーザーとして認識<br>ルーム作成制限が正しく機能</td>
+    </tr>
+    <tr>
+        <td>退出時のデータ保持</td>
+        <td>次回アクセス時に名前入力不要<br>別の名前での入り直しを防止</td>
+    </tr>
+    <tr>
+        <td>自動リダイレクト機能</td>
+        <td>既存ユーザーは入場画面をスキップ<br>スムーズな再入場体験</td>
+    </tr>
+</table>
+
+<h3>11.3.2 UI/UXの改善</h3>
+<ul>
+    <li><strong>ルームタブのスクロール改善</strong>
+        <ul>
+            <li>作成ボタン（➕）が常に右端に固定表示</li>
+            <li>ルームタブのみがスクロール</li>
+            <li>直感的な操作性の向上</li>
+        </ul>
+    </li>
+    <li><strong>リアクション表示のコンパクト化</strong>
+        <ul>
+            <li>省スペース化でメッセージ表示領域を確保</li>
+            <li>視認性の向上</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>11.4 バグ修正</h2>
+
+<h3>11.4.1 Service Worker のパス問題修正</h3>
+<ul>
+    <li><strong>問題</strong>: 絶対パス使用により異なる環境で404エラーが発生</li>
+    <li><strong>解決策</strong>: 相対パスに変更</li>
+    <li><strong>効果</strong>: あらゆる環境で正常に動作、オフライン対応が機能</li>
+</ul>
+
+<h3>11.4.2 メッセージ自動削除機能の修正</h3>
+<ul>
+    <li><strong>問題</strong>: Firebase クエリ方式でのエラー、null値の処理問題</li>
+    <li><strong>解決策</strong>: クライアント側フィルタリング方式に変更</li>
+    <li><strong>改善点</strong>:
+        <ul>
+            <li>詳細なログ出力を追加</li>
+            <li>エラーハンドリング強化</li>
+            <li>null チェックの実装</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>11.4.3 その他のバグ修正</h3>
+<ul>
+    <li>sendMessage 関数の null 参照エラー修正</li>
+    <li>Firebase Permission denied エラーへの対応方法を文書化</li>
+</ul>
+
+<h2>11.5 パフォーマンス</h2>
+<table>
+    <tr>
+        <th style="width: 30%;">項目</th>
+        <th>詳細</th>
+    </tr>
+    <tr>
+        <td>スワイプ検出</td>
+        <td>{ passive: true } オプションでスクロールパフォーマンス維持</td>
+    </tr>
+    <tr>
+        <td>メモリ使用量</td>
+        <td>平均 50〜80MB（多数のメッセージ表示時は最大120MB）</td>
+    </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- 12. 変更履歴 -->
+<h1>12. 変更履歴</h1>
+
+<h2>Version 1.1.0（2025年10月30日）</h2>
+<h3>新機能</h3>
+<ul>
+    <li>✨ スマホでの横スワイプによるルーム切り替え機能を追加</li>
+    <li>✨ リアクション機能の実装</li>
+    <li>✨ 画像送信機能の実装</li>
+    <li>✨ URLの自動リンク化機能を追加</li>
+</ul>
+
+<h3>機能改善</h3>
+<ul>
+    <li>🔧 userId の localStorage 永続化でルーム作成制限を強化</li>
+    <li>🔧 退出時のデータ保持で再入場を簡単に</li>
+    <li>🔧 入場画面での自動リダイレクト機能を追加</li>
+    <li>🎨 ルームタブのスクロール問題を修正</li>
+    <li>🎨 リアクション表示をコンパクト化</li>
+</ul>
+
+<h3>バグ修正</h3>
+<ul>
+    <li>🐛 Service Worker のパス問題を修正（絶対パス→相対パス）</li>
+    <li>🐛 24時間後のメッセージ自動削除機能を修正</li>
+    <li>🐛 sendMessage 関数の null 参照エラーを修正</li>
+    <li>🐛 画像ボタンを一時的に非表示に設定（調整中）</li>
+</ul>
+
+<h3>ドキュメント</h3>
+<ul>
+    <li>📝 Firebase Permission denied エラーへの対応方法を文書化</li>
+    <li>📝 システム仕様書を v1.1.0 に更新</li>
+</ul>
+
+<h2>Version 1.0.0（2025年10月23日）</h2>
+<ul>
+    <li>🎉 初回リリース</li>
+    <li>チャット機能の基本実装</li>
+    <li>マルチルーム機能の実装</li>
+    <li>オンライン人数表示</li>
+    <li>自動メッセージ削除（7日間）</li>
+    <li>PWA対応</li>
+    <li>モバイルアプリ対応（iOS/Android）</li>
+</ul>
+
+<div class="page-break"></div>
+
 <!-- 付録 -->
 <h1>付録</h1>
 
@@ -1715,9 +2040,9 @@ firebase database:get / > backup_YYYYMMDD.json
 
 <div style="text-align: center; margin-top: 50px;">
     <h2>NET CITY β - システム仕様書</h2>
-    <p style="font-size: 12pt; color: #666;">Version 1.0</p>
+    <p style="font-size: 12pt; color: #666;">Version 1.1.0</p>
     <p style="font-size: 10pt; color: #999;">© 2025 koukiniwa. All rights reserved.</p>
-    <p style="font-size: 10pt; color: #999;">最終更新: 2025年10月23日</p>
+    <p style="font-size: 10pt; color: #999;">最終更新: 2025年10月30日</p>
 </div>
 
 </body>

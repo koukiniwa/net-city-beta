@@ -138,6 +138,23 @@ body {
     border: 1px solid rgba(139, 92, 246, 0.5);
 }
 
+.edit-name-button {
+    padding: 6px 12px;
+    background: rgba(0, 212, 255, 0.2);
+    border: 1px solid rgba(0, 212, 255, 0.5);
+    border-radius: 20px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.edit-name-button:hover {
+    background: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    transform: scale(1.05);
+}
+
 .logout-button {
     padding: 8px 20px;
     background: rgba(255, 51, 102, 0.2);

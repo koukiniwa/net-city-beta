@@ -809,6 +809,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
+    // 名前変更ボタンの処理
+    // ========================================
+
+    const editNameButton = document.getElementById('editNameButton');
+
+    editNameButton.addEventListener('click', async function() {
+        const currentUsername = localStorage.getItem('netcity_username');
+
+        // 新しい名前を入力
+        const newName = prompt(`新しい名前を入力してください（2〜20文字）\n現在の名前: ${currentUsername}`, currentUsername);
+
+        // キャンセルまたは空文字の場合
+        if (!newName) {
+            return;
+        }
+
+        const trimmedName = newName.trim();
+
+        // バリデーション
+        if (trimmedName.length < 2) {
+            alert('名前は2文字以上で入力してください');
+            return;
+        }
+
+        if (trimmedName.length > 20) {
+            alert('名前は20文字以内で入力してください');
+            return;
+        }
+
+        // 同じ名前の場合
+        if (trimmedName === currentUsername) {
+            alert('同じ名前です');
+            return;
+        }
+
+        // 確認ダイアログ
+        if (confirm(`名前を「${trimmedName}」に変更しますか？\n\n注意: 過去に送信したメッセージの名前は変わりません。`)) {
+            // localStorageに保存
+            localStorage.setItem('netcity_username', trimmedName);
+
+            // ヘッダーの表示を更新
+            usernameDisplay.textContent = trimmedName;
+
+            // 自分が作成したルームの作成者名を更新
+            try {
+                const allRoomsSnapshot = await get(roomsRef);
+                if (allRoomsSnapshot.exists()) {
+                    const rooms = allRoomsSnapshot.val();
+                    for (const roomId in rooms) {
+                        const room = rooms[roomId];
+                        // 自分が作成したルームの場合
+                        if (room.createdBy === userId) {
+                            const roomRef = ref(database, `rooms/${roomId}`);
+                            await update(roomRef, {
+                                creatorName: trimmedName
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('ルーム作成者名の更新エラー:', error);
+            }
+
+            alert(`名前を「${trimmedName}」に変更しました！`);
+        }
+    });
+
+    // ========================================
     // 退出ボタンの処理（ルームから退出）
     // ========================================
 
