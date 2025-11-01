@@ -32,13 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
 
     const usernameDisplay = document.getElementById('usernameDisplay'); // ヘッダーの名前表示
-    const logoutButton = document.getElementById('logoutButton'); // 退出ボタン
     const messagesArea = document.getElementById('messagesArea'); // メッセージ表示エリア
     const messageInput = document.getElementById('messageInput'); // 入力欄
     const sendButton = document.getElementById('sendButton'); // 送信ボタン
     const onlineCount = document.getElementById('onlineCount'); // オンライン人数表示
     const imageButton = document.getElementById('imageButton'); // 画像ボタン
     const imageInput = document.getElementById('imageInput'); // 画像入力
+    const chatHeader = document.querySelector('.chat-header'); // チャットヘッダー
+    const inputArea = document.querySelector('.input-area'); // 入力エリア
 
     // ルーム関連の要素
     const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
@@ -251,6 +252,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // フェードアウトアニメーション開始
             messagesArea.classList.add('fade-out');
             messagesArea.classList.remove('fade-in');
+            chatHeader.classList.add('fade-out');
+            chatHeader.classList.remove('fade-in');
+            inputArea.classList.add('fade-out');
+            inputArea.classList.remove('fade-in');
 
             // アニメーションの完了を待つ（300ms）
             await new Promise(resolve => setTimeout(resolve, 300));
@@ -319,6 +324,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // フェードインアニメーション開始
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
+            chatHeader.classList.remove('fade-out');
+            chatHeader.classList.add('fade-in');
+            inputArea.classList.remove('fade-out');
+            inputArea.classList.add('fade-in');
 
             console.log(`ルーム「${room ? room.name : roomId}」に入室しました`);
 
@@ -328,6 +337,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // エラー時もフェードインして画面を戻す
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
+            chatHeader.classList.remove('fade-out');
+            chatHeader.classList.add('fade-in');
+            inputArea.classList.remove('fade-out');
+            inputArea.classList.add('fade-in');
         }
     }
 
@@ -887,21 +900,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             alert(`名前を「${trimmedName}」に変更しました！`);
-        }
-    });
-
-    // ========================================
-    // 退出ボタンの処理（ルームから退出）
-    // ========================================
-
-    logoutButton.addEventListener('click', async function() {
-        // 確認ダイアログを表示
-        if (confirm('NET CITY βから退出しますか？')) {
-            // 現在のルームから退出
-            await leaveRoom(currentRoomId);
-            // 名前とユーザーIDは保持（次回自動的に同じ名前で入場できる）
-            // 入場画面に戻る
-            window.location.href = 'index.html';
         }
     });
 

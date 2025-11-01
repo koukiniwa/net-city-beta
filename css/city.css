@@ -101,7 +101,7 @@ body {
     color: #333333;
     padding: 8px 15px;
     background: #f5f5f5;
-    border-radius: 20px;
+    border-radius: 4px;
     border: 1px solid #e0e0e0;
 }
 
@@ -109,7 +109,7 @@ body {
     padding: 6px 12px;
     background: #ffffff;
     border: 1px solid #2196f3;
-    border-radius: 20px;
+    border-radius: 4px;
     color: #2196f3;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -119,21 +119,6 @@ body {
 .edit-name-button:hover {
     background: #e3f2fd;
     transform: scale(1.05);
-}
-
-.logout-button {
-    padding: 8px 20px;
-    background: #ffffff;
-    border: 1px solid #f44336;
-    border-radius: 20px;
-    color: #f44336;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.logout-button:hover {
-    background: #ffebee;
 }
 
 /* ========================================
@@ -151,7 +136,7 @@ body {
     max-height: 700px; /* 最大の高さを設定 */
     background: #ffffff; /* 白背景 */
     border: 1px solid #e0e0e0;
-    border-radius: 20px;
+    border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
@@ -202,7 +187,7 @@ body {
     padding: 6px 12px;
     background: #ffffff;
     border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    border-radius: 4px;
     color: #333333;
     font-size: 0.9rem;
     cursor: pointer;
@@ -252,7 +237,7 @@ body {
     height: 32px;
     background: #ffffff;
     border: 1px dashed #2196f3;
-    border-radius: 8px;
+    border-radius: 4px;
     color: #2196f3;
     font-size: 1.2rem;
     cursor: pointer;
@@ -279,6 +264,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
 }
 
 /* オンラインインジケーター（緑の点） */
@@ -330,13 +316,17 @@ body {
 }
 
 /* ルーム切り替え時のフェードアウト */
-.messages-area.fade-out {
+.messages-area.fade-out,
+.chat-header.fade-out,
+.input-area.fade-out {
     opacity: 0;
     transform: translateX(-20px);
 }
 
 /* ルーム切り替え時のフェードイン */
-.messages-area.fade-in {
+.messages-area.fade-in,
+.chat-header.fade-in,
+.input-area.fade-in {
     opacity: 1;
     transform: translateX(0);
 }
@@ -348,12 +338,12 @@ body {
 
 .messages-area::-webkit-scrollbar-track {
     background: #f5f5f5;
-    border-radius: 10px;
+    border-radius: 0;
 }
 
 .messages-area::-webkit-scrollbar-thumb {
     background: #bdbdbd;
-    border-radius: 10px;
+    border-radius: 0;
 }
 
 .messages-area::-webkit-scrollbar-thumb:hover {
@@ -415,7 +405,7 @@ body {
     padding: 12px 15px;
     background: #f5f5f5;
     border-left: 3px solid #2196f3;
-    border-radius: 8px;
+    border-radius: 4px;
     color: #333333;
     line-height: 1.5;
     word-wrap: break-word; /* 長い文字を折り返す */
@@ -436,7 +426,7 @@ body {
 .message-image {
     max-width: 300px;
     max-height: 300px;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
     object-fit: contain;
@@ -495,7 +485,7 @@ body {
     padding: 2px 6px;
     background: #ffffff;
     border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -538,7 +528,7 @@ body {
     height: 22px;
     background: #ffffff;
     border: 1px dashed #bdbdbd;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -564,7 +554,7 @@ body {
     display: none;
     background: #ffffff;
     border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
@@ -590,7 +580,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 4px;
     transition: all 0.2s ease;
     user-select: none;
 }
@@ -611,6 +601,7 @@ body {
     display: flex;
     align-items: flex-end;
     gap: 10px;
+    transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
 }
 
 .image-button {
@@ -640,7 +631,7 @@ body {
     padding: 12px 15px;
     background: #ffffff;
     border: 2px solid #e0e0e0;
-    border-radius: 25px;
+    border-radius: 4px;
     color: #333333;
     font-size: 1rem;
     outline: none;
@@ -660,7 +651,7 @@ body {
     padding: 12px 30px;
     background: #2196f3;
     border: none;
-    border-radius: 25px;
+    border-radius: 4px;
     color: #ffffff;
     font-weight: bold;
     cursor: pointer;
@@ -701,7 +692,7 @@ body {
 .modal-content {
     background: #ffffff;
     border: 1px solid #e0e0e0;
-    border-radius: 20px;
+    border-radius: 4px;
     padding: 30px;
     max-width: 500px;
     width: 90%;
@@ -745,7 +736,7 @@ body {
     padding: 10px 15px;
     background: #ffffff;
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: 4px;
     color: #333333;
     font-size: 1rem;
     outline: none;
@@ -768,7 +759,7 @@ body {
     height: 48px;
     background: #ffffff;
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -813,7 +804,7 @@ body {
 .modal-actions button {
     flex: 1;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
