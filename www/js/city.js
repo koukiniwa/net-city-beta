@@ -41,6 +41,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatHeader = document.querySelector('.chat-header'); // チャットヘッダー
     const inputArea = document.querySelector('.input-area'); // 入力エリア
 
+    // ハンバーガーメニュー関連の要素
+    const hamburgerMenu = document.getElementById('hamburgerMenu'); // ハンバーガーボタン
+    const sidebarMenu = document.getElementById('sidebarMenu'); // サイドバーメニュー
+    const sidebarOverlay = document.getElementById('sidebarOverlay'); // オーバーレイ
+    const closeMenu = document.getElementById('closeMenu'); // 閉じるボタン
+    const editNameMenu = document.getElementById('editNameMenu'); // 名前変更メニュー
+    const lightModeBtn = document.getElementById('lightMode'); // ライトモードボタン
+    const neonModeBtn = document.getElementById('neonMode'); // ネオンモードボタン
+
     // ルーム関連の要素
     const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
     const createRoomBtn = document.getElementById('createRoomBtn'); // ルーム作成ボタン
@@ -836,74 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
-    // 名前変更ボタンの処理
-    // ========================================
-
-    const editNameButton = document.getElementById('editNameButton');
-
-    editNameButton.addEventListener('click', async function() {
-        const currentUsername = localStorage.getItem('netcity_username');
-
-        // 新しい名前を入力
-        const newName = prompt(`新しい名前を入力してください（2〜20文字）\n現在の名前: ${currentUsername}`, currentUsername);
-
-        // キャンセルまたは空文字の場合
-        if (!newName) {
-            return;
-        }
-
-        const trimmedName = newName.trim();
-
-        // バリデーション
-        if (trimmedName.length < 2) {
-            alert('名前は2文字以上で入力してください');
-            return;
-        }
-
-        if (trimmedName.length > 20) {
-            alert('名前は20文字以内で入力してください');
-            return;
-        }
-
-        // 同じ名前の場合
-        if (trimmedName === currentUsername) {
-            alert('同じ名前です');
-            return;
-        }
-
-        // 確認ダイアログ
-        if (confirm(`名前を「${trimmedName}」に変更しますか？\n\n注意: 過去に送信したメッセージの名前は変わりません。`)) {
-            // localStorageに保存
-            localStorage.setItem('netcity_username', trimmedName);
-
-            // ヘッダーの表示を更新
-            usernameDisplay.textContent = trimmedName;
-
-            // 自分が作成したルームの作成者名を更新
-            try {
-                const allRoomsSnapshot = await get(roomsRef);
-                if (allRoomsSnapshot.exists()) {
-                    const rooms = allRoomsSnapshot.val();
-                    for (const roomId in rooms) {
-                        const room = rooms[roomId];
-                        // 自分が作成したルームの場合
-                        if (room.createdBy === userId) {
-                            const roomRef = ref(database, `rooms/${roomId}`);
-                            await update(roomRef, {
-                                creatorName: trimmedName
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('ルーム作成者名の更新エラー:', error);
-            }
-
-            alert(`名前を「${trimmedName}」に変更しました！`);
-        }
-    });
-
-    // ========================================
     // ルーム作成モーダルの処理
     // ========================================
 
@@ -1130,6 +1071,85 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    // ========================================
+    // ハンバーガーメニュー
+    // ========================================
+
+    // メニューを開く
+    function openSidebar() {
+        sidebarMenu.classList.add('active');
+        sidebarOverlay.classList.add('active');
+    }
+
+    // メニューを閉じる
+    function closeSidebar() {
+        sidebarMenu.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
+
+    // ハンバーガーボタンクリック
+    hamburgerMenu.addEventListener('click', openSidebar);
+
+    // 閉じるボタンクリック
+    closeMenu.addEventListener('click', closeSidebar);
+
+    // オーバーレイクリック
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    // 名前変更メニュークリック
+    editNameMenu.addEventListener('click', function() {
+        closeSidebar();
+        // 既存の名前変更処理を呼び出す
+        const newName = prompt('新しい名前を入力してください:', username);
+        if (newName && newName.trim()) {
+            const trimmedName = newName.trim();
+            if (trimmedName.length > 20) {
+                alert('名前は20文字以内にしてください');
+                return;
+            }
+            // localStorageに保存
+            localStorage.setItem('netcity_username', trimmedName);
+            // 画面に反映
+            usernameDisplay.textContent = trimmedName;
+            // 表示を更新
+            alert(`名前を「${trimmedName}」に変更しました！`);
+        }
+    });
+
+    // ========================================
+    // テーマ切り替え
+    // ========================================
+
+    // localStorageからテーマを取得（デフォルトはライトモード）
+    const savedTheme = localStorage.getItem('netcity_theme') || 'light';
+
+    // 初期テーマを適用
+    function applyTheme(theme) {
+        if (theme === 'neon') {
+            document.body.classList.add('neon-mode');
+            lightModeBtn.classList.remove('active');
+            neonModeBtn.classList.add('active');
+        } else {
+            document.body.classList.remove('neon-mode');
+            lightModeBtn.classList.add('active');
+            neonModeBtn.classList.remove('active');
+        }
+        localStorage.setItem('netcity_theme', theme);
+    }
+
+    // ページ読み込み時にテーマを適用
+    applyTheme(savedTheme);
+
+    // ライトモードボタンクリック
+    lightModeBtn.addEventListener('click', function() {
+        applyTheme('light');
+    });
+
+    // ネオンモードボタンクリック
+    neonModeBtn.addEventListener('click', function() {
+        applyTheme('neon');
+    });
 
     // ========================================
     // 初期化

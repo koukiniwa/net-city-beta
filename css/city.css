@@ -80,6 +80,31 @@ body {
 .header-left {
     display: flex;
     align-items: center;
+    gap: 15px;
+}
+
+/* ハンバーガーメニューボタン */
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu span {
+    width: 24px;
+    height: 3px;
+    background: #2196f3;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover span {
+    background: #1976d2;
 }
 
 .city-title {
@@ -103,22 +128,6 @@ body {
     background: #f5f5f5;
     border-radius: 4px;
     border: 1px solid #e0e0e0;
-}
-
-.edit-name-button {
-    padding: 6px 12px;
-    background: #ffffff;
-    border: 1px solid #2196f3;
-    border-radius: 4px;
-    color: #2196f3;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
-
-.edit-name-button:hover {
-    background: #e3f2fd;
-    transform: scale(1.05);
 }
 
 /* ========================================
@@ -838,6 +847,478 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+}
+
+/* ========================================
+   サイドバーメニュー
+   ======================================== */
+
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 2001;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-menu.active {
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-header h2 {
+    font-size: 1.3rem;
+    color: #333333;
+    margin: 0;
+}
+
+.close-menu {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #757575;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: all 0.3s ease;
+}
+
+.close-menu:hover {
+    color: #2196f3;
+    transform: scale(1.1);
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.menu-item:hover {
+    background: #f5f5f5;
+}
+
+.menu-icon {
+    font-size: 1.2rem;
+    width: 30px;
+    text-align: center;
+}
+
+.menu-text {
+    flex: 1;
+    font-size: 1rem;
+    color: #333333;
+}
+
+.menu-section {
+    margin-top: 20px;
+    padding: 10px 0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.menu-section h3 {
+    font-size: 0.9rem;
+    color: #757575;
+    padding: 10px 20px;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.theme-option .checkmark {
+    font-size: 1.2rem;
+    color: #2196f3;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.theme-option.active .checkmark {
+    opacity: 1;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ========================================
+   ネオンモード
+   ======================================== */
+
+body.neon-mode {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* ネオンモード：背景 */
+body.neon-mode .sky-gradient {
+    background: linear-gradient(
+        to bottom,
+        #0a0015 0%,
+        #1a0033 30%,
+        #2d1b4e 60%,
+        #0d1b2a 100%
+    );
+}
+
+body.neon-mode .city-skyline {
+    display: block;
+}
+
+body.neon-mode .building {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(to top, #000000 0%, #0a0a0a 100%);
+    border-top: 2px solid #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+    animation: buildingGlow 3s ease-in-out infinite;
+}
+
+@keyframes buildingGlow {
+    0%, 100% {
+        border-top-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+    50% {
+        border-top-color: #8b5cf6;
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), inset 0 0 30px rgba(139, 92, 246, 0.2);
+    }
+}
+
+/* ネオンモード：ヘッダー */
+body.neon-mode .header {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .city-title {
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+body.neon-mode .hamburger-menu span {
+    background: #00ffff;
+}
+
+body.neon-mode .username-display {
+    color: #ffffff;
+    background: rgba(139, 92, 246, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.5);
+}
+
+/* ネオンモード：チャットコンテナ */
+body.neon-mode .chat-container {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .room-bar {
+    background: rgba(0, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+body.neon-mode .room-tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+body.neon-mode .room-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .room-tab.active {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .create-room-btn {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px dashed rgba(0, 255, 255, 0.3);
+    color: #00ffff;
+}
+
+body.neon-mode .chat-header {
+    background: rgba(0, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .chat-header span {
+    color: #00ffff;
+}
+
+body.neon-mode .online-count {
+    color: #888888;
+}
+
+/* ネオンモード：メッセージ */
+body.neon-mode .welcome-message {
+    color: #666666;
+}
+
+body.neon-mode .message-username {
+    color: #00ffff;
+}
+
+body.neon-mode .message-time {
+    color: #666666;
+}
+
+body.neon-mode .message-content {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid rgba(0, 255, 255, 0.5);
+    color: #ffffff;
+}
+
+body.neon-mode .message.own .message-username {
+    color: #8b5cf6;
+}
+
+body.neon-mode .message.own .message-content {
+    background: rgba(139, 92, 246, 0.15);
+    border-left-color: rgba(139, 92, 246, 0.8);
+}
+
+body.neon-mode .message-link {
+    color: #00ffff;
+}
+
+body.neon-mode .message-link:hover {
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+}
+
+/* ネオンモード：リアクション */
+body.neon-mode .reaction-item {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.neon-mode .reaction-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(0, 255, 255, 0.4);
+}
+
+body.neon-mode .reaction-item.reacted {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.5);
+}
+
+body.neon-mode .reaction-count {
+    color: #ffffff;
+}
+
+body.neon-mode .add-reaction-btn {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+body.neon-mode .add-reaction-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(0, 255, 255, 0.5);
+    color: #00ffff;
+}
+
+body.neon-mode .reaction-picker {
+    background: rgba(10, 10, 20, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .reaction-picker-emoji:hover {
+    background: rgba(0, 255, 255, 0.2);
+}
+
+/* ネオンモード：入力エリア */
+body.neon-mode .input-area {
+    background: rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .message-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+body.neon-mode .message-input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .message-input::placeholder {
+    color: #666666;
+}
+
+body.neon-mode .send-button {
+    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    color: #000000;
+}
+
+body.neon-mode .send-button:hover {
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+}
+
+/* ネオンモード：モーダル */
+body.neon-mode .modal {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+body.neon-mode .modal-content {
+    background: linear-gradient(135deg, rgba(10, 0, 21, 0.95), rgba(13, 27, 42, 0.95));
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .modal-title {
+    color: #00ffff;
+}
+
+body.neon-mode .form-group label {
+    color: #ffffff;
+}
+
+body.neon-mode .form-group input[type="text"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+body.neon-mode .form-group input[type="text"]:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .emoji-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+body.neon-mode .emoji-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .emoji-option.selected {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .max-users-selector label {
+    color: #ffffff;
+}
+
+body.neon-mode .max-users-selector input[type="radio"] {
+    accent-color: #00ffff;
+}
+
+body.neon-mode .btn-cancel {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+body.neon-mode .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.neon-mode .btn-create {
+    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    color: #000000;
+}
+
+body.neon-mode .btn-create:hover {
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+}
+
+/* ネオンモード：サイドバー */
+body.neon-mode .sidebar-menu {
+    background: rgba(10, 10, 20, 0.95);
+    border-right: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .sidebar-header {
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+body.neon-mode .sidebar-header h2 {
+    color: #00ffff;
+}
+
+body.neon-mode .close-menu {
+    color: #ffffff;
+}
+
+body.neon-mode .close-menu:hover {
+    color: #00ffff;
+}
+
+body.neon-mode .menu-item {
+    color: #ffffff;
+}
+
+body.neon-mode .menu-item:hover {
+    background: rgba(0, 255, 255, 0.1);
+}
+
+body.neon-mode .menu-text {
+    color: #ffffff;
+}
+
+body.neon-mode .menu-section {
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+body.neon-mode .menu-section h3 {
+    color: #888888;
+}
+
+body.neon-mode .theme-option .checkmark {
+    color: #00ffff;
 }
 
 /* ========================================

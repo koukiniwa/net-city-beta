@@ -70,13 +70,47 @@
     <!-- ヘッダー（上部のバー） -->
     <header class="header">
         <div class="header-left">
+            <button class="hamburger-menu" id="hamburgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <h1 class="city-title">NET CITY β</h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
-            <button class="edit-name-button" id="editNameButton" title="名前を変更">✏️</button>
         </div>
     </header>
+
+    <!-- ハンバーガーメニュー（サイドメニュー） -->
+    <div class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h2>設定</h2>
+            <button class="close-menu" id="closeMenu">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="menu-item" id="editNameMenu">
+                <span class="menu-icon">✏️</span>
+                <span class="menu-text">名前を変更</span>
+            </div>
+            <div class="menu-section">
+                <h3>テーマ</h3>
+                <div class="menu-item theme-option" id="lightMode">
+                    <span class="menu-icon">☀️</span>
+                    <span class="menu-text">ライトモード</span>
+                    <span class="checkmark">✓</span>
+                </div>
+                <div class="menu-item theme-option" id="neonMode">
+                    <span class="menu-icon">🌙</span>
+                    <span class="menu-text">ネオンモード</span>
+                    <span class="checkmark">✓</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- サイドメニューのオーバーレイ -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- チャットエリア -->
     <div class="chat-container">
