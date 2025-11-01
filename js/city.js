@@ -3,7 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
 // ========================================
@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
 
     const usernameDisplay = document.getElementById('usernameDisplay'); // ヘッダーの名前表示
-    const logoutButton = document.getElementById('logoutButton'); // 退出ボタン
     const messagesArea = document.getElementById('messagesArea'); // メッセージ表示エリア
     const messageInput = document.getElementById('messageInput'); // 入力欄
     const sendButton = document.getElementById('sendButton'); // 送信ボタン
@@ -165,11 +164,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // ルームを配列に変換して並び替え
         const roomArray = Object.values(rooms);
 
-        // 固定ルーム（広場）を最初に、その後は作成日時順
+        // 並び順のルール:
+        // 1. 広場（固定ルーム）を最優先
+        // 2. 自分が作成したルームを次に
+        // 3. その他のルームを盛り上がり順（最新メッセージ時刻順、なければ作成日時順）
         roomArray.sort((a, b) => {
+            // 1. 広場を最優先
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
-            return b.createdAt - a.createdAt;
+
+            // 2. 自分が作成したルームを次に
+            const aIsOwn = a.createdBy === userId;
+            const bIsOwn = b.createdBy === userId;
+            if (aIsOwn && !bIsOwn) return -1;
+            if (!aIsOwn && bIsOwn) return 1;
+
+            // 3. その他のルームは最新メッセージ時刻順（盛り上がり順）
+            const aLastMessage = a.lastMessageAt || a.createdAt || 0;
+            const bLastMessage = b.lastMessageAt || b.createdAt || 0;
+            return bLastMessage - aLastMessage;
         });
 
         // 各ルームのタブを作成
@@ -330,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 一度だけ実行してウェルカムメッセージを消す
         let isFirstMessage = true;
 
-        // onChildAddedはoff関数を返すので保存
+        // 新しいメッセージが追加された時
         currentMessagesListener = onChildAdded(roomMessagesRef, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
@@ -348,6 +361,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateReactionsDisplay(messageId, reactionsSnapshot.val());
             });
         });
+
+        // メッセージが編集された時
+        onChildChanged(roomMessagesRef, (snapshot) => {
+            const message = snapshot.val();
+            const messageId = snapshot.key;
+            updateMessageContent(messageId, message);
+        });
+
+        // メッセージが削除された時
+        onChildRemoved(roomMessagesRef, (snapshot) => {
+            const messageId = snapshot.key;
+            removeMessageFromDOM(messageId);
+        });
+    }
+
+    // メッセージの内容を更新（編集時）
+    function updateMessageContent(messageId, message) {
+        const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+        if (!messageDiv) {
+            console.warn('メッセージが見つかりません:', messageId);
+            return;
+        }
+
+        // テキストメッセージの場合のみ更新
+        if (message.text) {
+            const messageContent = messageDiv.querySelector('.message-content');
+            const escapedText = escapeHtml(message.text);
+            const linkedText = linkifyText(escapedText);
+            messageContent.innerHTML = linkedText;
+
+            // 編集済みマークを更新
+            const messageHeader = messageDiv.querySelector('.message-header');
+            const existingEditMark = messageHeader.querySelector('.message-edited');
+            if (message.edited && !existingEditMark) {
+                const editMark = document.createElement('span');
+                editMark.className = 'message-edited';
+                editMark.textContent = '(編集済み)';
+                messageHeader.appendChild(editMark);
+            }
+        }
+    }
+
+    // DOMからメッセージを削除
+    function removeMessageFromDOM(messageId) {
+        const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageDiv) {
+            messageDiv.remove();
+            console.log('メッセージをDOMから削除しました:', messageId);
+        }
     }
 
     // ========================================
@@ -428,6 +490,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             await push(messagesRef, messageData);
 
+            // ルームの最新メッセージ時刻を更新（盛り上がり順のため）
+            try {
+                const roomRef = ref(database, `rooms/${currentRoomId}`);
+                await update(roomRef, {
+                    lastMessageAt: Date.now()
+                });
+            } catch (error) {
+                console.error('ルームの最新メッセージ時刻の更新に失敗:', error);
+            }
+
             console.log('画像を送信しました');
             imageInput.value = ''; // 入力をクリア
 
@@ -468,11 +540,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Firebaseにデータを送信（push = 新しいデータを追加）
         push(messagesRef, messageData)
-            .then(() => {
+            .then(async () => {
                 // 送信成功
                 console.log('メッセージを送信しました');
                 messageInput.value = ''; // 入力欄をクリア
                 messageInput.style.height = 'auto'; // 高さをリセット
+
+                // ルームの最新メッセージ時刻を更新（盛り上がり順のため）
+                try {
+                    const roomRef = ref(database, `rooms/${currentRoomId}`);
+                    await update(roomRef, {
+                        lastMessageAt: Date.now()
+                    });
+                } catch (error) {
+                    console.error('ルームの最新メッセージ時刻の更新に失敗:', error);
+                }
             })
             .catch((error) => {
                 // 送信失敗
@@ -594,6 +676,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // テキストメッセージの場合
             const escapedText = escapeHtml(message.text);
             const linkedText = linkifyText(escapedText);
+            const editedMark = message.edited ? '<span class="message-edited">(編集済み)</span>' : '';
             contentHTML = `
                 <div class="message-content">
                     ${linkedText}
@@ -601,11 +684,21 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        // 編集・削除ボタン（自分のメッセージのみ、かつテキストメッセージのみ）
+        const actionButtonsHTML = (message.username === username && message.text) ? `
+            <div class="message-actions">
+                <button class="message-action-btn edit" data-message-id="${messageId}" title="編集">✏️</button>
+                <button class="message-action-btn delete" data-message-id="${messageId}" title="削除">🗑️</button>
+            </div>
+        ` : '';
+
         // メッセージのHTML構造を作成
         messageDiv.innerHTML = `
+            ${actionButtonsHTML}
             <div class="message-header">
                 <span class="message-username">${escapeHtml(message.username)}</span>
                 <span class="message-time">${timeString}</span>
+                ${message.edited && message.text ? '<span class="message-edited">(編集済み)</span>' : ''}
             </div>
             ${contentHTML}
             <div class="message-reactions" data-message-id="${messageId}">
@@ -622,6 +715,26 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             showReactionPicker(messageId, addReactionBtn);
         });
+
+        // 編集・削除ボタンのイベントを設定
+        if (message.username === username && message.text) {
+            const editBtn = messageDiv.querySelector('.message-action-btn.edit');
+            const deleteBtn = messageDiv.querySelector('.message-action-btn.delete');
+
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openEditMessageModal(messageId, message.text);
+                });
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteMessage(messageId);
+                });
+            }
+        }
 
         // 自動的に一番下までスクロール（新しいメッセージが見えるように）
         messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -809,6 +922,95 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
+    // メッセージ編集・削除機能
+    // ========================================
+
+    // モーダル要素を取得
+    const editMessageModal = document.getElementById('editMessageModal');
+    const editMessageTextarea = document.getElementById('editMessageTextarea');
+    const cancelEditMessage = document.getElementById('cancelEditMessage');
+    const saveEditMessage = document.getElementById('saveEditMessage');
+    let currentEditingMessageId = null;
+
+    // メッセージ削除機能
+    async function deleteMessage(messageId) {
+        if (!confirm('このメッセージを削除しますか？')) {
+            return;
+        }
+
+        try {
+            const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
+            await remove(messageRef);
+            console.log('メッセージを削除しました:', messageId);
+        } catch (error) {
+            console.error('メッセージの削除に失敗しました:', error);
+            alert('メッセージの削除に失敗しました。');
+        }
+    }
+
+    // 編集モーダルを開く
+    function openEditMessageModal(messageId, currentText) {
+        currentEditingMessageId = messageId;
+        editMessageTextarea.value = currentText;
+        editMessageModal.classList.add('active');
+        editMessageTextarea.focus();
+    }
+
+    // 編集モーダルを閉じる
+    function closeEditMessageModal() {
+        editMessageModal.classList.remove('active');
+        currentEditingMessageId = null;
+        editMessageTextarea.value = '';
+    }
+
+    // 編集のキャンセル
+    cancelEditMessage.addEventListener('click', closeEditMessageModal);
+
+    // モーダル背景クリックで閉じる
+    editMessageModal.addEventListener('click', (e) => {
+        if (e.target === editMessageModal) {
+            closeEditMessageModal();
+        }
+    });
+
+    // メッセージの保存（編集）
+    saveEditMessage.addEventListener('click', async () => {
+        if (!currentEditingMessageId) {
+            return;
+        }
+
+        const newText = editMessageTextarea.value.trim();
+
+        // 空の場合はエラー
+        if (!newText) {
+            alert('メッセージを入力してください。');
+            return;
+        }
+
+        // 200文字制限
+        if (newText.length > 200) {
+            alert('メッセージは200文字以内で入力してください。');
+            return;
+        }
+
+        try {
+            // メッセージを更新
+            const messageRef = ref(database, `roomMessages/${currentRoomId}/${currentEditingMessageId}`);
+            await update(messageRef, {
+                text: newText,
+                edited: true,
+                editedAt: Date.now()
+            });
+
+            console.log('メッセージを編集しました:', currentEditingMessageId);
+            closeEditMessageModal();
+        } catch (error) {
+            console.error('メッセージの編集に失敗しました:', error);
+            alert('メッセージの編集に失敗しました。');
+        }
+    });
+
+    // ========================================
     // 名前変更ボタンの処理
     // ========================================
 
@@ -873,21 +1075,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             alert(`名前を「${trimmedName}」に変更しました！`);
-        }
-    });
-
-    // ========================================
-    // 退出ボタンの処理（ルームから退出）
-    // ========================================
-
-    logoutButton.addEventListener('click', async function() {
-        // 確認ダイアログを表示
-        if (confirm('NET CITY βから退出しますか？')) {
-            // 現在のルームから退出
-            await leaveRoom(currentRoomId);
-            // 名前とユーザーIDは保持（次回自動的に同じ名前で入場できる）
-            // 入場画面に戻る
-            window.location.href = 'index.html';
         }
     });
 

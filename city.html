@@ -75,7 +75,6 @@
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
             <button class="edit-name-button" id="editNameButton" title="名前を変更">✏️</button>
-            <button class="logout-button" id="logoutButton">退出</button>
         </div>
     </header>
 
@@ -156,6 +155,18 @@
         window.firebaseDatabase = database;
         window.firebaseStorage = storage;
     </script>
+
+    <!-- メッセージ編集モーダル -->
+    <div class="edit-message-modal" id="editMessageModal">
+        <div class="edit-message-content">
+            <h2 class="edit-message-title">メッセージを編集</h2>
+            <textarea id="editMessageTextarea" class="edit-message-textarea" maxlength="200"></textarea>
+            <div class="edit-message-actions">
+                <button class="btn-cancel-edit" id="cancelEditMessage">キャンセル</button>
+                <button class="btn-save-edit" id="saveEditMessage">保存</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ルーム作成モーダル -->
     <div class="modal" id="createRoomModal">

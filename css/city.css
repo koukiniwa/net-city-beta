@@ -30,19 +30,17 @@ body {
     overflow: hidden;
 }
 
-/* 空のグラデーション */
+/* 空のグラデーション - 簡素化 */
 .sky-gradient {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* 夜空のグラデーション（上から下へ：濃い紫→紫→青紫→暗い青） */
+    /* シンプルな2色グラデーション（上から下へ：暗い紫→暗い青） */
     background: linear-gradient(
         to bottom,
-        #0a0015 0%,
-        #1a0033 30%,
-        #2d1b4e 60%,
+        #1a0033 0%,
         #0d1b2a 100%
     );
 }
@@ -56,7 +54,7 @@ body {
     height: 400px;
 }
 
-/* 建物（黒いシルエット） */
+/* 建物（黒いシルエット） - 静止版 */
 .building {
     position: absolute;
     bottom: 0;
@@ -66,26 +64,8 @@ body {
         #0a0a0a 100%
     );
     border-top: 2px solid #00ffff; /* 上部をネオンブルーで光らせる */
-    box-shadow:
-        0 0 10px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    animation: buildingGlow 3s ease-in-out infinite; /* 光るアニメーション */
-}
-
-/* 建物が光るアニメーション */
-@keyframes buildingGlow {
-    0%, 100% {
-        border-top-color: #00ffff;
-        box-shadow:
-            0 0 10px rgba(0, 255, 255, 0.3),
-            inset 0 0 20px rgba(0, 255, 255, 0.1);
-    }
-    50% {
-        border-top-color: #8b5cf6;
-        box-shadow:
-            0 0 20px rgba(139, 92, 246, 0.5),
-            inset 0 0 30px rgba(139, 92, 246, 0.2);
-    }
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+    /* アニメーション削除 */
 }
 
 /* ========================================
@@ -98,13 +78,13 @@ body {
     left: 0;
     width: 100%;
     height: 60px;
-    background: rgba(0, 0, 0, 0.8); /* 半透明の黒 */
-    backdrop-filter: blur(10px); /* ぼかし */
-    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.95); /* ほぼ不透明に */
+    backdrop-filter: blur(5px); /* ぼかしを削減 */
+    border-bottom: 2px solid rgba(0, 255, 255, 0.4); /* 境界線を明確化 */
     display: flex;
     justify-content: space-between; /* 左右に配置 */
     align-items: center;
-    padding: 0 20px;
+    padding: 0 24px; /* 余白を統一 */
     z-index: 100;
 }
 
@@ -119,7 +99,7 @@ body {
     font-weight: bold;
     color: #00ffff;
     letter-spacing: 3px;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.4); /* グロー効果を50%削減 */
 }
 
 /* 右側：ユーザー名と退出ボタン */
@@ -132,17 +112,17 @@ body {
 .username-display {
     font-size: 1rem;
     color: #ffffff;
-    padding: 8px 15px;
+    padding: 8px 16px; /* 余白を統一 */
     background: rgba(139, 92, 246, 0.3);
-    border-radius: 20px;
+    border-radius: 12px; /* 角丸を統一 */
     border: 1px solid rgba(139, 92, 246, 0.5);
 }
 
 .edit-name-button {
-    padding: 6px 12px;
+    padding: 8px 12px; /* 余白を統一 */
     background: rgba(0, 212, 255, 0.2);
     border: 1px solid rgba(0, 212, 255, 0.5);
-    border-radius: 20px;
+    border-radius: 12px; /* 角丸を統一 */
     color: #ffffff;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -151,24 +131,8 @@ body {
 
 .edit-name-button:hover {
     background: rgba(0, 212, 255, 0.4);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.3); /* グロー効果を削減 */
     transform: scale(1.05);
-}
-
-.logout-button {
-    padding: 8px 20px;
-    background: rgba(255, 51, 102, 0.2);
-    border: 1px solid rgba(255, 51, 102, 0.5);
-    border-radius: 20px;
-    color: #ffffff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.logout-button:hover {
-    background: rgba(255, 51, 102, 0.4);
-    box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
 }
 
 /* ========================================
@@ -184,10 +148,10 @@ body {
     max-width: 800px;
     height: calc(100vh - 100px); /* 画面の高さいっぱいに（上下20pxの余白） */
     max-height: 700px; /* 最大の高さを設定 */
-    background: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
-    backdrop-filter: blur(15px); /* ぼかし */
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.90); /* ほぼ不透明に */
+    backdrop-filter: blur(8px); /* ぼかしを削減 */
+    border: 2px solid rgba(0, 255, 255, 0.4); /* 境界線を明確化 */
+    border-radius: 16px; /* 角丸を統一 */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
@@ -255,7 +219,7 @@ body {
 .room-tab.active {
     background: rgba(0, 255, 255, 0.2);
     border-color: rgba(0, 255, 255, 0.5);
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    /* グロー効果を削除してシンプルに */
 }
 
 .room-tab.full {
@@ -273,8 +237,8 @@ body {
 }
 
 .room-count {
-    font-size: 0.75rem;
-    color: #888888;
+    font-size: 0.85rem; /* 最小フォントサイズを改善 */
+    color: #999999; /* コントラストを改善 */
 }
 
 .room-count.full {
@@ -316,26 +280,14 @@ body {
     gap: 10px;
 }
 
-/* オンラインインジケーター（緑の点） */
+/* オンラインインジケーター（緑の点） - アニメーション削減 */
 .online-indicator {
     width: 10px;
     height: 10px;
     background: #00ff88;
     border-radius: 50%; /* 円形 */
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
-    animation: pulse 2s ease-in-out infinite; /* 点滅アニメーション */
-}
-
-/* 点滅アニメーション */
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(0.8);
-    }
+    box-shadow: 0 0 5px rgba(0, 255, 136, 0.4); /* グロー効果を削減 */
+    /* アニメーション削除 */
 }
 
 .chat-header span {
@@ -355,11 +307,12 @@ body {
 
 .messages-area {
     flex: 1; /* 残りのスペースを全て使う */
-    padding: 20px;
+    padding: 24px; /* 余白を広く */
     overflow-y: auto; /* 縦スクロール可能 */
     display: flex;
     flex-direction: column;
-    gap: 15px; /* メッセージ間の間隔 */
+    gap: 16px; /* メッセージ間の間隔を統一 */
+    background: rgba(255, 255, 255, 0.03); /* 少し明るく */
 }
 
 /* スクロールバーのカスタマイズ（Webkit系ブラウザ） */
@@ -427,19 +380,72 @@ body {
 }
 
 .message-time {
-    color: #666666;
-    font-size: 0.75rem;
+    color: #999999; /* コントラストを改善 */
+    font-size: 0.85rem; /* 最小フォントサイズを改善 */
 }
 
-/* メッセージ本文 */
+/* メッセージ本文 - 読みやすさ改善 */
 .message-content {
-    padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid rgba(0, 255, 255, 0.5);
-    border-radius: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08); /* 背景を明るく */
+    border-left: 3px solid rgba(0, 255, 255, 0.6);
+    border-radius: 12px; /* 角丸を統一 */
     color: #ffffff;
-    line-height: 1.5;
+    line-height: 1.6; /* 行間を広く */
     word-wrap: break-word; /* 長い文字を折り返す */
+}
+
+/* 編集済みマーク */
+.message-edited {
+    font-size: 0.85rem; /* 最小フォントサイズを改善 */
+    color: #999999; /* コントラストを改善 */
+    margin-left: 8px;
+    font-style: italic;
+}
+
+/* メッセージ編集・削除ボタン */
+.message-actions {
+    display: none;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    gap: 4px;
+}
+
+.message:hover .message-actions {
+    display: flex;
+}
+
+.message-action-btn {
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.message-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.message-action-btn.edit:hover {
+    border-color: rgba(0, 255, 255, 0.5);
+    color: #00ffff;
+}
+
+.message-action-btn.delete:hover {
+    border-color: rgba(255, 51, 102, 0.5);
+    color: #ff3366;
 }
 
 /* メッセージ内のリンク */
@@ -451,7 +457,7 @@ body {
 
 .message-link:hover {
     color: #8b5cf6;
-    text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+    text-shadow: 0 0 4px rgba(139, 92, 246, 0.3); /* グロー効果を削減 */
 }
 
 /* 画像メッセージ */
@@ -483,7 +489,7 @@ body {
 }
 
 .message.own .message-content {
-    background: rgba(139, 92, 246, 0.15);
+    background: rgba(139, 92, 246, 0.18); /* 少し明るく */
     border-left-color: rgba(139, 92, 246, 0.8);
 }
 
@@ -545,7 +551,7 @@ body {
 
 /* リアクションのカウント */
 .reaction-count {
-    font-size: 0.7rem;
+    font-size: 0.85rem; /* 最小フォントサイズを改善 */
     color: #ffffff;
     font-weight: 600;
     min-width: 12px;
@@ -584,11 +590,11 @@ body {
 .reaction-picker {
     position: fixed; /* absoluteからfixedに変更 */
     display: none;
-    background: rgba(10, 10, 20, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    background: rgba(10, 10, 20, 0.98); /* ほぼ不透明に */
+    backdrop-filter: blur(5px); /* ぼかしを削減 */
+    border: 2px solid rgba(0, 255, 255, 0.4); /* 境界線を明確化 */
     border-radius: 12px;
-    padding: 10px;
+    padding: 12px; /* 余白を統一 */
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     transform: translate(-50%, -100%);
@@ -660,10 +666,10 @@ body {
 
 .message-input {
     flex: 1;
-    padding: 12px 15px;
+    padding: 12px 16px; /* 余白を統一 */
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(0, 255, 255, 0.3);
-    border-radius: 25px;
+    border-radius: 12px; /* 角丸を統一 */
     color: #ffffff;
     font-size: 1rem;
     outline: none;
@@ -672,7 +678,7 @@ body {
 
 .message-input:focus {
     border-color: #00ffff;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2); /* グロー効果を削減 */
 }
 
 .message-input::placeholder {
@@ -680,10 +686,10 @@ body {
 }
 
 .send-button {
-    padding: 12px 30px;
+    padding: 12px 24px; /* 余白を調整 */
     background: linear-gradient(135deg, #00ffff, #8b5cf6);
     border: none;
-    border-radius: 25px;
+    border-radius: 12px; /* 角丸を統一 */
     color: #000000;
     font-weight: bold;
     cursor: pointer;
@@ -692,7 +698,7 @@ body {
 
 .send-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3); /* グロー効果を削減 */
 }
 
 .send-button:active {
@@ -710,8 +716,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.85); /* 少し濃く */
+    backdrop-filter: blur(3px); /* ぼかしを削減 */
     z-index: 2000;
     align-items: center;
     justify-content: center;
@@ -723,9 +729,9 @@ body {
 
 .modal-content {
     background: linear-gradient(135deg, rgba(10, 0, 21, 0.95), rgba(13, 27, 42, 0.95));
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 30px;
+    border: 2px solid rgba(0, 255, 255, 0.4); /* 境界線を明確化 */
+    border-radius: 16px; /* 角丸を統一 */
+    padding: 24px; /* 余白を統一 */
     max-width: 500px;
     width: 90%;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -763,10 +769,10 @@ body {
 
 .form-group input[type="text"] {
     width: 100%;
-    padding: 10px 15px;
+    padding: 12px 16px; /* 余白を統一 */
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(0, 255, 255, 0.3);
-    border-radius: 10px;
+    border-radius: 12px; /* 角丸を統一 */
     color: #ffffff;
     font-size: 1rem;
     outline: none;
@@ -789,7 +795,7 @@ body {
     height: 48px;
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    border-radius: 12px; /* 角丸を統一 */
     font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -834,7 +840,7 @@ body {
 .modal-actions button {
     flex: 1;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 12px; /* 角丸を統一 */
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -860,10 +866,114 @@ body {
 
 .btn-create:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3); /* グロー効果を削減 */
 }
 
 .btn-create:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ========================================
+   メッセージ編集モーダル
+   ======================================== */
+
+.edit-message-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* 少し濃く */
+    backdrop-filter: blur(3px); /* ぼかしを削減 */
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-message-modal.active {
+    display: flex;
+}
+
+.edit-message-content {
+    background: linear-gradient(135deg, rgba(10, 0, 21, 0.95), rgba(13, 27, 42, 0.95));
+    border: 2px solid rgba(0, 255, 255, 0.4); /* 境界線を明確化 */
+    border-radius: 16px; /* 角丸を統一 */
+    padding: 24px; /* 余白を統一 */
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.edit-message-title {
+    font-size: 1.5rem;
+    color: #00ffff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.edit-message-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px 16px; /* 余白を統一 */
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 12px; /* 角丸を統一 */
+    color: #ffffff;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.edit-message-textarea:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.edit-message-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-message-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px; /* 角丸を統一 */
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel-edit {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.btn-cancel-edit:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-save-edit {
+    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    border: none;
+    color: #000000;
+    font-weight: bold;
+}
+
+.btn-save-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3); /* グロー効果を削減 */
+}
+
+.btn-save-edit:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
@@ -887,11 +997,6 @@ body {
     .username-display {
         font-size: 0.85rem;
         padding: 6px 10px;
-    }
-
-    .logout-button {
-        padding: 6px 15px;
-        font-size: 0.85rem;
     }
 
     .chat-container {
