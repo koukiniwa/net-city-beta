@@ -10,14 +10,14 @@
 
 body {
     font-family: 'Arial', 'Hiragino Sans', 'Yu Gothic', sans-serif;
-    background-color: #000000; /* 黒背景 */
-    color: #ffffff;
+    background-color: #f5f5f5; /* ライトグレー背景 */
+    color: #333333;
     overflow: hidden; /* スクロールバーを隠す */
     height: 100vh;
 }
 
 /* ========================================
-   街の背景
+   シンプルな背景
    ======================================== */
 
 .city-background {
@@ -30,62 +30,30 @@ body {
     overflow: hidden;
 }
 
-/* 空のグラデーション */
+/* シンプルなグラデーション背景 */
 .sky-gradient {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* 夜空のグラデーション（上から下へ：濃い紫→紫→青紫→暗い青） */
+    /* 白からライトグレーへの穏やかなグラデーション */
     background: linear-gradient(
         to bottom,
-        #0a0015 0%,
-        #1a0033 30%,
-        #2d1b4e 60%,
-        #0d1b2a 100%
+        #ffffff 0%,
+        #f8f9fa 50%,
+        #e9ecef 100%
     );
 }
 
-/* 街のスカイライン（建物のシルエット） */
+/* 街のスカイラインは非表示（シンプルデザインのため） */
 .city-skyline {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 400px;
+    display: none;
 }
 
-/* 建物（黒いシルエット） */
+/* 建物は非表示 */
 .building {
-    position: absolute;
-    bottom: 0;
-    background: linear-gradient(
-        to top,
-        #000000 0%,
-        #0a0a0a 100%
-    );
-    border-top: 2px solid #00ffff; /* 上部をネオンブルーで光らせる */
-    box-shadow:
-        0 0 10px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    animation: buildingGlow 3s ease-in-out infinite; /* 光るアニメーション */
-}
-
-/* 建物が光るアニメーション */
-@keyframes buildingGlow {
-    0%, 100% {
-        border-top-color: #00ffff;
-        box-shadow:
-            0 0 10px rgba(0, 255, 255, 0.3),
-            inset 0 0 20px rgba(0, 255, 255, 0.1);
-    }
-    50% {
-        border-top-color: #8b5cf6;
-        box-shadow:
-            0 0 20px rgba(139, 92, 246, 0.5),
-            inset 0 0 30px rgba(139, 92, 246, 0.2);
-    }
+    display: none;
 }
 
 /* ========================================
@@ -98,14 +66,14 @@ body {
     left: 0;
     width: 100%;
     height: 60px;
-    background: rgba(0, 0, 0, 0.8); /* 半透明の黒 */
-    backdrop-filter: blur(10px); /* ぼかし */
-    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff; /* 白背景 */
+    border-bottom: 1px solid #e0e0e0;
     display: flex;
     justify-content: space-between; /* 左右に配置 */
     align-items: center;
     padding: 0 20px;
     z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* 左側：タイトル */
@@ -117,9 +85,8 @@ body {
 .city-title {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #00ffff;
-    letter-spacing: 3px;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    color: #2196f3; /* シンプルな青 */
+    letter-spacing: 2px;
 }
 
 /* 右側：ユーザー名と退出ボタン */
@@ -131,44 +98,42 @@ body {
 
 .username-display {
     font-size: 1rem;
-    color: #ffffff;
+    color: #333333;
     padding: 8px 15px;
-    background: rgba(139, 92, 246, 0.3);
+    background: #f5f5f5;
     border-radius: 20px;
-    border: 1px solid rgba(139, 92, 246, 0.5);
+    border: 1px solid #e0e0e0;
 }
 
 .edit-name-button {
     padding: 6px 12px;
-    background: rgba(0, 212, 255, 0.2);
-    border: 1px solid rgba(0, 212, 255, 0.5);
+    background: #ffffff;
+    border: 1px solid #2196f3;
     border-radius: 20px;
-    color: #ffffff;
+    color: #2196f3;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;
 }
 
 .edit-name-button:hover {
-    background: rgba(0, 212, 255, 0.4);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    background: #e3f2fd;
     transform: scale(1.05);
 }
 
 .logout-button {
     padding: 8px 20px;
-    background: rgba(255, 51, 102, 0.2);
-    border: 1px solid rgba(255, 51, 102, 0.5);
+    background: #ffffff;
+    border: 1px solid #f44336;
     border-radius: 20px;
-    color: #ffffff;
+    color: #f44336;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 0.9rem;
 }
 
 .logout-button:hover {
-    background: rgba(255, 51, 102, 0.4);
-    box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+    background: #ffebee;
 }
 
 /* ========================================
@@ -184,11 +149,10 @@ body {
     max-width: 800px;
     height: calc(100vh - 100px); /* 画面の高さいっぱいに（上下20pxの余白） */
     max-height: 700px; /* 最大の高さを設定 */
-    background: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
-    backdrop-filter: blur(15px); /* ぼかし */
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff; /* 白背景 */
+    border: 1px solid #e0e0e0;
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -203,8 +167,8 @@ body {
     align-items: center;
     gap: 10px;
     padding: 10px 15px;
-    background: rgba(0, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
     overflow: hidden;
 }
 
@@ -223,11 +187,11 @@ body {
 }
 
 .room-tabs::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: #f5f5f5;
 }
 
 .room-tabs::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.3);
+    background: #bdbdbd;
     border-radius: 2px;
 }
 
@@ -236,10 +200,10 @@ body {
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 12px;
-    color: #ffffff;
+    color: #333333;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -248,14 +212,15 @@ body {
 }
 
 .room-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.3);
+    background: #f5f5f5;
+    border-color: #2196f3;
 }
 
 .room-tab.active {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
 }
 
 .room-tab.full {
@@ -274,21 +239,21 @@ body {
 
 .room-count {
     font-size: 0.75rem;
-    color: #888888;
+    color: #757575;
 }
 
 .room-count.full {
-    color: #ff3366;
+    color: #f44336;
 }
 
 .create-room-btn {
     flex-shrink: 0;
     width: 32px;
     height: 32px;
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px dashed rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 1px dashed #2196f3;
     border-radius: 8px;
-    color: #00ffff;
+    color: #2196f3;
     font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -298,8 +263,8 @@ body {
 }
 
 .create-room-btn:hover {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
+    background: #e3f2fd;
+    border-color: #1976d2;
     transform: scale(1.05);
 }
 
@@ -309,8 +274,8 @@ body {
 
 .chat-header {
     padding: 15px 20px;
-    background: rgba(0, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -320,9 +285,9 @@ body {
 .online-indicator {
     width: 10px;
     height: 10px;
-    background: #00ff88;
+    background: #4caf50;
     border-radius: 50%; /* 円形 */
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
     animation: pulse 2s ease-in-out infinite; /* 点滅アニメーション */
 }
 
@@ -333,20 +298,21 @@ body {
         transform: scale(1);
     }
     50% {
-        opacity: 0.5;
-        transform: scale(0.8);
+        opacity: 0.6;
+        transform: scale(0.9);
     }
 }
 
 .chat-header span {
     font-size: 1rem;
-    color: #00ffff;
+    color: #333333;
     flex: 1;
+    font-weight: 500;
 }
 
 .online-count {
     font-size: 0.85rem;
-    color: #888888;
+    color: #757575;
 }
 
 /* ========================================
@@ -360,6 +326,19 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px; /* メッセージ間の間隔 */
+    transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
+}
+
+/* ルーム切り替え時のフェードアウト */
+.messages-area.fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* ルーム切り替え時のフェードイン */
+.messages-area.fade-in {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* スクロールバーのカスタマイズ（Webkit系ブラウザ） */
@@ -368,23 +347,23 @@ body {
 }
 
 .messages-area::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: #f5f5f5;
     border-radius: 10px;
 }
 
 .messages-area::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.3);
+    background: #bdbdbd;
     border-radius: 10px;
 }
 
 .messages-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 255, 0.5);
+    background: #9e9e9e;
 }
 
 /* ウェルカムメッセージ */
 .welcome-message {
     text-align: center;
-    color: #666666;
+    color: #757575;
     padding: 40px 20px;
     line-height: 1.8;
 }
@@ -423,35 +402,34 @@ body {
 
 .message-username {
     font-weight: bold;
-    color: #00ffff;
+    color: #1976d2;
 }
 
 .message-time {
-    color: #666666;
+    color: #9e9e9e;
     font-size: 0.75rem;
 }
 
 /* メッセージ本文 */
 .message-content {
     padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid rgba(0, 255, 255, 0.5);
+    background: #f5f5f5;
+    border-left: 3px solid #2196f3;
     border-radius: 8px;
-    color: #ffffff;
+    color: #333333;
     line-height: 1.5;
     word-wrap: break-word; /* 長い文字を折り返す */
 }
 
 /* メッセージ内のリンク */
 .message-link {
-    color: #00ffff;
+    color: #1976d2;
     text-decoration: underline;
     transition: all 0.2s ease;
 }
 
 .message-link:hover {
-    color: #8b5cf6;
-    text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+    color: #0d47a1;
 }
 
 /* 画像メッセージ */
@@ -466,25 +444,25 @@ body {
 
 .message-image:hover {
     transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 画像読み込み中 */
 .message-image-loading {
     padding: 40px;
     text-align: center;
-    color: #666666;
+    color: #757575;
     font-size: 0.9rem;
 }
 
 /* 自分のメッセージ */
 .message.own .message-username {
-    color: #8b5cf6; /* 紫色 */
+    color: #7b1fa2;
 }
 
 .message.own .message-content {
-    background: rgba(139, 92, 246, 0.15);
-    border-left-color: rgba(139, 92, 246, 0.8);
+    background: #f3e5f5;
+    border-left-color: #9c27b0;
 }
 
 /* ========================================
@@ -515,9 +493,8 @@ body {
     align-items: center;
     gap: 2px;
     padding: 2px 6px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 10px;
     font-size: 0.8rem;
     cursor: pointer;
@@ -526,15 +503,15 @@ body {
 }
 
 .reaction-item:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(0, 255, 255, 0.4);
+    background: #f5f5f5;
+    border-color: #2196f3;
     transform: scale(1.05);
 }
 
 /* 自分がリアクションしたもの */
 .reaction-item.reacted {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
+    background: #e3f2fd;
+    border-color: #2196f3;
 }
 
 /* リアクションの絵文字 */
@@ -559,14 +536,14 @@ body {
     justify-content: center;
     width: 22px;
     height: 22px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    border: 1px dashed rgba(255, 255, 255, 0.3);
+    background: #ffffff;
+    border: 1px dashed #bdbdbd;
     border-radius: 10px;
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
+    color: #757575;
 }
 
 /* メッセージにホバーした時だけ表示 */
@@ -575,8 +552,9 @@ body {
 }
 
 .add-reaction-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(0, 255, 255, 0.5);
+    background: #f5f5f5;
+    border-color: #2196f3;
+    color: #2196f3;
     transform: scale(1.1);
 }
 
@@ -584,12 +562,11 @@ body {
 .reaction-picker {
     position: fixed; /* absoluteからfixedに変更 */
     display: none;
-    background: rgba(10, 10, 20, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 12px;
     padding: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     transform: translate(-50%, -100%);
     margin-top: -10px;
@@ -619,7 +596,7 @@ body {
 }
 
 .reaction-picker-emoji:hover {
-    background: rgba(0, 255, 255, 0.2);
+    background: #e3f2fd;
     transform: scale(1.2);
 }
 
@@ -629,8 +606,8 @@ body {
 
 .input-area {
     padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    border-top: 1px solid rgba(0, 255, 255, 0.3);
+    background: #fafafa;
+    border-top: 1px solid #e0e0e0;
     display: flex;
     align-items: flex-end;
     gap: 10px;
@@ -638,8 +615,8 @@ body {
 
 .image-button {
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 2px solid #2196f3;
     border-radius: 50%;
     width: 48px;
     height: 48px;
@@ -650,49 +627,50 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    color: #2196f3;
 }
 
 .image-button:hover {
-    background: rgba(0, 255, 255, 0.1);
-    border-color: #00ffff;
+    background: #e3f2fd;
     transform: scale(1.05);
 }
 
 .message-input {
     flex: 1;
     padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
     border-radius: 25px;
-    color: #ffffff;
+    color: #333333;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .message-input:focus {
-    border-color: #00ffff;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    border-color: #2196f3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
 .message-input::placeholder {
-    color: #666666;
+    color: #9e9e9e;
 }
 
 .send-button {
     padding: 12px 30px;
-    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    background: #2196f3;
     border: none;
     border-radius: 25px;
-    color: #000000;
+    color: #ffffff;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .send-button:hover {
+    background: #1976d2;
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
 }
 
 .send-button:active {
@@ -710,8 +688,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 2000;
     align-items: center;
     justify-content: center;
@@ -722,13 +699,13 @@ body {
 }
 
 .modal-content {
-    background: linear-gradient(135deg, rgba(10, 0, 21, 0.95), rgba(13, 27, 42, 0.95));
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 20px;
     padding: 30px;
     max-width: 500px;
     width: 90%;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     animation: modalSlideIn 0.3s ease;
 }
 
@@ -745,9 +722,10 @@ body {
 
 .modal-title {
     font-size: 1.5rem;
-    color: #00ffff;
+    color: #333333;
     margin-bottom: 20px;
     text-align: center;
+    font-weight: bold;
 }
 
 .form-group {
@@ -756,26 +734,27 @@ body {
 
 .form-group label {
     display: block;
-    color: #ffffff;
+    color: #333333;
     font-size: 0.9rem;
     margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .form-group input[type="text"] {
     width: 100%;
     padding: 10px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(0, 255, 255, 0.3);
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
     border-radius: 10px;
-    color: #ffffff;
+    color: #333333;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .form-group input[type="text"]:focus {
-    border-color: #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    border-color: #2196f3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
 .emoji-selector {
@@ -787,8 +766,8 @@ body {
 .emoji-option {
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
     border-radius: 10px;
     font-size: 1.5rem;
     cursor: pointer;
@@ -796,15 +775,15 @@ body {
 }
 
 .emoji-option:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.3);
+    background: #f5f5f5;
+    border-color: #2196f3;
     transform: scale(1.1);
 }
 
 .emoji-option.selected {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    background: #e3f2fd;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
 .max-users-selector {
@@ -817,11 +796,11 @@ body {
     align-items: center;
     gap: 5px;
     cursor: pointer;
-    color: #ffffff;
+    color: #333333;
 }
 
 .max-users-selector input[type="radio"] {
-    accent-color: #00ffff;
+    accent-color: #2196f3;
     cursor: pointer;
 }
 
@@ -842,25 +821,26 @@ body {
 }
 
 .btn-cancel {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    color: #333333;
 }
 
 .btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #f5f5f5;
 }
 
 .btn-create {
-    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    background: #2196f3;
     border: none;
-    color: #000000;
+    color: #ffffff;
     font-weight: bold;
 }
 
 .btn-create:hover {
+    background: #1976d2;
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
 }
 
 .btn-create:disabled {

@@ -248,6 +248,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; // 既に同じルームにいる場合は何もしない
             }
 
+            // フェードアウトアニメーション開始
+            messagesArea.classList.add('fade-out');
+            messagesArea.classList.remove('fade-in');
+
+            // アニメーションの完了を待つ（300ms）
+            await new Promise(resolve => setTimeout(resolve, 300));
+
             // 前のルームから退出
             if (currentRoomId) {
                 console.log(`前のルーム ${currentRoomId} から退出`);
@@ -309,11 +316,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            // フェードインアニメーション開始
+            messagesArea.classList.remove('fade-out');
+            messagesArea.classList.add('fade-in');
+
             console.log(`ルーム「${room ? room.name : roomId}」に入室しました`);
 
         } catch (error) {
             console.error('ルーム入室エラー:', error);
             alert('ルームへの入室に失敗しました');
+            // エラー時もフェードインして画面を戻す
+            messagesArea.classList.remove('fade-out');
+            messagesArea.classList.add('fade-in');
         }
     }
 
