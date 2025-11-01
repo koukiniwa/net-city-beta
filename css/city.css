@@ -980,37 +980,156 @@ body {
 }
 
 /* ========================================
-   スマホ対応
+   スマホ対応（画面を最大限活用）
    ======================================== */
 
 @media (max-width: 768px) {
+    /* 背景を非表示にして軽量化・シンプル化 */
+    .city-background {
+        display: none;
+    }
+
+    body {
+        background: linear-gradient(to bottom, #1a0033 0%, #0d1b2a 100%);
+    }
+
+    /* ヘッダーを小型化 */
     .header {
-        height: 50px;
-        padding: 0 10px;
+        height: 45px;
+        padding: 0 12px;
+        border-bottom: none; /* 枠を削除 */
     }
 
     .city-title {
-        font-size: 1.2rem;
-        letter-spacing: 2px;
+        font-size: 1rem;
+        letter-spacing: 1px;
     }
 
     .username-display {
-        font-size: 0.85rem;
-        padding: 6px 10px;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 8px;
     }
 
+    .edit-name-button {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+
+    /* チャットコンテナを画面いっぱいに */
     .chat-container {
-        width: 95%;
-        top: 60px; /* ヘッダーの下 */
-        height: calc(100vh - 80px); /* 画面いっぱい */
-        max-height: none; /* 最大高さ制限を解除 */
+        width: 100%; /* 横幅100% */
+        top: 45px; /* ヘッダーの高さに合わせる */
+        left: 0;
+        transform: none; /* 中央配置を解除 */
+        height: calc(100vh - 45px); /* ヘッダー以外を全て使用 */
+        max-height: none;
+        border: none; /* 枠を削除 */
+        border-radius: 0; /* 角丸を削除 */
+        background: rgba(0, 0, 0, 0.95); /* より不透明に */
     }
 
+    /* ルームバーをコンパクトに */
+    .room-bar {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+    }
+
+    .room-tab {
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    /* チャットヘッダーをコンパクトに */
+    .chat-header {
+        padding: 8px 12px;
+        min-height: 40px;
+    }
+
+    .chat-header span {
+        font-size: 0.9rem;
+    }
+
+    .online-indicator {
+        width: 8px;
+        height: 8px;
+    }
+
+    /* メッセージエリアの余白を削減 */
+    .messages-area {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .message {
+        gap: 6px;
+    }
+
+    .message-username {
+        font-size: 0.85rem;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+    }
+
+    .message-content {
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* 入力エリアをコンパクトに */
     .input-area {
-        padding: 15px;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .message-input {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        border-radius: 8px;
     }
 
     .send-button {
-        padding: 12px 20px;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    .image-button {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
+
+    /* リアクション表示をさらにコンパクトに */
+    .reaction-item {
+        padding: 2px 6px;
+        font-size: 0.8rem;
+        gap: 2px;
+    }
+
+    .reaction-emoji {
+        font-size: 0.9rem;
+    }
+
+    .reaction-count {
+        font-size: 0.75rem;
+    }
+
+    /* モーダルを画面いっぱいに */
+    .modal-content,
+    .edit-message-content {
+        width: 95%;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .modal-title,
+    .edit-message-title {
+        font-size: 1.2rem;
+        margin-bottom: 16px;
     }
 }
