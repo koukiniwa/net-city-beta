@@ -35,10 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesArea = document.getElementById('messagesArea'); // メッセージ表示エリア
     const messageInput = document.getElementById('messageInput'); // 入力欄
     const sendButton = document.getElementById('sendButton'); // 送信ボタン
-    const onlineCount = document.getElementById('onlineCount'); // オンライン人数表示
     const imageButton = document.getElementById('imageButton'); // 画像ボタン
     const imageInput = document.getElementById('imageInput'); // 画像入力
-    const chatHeader = document.querySelector('.chat-header'); // チャットヘッダー
     const inputArea = document.querySelector('.input-area'); // 入力エリア
 
     // ハンバーガーメニュー関連の要素
@@ -53,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ルーム関連の要素
     const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
     const createRoomBtn = document.getElementById('createRoomBtn'); // ルーム作成ボタン
-    const currentRoomName = document.getElementById('currentRoomName'); // 現在のルーム名表示
     const createRoomModal = document.getElementById('createRoomModal'); // ルーム作成モーダル
     const roomNameInput = document.getElementById('roomName'); // ルーム名入力
     const roomDescriptionInput = document.getElementById('roomDescription'); // ルーム説明入力
@@ -261,8 +258,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // フェードアウトアニメーション開始
             messagesArea.classList.add('fade-out');
             messagesArea.classList.remove('fade-in');
-            chatHeader.classList.add('fade-out');
-            chatHeader.classList.remove('fade-in');
             inputArea.classList.add('fade-out');
             inputArea.classList.remove('fade-in');
 
@@ -289,16 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentRoomId = roomId;
             messagesRef = ref(database, `roomMessages/${roomId}`);
             currentRoomUsersRef = ref(database, `roomUsers/${roomId}`);
-
-            // ルーム名を更新
-            const room = roomsCache[roomId];
-            if (room) {
-                currentRoomName.textContent = `${room.emoji} ${room.name}`;
-                console.log(`ルーム名を更新: ${room.name}`);
-            } else {
-                console.warn(`ルーム情報が見つかりません: ${roomId}`);
-                currentRoomName.textContent = 'チャットルーム';
-            }
 
             // メッセージエリアをクリア
             messagesArea.innerHTML = '<div class="welcome-message"><p>ルームに入室しました</p></div>';
@@ -333,12 +318,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // フェードインアニメーション開始
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
-            chatHeader.classList.remove('fade-out');
-            chatHeader.classList.add('fade-in');
             inputArea.classList.remove('fade-out');
             inputArea.classList.add('fade-in');
 
-            console.log(`ルーム「${room ? room.name : roomId}」に入室しました`);
+            console.log(`ルーム「${roomId}」に入室しました`);
 
         } catch (error) {
             console.error('ルーム入室エラー:', error);
@@ -346,8 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // エラー時もフェードインして画面を戻す
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
-            chatHeader.classList.remove('fade-out');
-            chatHeader.classList.add('fade-in');
             inputArea.classList.remove('fade-out');
             inputArea.classList.add('fade-in');
         }
@@ -815,9 +796,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     // ルーム内のオンライン人数の管理
     // ========================================
-    // ※現在のルームの人数はcurrentRoomUsersRefで監視される
+    // ※チャットヘッダーを削除したため、オンライン人数の表示は行わない
 
-    // 現在のルームのユーザー数をリアルタイムで監視
+    // 現在のルームのユーザー数をリアルタイムで監視（内部処理のみ）
     function monitorCurrentRoomUsers() {
         if (!currentRoomUsersRef) {
             console.error('currentRoomUsersRefが未設定です');
@@ -831,15 +812,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (roomUsers) {
                 const count = Object.keys(roomUsers).length;
                 console.log(`現在の人数: ${count}人`);
-
-                if (count === 1) {
-                    onlineCount.textContent = 'あなただけ';
-                } else {
-                    onlineCount.textContent = `${count}人`;
-                }
             } else {
                 console.log('ルームにユーザーがいません');
-                onlineCount.textContent = '0人';
             }
         });
     }
