@@ -1489,17 +1489,28 @@ body.neon-mode .message.deleted .message-content {
     color: #666;
 }
 
+/* 編集コンテナ */
+.message-edit-container {
+    width: 100%;
+    position: relative;
+}
+
 /* 編集用テキストエリア */
 .message-edit-textarea {
     width: 100%;
     min-height: 60px;
-    padding: 10px;
+    padding: 10px 50px 10px 10px; /* 右側にボタンスペース */
     border: 2px solid #4CAF50;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
-    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
+.message-edit-textarea:focus {
+    outline: none;
+    border-color: #45a049;
 }
 
 body.neon-mode .message-edit-textarea {
@@ -1508,20 +1519,32 @@ body.neon-mode .message-edit-textarea {
     border-color: #00ffff;
 }
 
-/* 編集ボタン */
-.message-edit-buttons {
+body.neon-mode .message-edit-textarea:focus {
+    border-color: #00ccff;
+}
+
+/* 編集アクションボタン（右側に配置） */
+.message-edit-actions {
+    position: absolute;
+    right: 8px;
+    top: 8px;
     display: flex;
-    gap: 8px;
+    gap: 4px;
 }
 
 .btn-save-edit,
 .btn-cancel-edit {
-    padding: 8px 16px;
+    width: 32px;
+    height: 32px;
     border: none;
-    border-radius: 6px;
-    font-size: 13px;
+    border-radius: 50%;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .btn-save-edit {
@@ -1531,15 +1554,17 @@ body.neon-mode .message-edit-textarea {
 
 .btn-save-edit:hover {
     background: #45a049;
+    transform: scale(1.1);
 }
 
 .btn-cancel-edit {
     background: #e0e0e0;
-    color: #333;
+    color: #666;
 }
 
 .btn-cancel-edit:hover {
     background: #d0d0d0;
+    transform: scale(1.1);
 }
 
 /* ネオンモード用 */

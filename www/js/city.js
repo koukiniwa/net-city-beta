@@ -3,7 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, onChildChanged, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
 // ========================================
@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // メッセージの変更を監視（編集・削除）
+        // メッセージの変更を監視（編集）
         const unsubscribeChanged = onChildChanged(roomMessagesRef, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
@@ -378,30 +378,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const scrollHeight = messagesArea.scrollHeight;
                 const isAtBottom = scrollHeight - scrollPosition - messagesArea.clientHeight < 50;
 
-                // 削除されたメッセージの場合
-                if (message.deleted) {
-                    existingMessageDiv.classList.add('deleted');
-                    existingMessageDiv.innerHTML = `
-                        <div class="message-header">
-                            <span class="message-username">${escapeHtml(message.username)}</span>
-                            <span class="message-time">${formatTime(message.timestamp)}</span>
-                        </div>
-                        <div class="message-content deleted-message">
-                            このメッセージは削除されました
-                        </div>
-                    `;
-                }
-                // 編集されたメッセージの場合
-                else if (message.edited) {
-                    const messageContent = existingMessageDiv.querySelector('.message-content');
-                    if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
-                        const escapedText = escapeHtml(message.text);
-                        const linkedText = linkifyText(escapedText);
-                        messageContent.innerHTML = `
-                            ${linkedText}
-                            <span class="edited-label">(編集済み)</span>
-                        `;
-                    }
+                // 編集されたメッセージの内容を更新
+                const messageContent = existingMessageDiv.querySelector('.message-content');
+                if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
+                    const escapedText = escapeHtml(message.text);
+                    const linkedText = linkifyText(escapedText);
+                    messageContent.innerHTML = linkedText;
                 }
 
                 // スクロール位置を復元
@@ -413,10 +395,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // メッセージの削除を監視
+        const unsubscribeRemoved = onChildRemoved(roomMessagesRef, (snapshot) => {
+            const messageId = snapshot.key;
+            const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+
+            if (existingMessageDiv) {
+                existingMessageDiv.remove();
+                console.log(`メッセージを画面から削除: ${messageId}`);
+            }
+        });
+
         // リスナーを保存（複数のリスナーを管理）
         currentMessagesListener = () => {
             unsubscribeAdded();
             unsubscribeChanged();
+            unsubscribeRemoved();
         };
     }
 
@@ -642,23 +636,6 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
 
-        // 削除されたメッセージの場合
-        if (message.deleted) {
-            messageDiv.classList.add('deleted');
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="message-username">${escapeHtml(message.username)}</span>
-                    <span class="message-time">${formatTime(message.timestamp)}</span>
-                </div>
-                <div class="message-content deleted-message">
-                    このメッセージは削除されました
-                </div>
-            `;
-            messagesArea.appendChild(messageDiv);
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-            return;
-        }
-
         // 時刻をフォーマット（例: 14:30）
         const timeString = formatTime(message.timestamp);
 
@@ -678,7 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
             contentHTML = `
                 <div class="message-content">
                     ${linkedText}
-                    ${message.edited ? '<span class="edited-label">(編集済み)</span>' : ''}
                 </div>
             `;
         }
@@ -1009,12 +985,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // 完全に削除せず、deletedフラグを立てる
+            // メッセージを完全に削除（onChildRemovedが画面からも削除してくれる）
             const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
-            await update(messageRef, {
-                deleted: true,
-                deletedAt: Date.now()
-            });
+            await remove(messageRef);
 
             console.log('メッセージを削除しました');
         } catch (error) {
@@ -1033,17 +1006,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 編集用のテキストエリアを作成
         const currentText = message.text;
-        const textarea = document.createElement('textarea');
-        textarea.className = 'message-edit-textarea';
-        textarea.value = currentText;
-        textarea.maxLength = 200;
-
-        // 保存・キャンセルボタンを作成
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'message-edit-buttons';
-        buttonContainer.innerHTML = `
-            <button class="btn-save-edit">保存</button>
-            <button class="btn-cancel-edit">キャンセル</button>
+        const editContainer = document.createElement('div');
+        editContainer.className = 'message-edit-container';
+        editContainer.innerHTML = `
+            <textarea class="message-edit-textarea" maxlength="200" placeholder="メッセージを編集...">${currentText}</textarea>
+            <div class="message-edit-actions">
+                <button class="btn-cancel-edit" title="キャンセル">✕</button>
+                <button class="btn-save-edit" title="保存">✓</button>
+            </div>
         `;
 
         // 元の内容を保存
@@ -1051,24 +1021,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 編集UIに切り替え
         messageContent.innerHTML = '';
-        messageContent.appendChild(textarea);
-        messageContent.appendChild(buttonContainer);
+        messageContent.appendChild(editContainer);
+
+        const textarea = editContainer.querySelector('.message-edit-textarea');
         textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length); // カーソルを最後に
 
         // 保存ボタン
-        buttonContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
+        editContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
             const newText = textarea.value.trim();
             if (!newText) {
                 alert('メッセージを入力してください');
                 return;
             }
 
+            if (newText === currentText) {
+                // 変更がない場合は元に戻す
+                messageContent.innerHTML = originalHTML;
+                return;
+            }
+
             try {
                 const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
                 await update(messageRef, {
-                    text: newText,
-                    edited: true,
-                    editedAt: Date.now()
+                    text: newText
+                    // editedフラグは立てない
                 });
 
                 console.log('メッセージを編集しました');
@@ -1080,8 +1057,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // キャンセルボタン
-        buttonContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
+        editContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
             messageContent.innerHTML = originalHTML;
+        });
+
+        // Enterキーで保存（Shift+Enterで改行）
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                editContainer.querySelector('.btn-save-edit').click();
+            } else if (e.key === 'Escape') {
+                editContainer.querySelector('.btn-cancel-edit').click();
+            }
         });
     }
 
