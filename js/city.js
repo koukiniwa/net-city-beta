@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 menuBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     console.log(`メニューボタンクリック！`);
-                    showMessageMenu(messageId, message, menuBtn);
+                    showMessageMenu(messageId, message, menuBtn, isOwnMessage);
                 });
 
                 // モバイル対応：タッチでメニューボタンを表示
@@ -756,17 +756,67 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // 長押しでメニュー表示（LINEスタイル）
+        let longPressTimer = null;
+        let touchMoved = false;
+
+        messageDiv.addEventListener('touchstart', (e) => {
+            // リアクションボタンや他のボタンをタップした場合は長押しメニューを表示しない
+            if (e.target.closest('.add-reaction-btn') ||
+                e.target.closest('.message-menu-btn') ||
+                e.target.closest('.reaction-item') ||
+                e.target.closest('.message-link') ||
+                e.target.closest('.message-edit-container')) {
+                return;
+            }
+
+            touchMoved = false;
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    // 長押し検出
+                    const touch = e.touches[0];
+                    showLongPressMenu(messageId, message, isOwnMessage, touch.clientX, touch.clientY);
+                }
+            }, 500); // 500ms長押しで反応
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchmove', () => {
+            touchMoved = true;
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchcancel', () => {
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
         // 自動的に一番下までスクロール（新しいメッセージが見えるように）
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
-    // 時刻をフォーマットする関数
+    // 時刻を相対時間でフォーマットする関数（何分前、何時間前、何日前）
     function formatTime(timestamp) {
         if (!timestamp) return '送信中...';
-        const date = new Date(timestamp);
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        return `${hours}:${minutes}`;
+
+        const now = Date.now();
+        const diff = now - timestamp;
+
+        const minutes = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (minutes < 1) {
+            return 'たった今';
+        } else if (minutes < 60) {
+            return `${minutes}分前`;
+        } else if (hours < 24) {
+            return `${hours}時間前`;
+        } else {
+            return `${days}日前`;
+        }
     }
 
     // ========================================
@@ -956,8 +1006,126 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentMessageMenu = null;
 
-    // メッセージメニューを表示
-    function showMessageMenu(messageId, message, button) {
+    // 長押しメニューを表示（LINEスタイル）
+    function showLongPressMenu(messageId, message, isOwnMessage, x, y) {
+        // 既存のメニューを閉じる
+        if (currentMessageMenu) {
+            currentMessageMenu.remove();
+            currentMessageMenu = null;
+        }
+
+        // メニューを作成
+        const menu = document.createElement('div');
+        menu.className = 'long-press-menu active';
+
+        let menuHTML = '';
+
+        // リアクションセクション（全てのメッセージで表示）
+        menuHTML += `
+            <div class="menu-section-title">リアクション</div>
+            <div class="reaction-quick-picks">
+        `;
+        // 先頭5つのリアクション絵文字を表示
+        availableReactions.slice(0, 5).forEach(emoji => {
+            menuHTML += `<div class="reaction-quick-emoji" data-emoji="${emoji}">${emoji}</div>`;
+        });
+        menuHTML += `<div class="reaction-quick-emoji more" data-action="more-reactions">+</div>`;
+        menuHTML += `</div>`;
+
+        // 自分のメッセージの場合は編集・削除オプションを追加
+        if (isOwnMessage && !message.imageUrl) {
+            menuHTML += `
+                <div class="menu-divider"></div>
+                <div class="message-menu-item" data-action="edit">
+                    <span class="menu-icon">✏️</span>
+                    <span class="menu-text">編集</span>
+                </div>
+                <div class="message-menu-item delete" data-action="delete">
+                    <span class="menu-icon">🗑️</span>
+                    <span class="menu-text">削除</span>
+                </div>
+            `;
+        }
+
+        menu.innerHTML = menuHTML;
+
+        // bodyに一旦追加してサイズを取得
+        document.body.appendChild(menu);
+        currentMessageMenu = menu;
+
+        // メニューの位置を調整
+        const menuRect = menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let left = x - menuRect.width / 2;
+        let top = y - menuRect.height - 10;
+
+        // 画面からはみ出ないように調整
+        if (left < 10) left = 10;
+        if (left + menuRect.width > viewportWidth - 10) {
+            left = viewportWidth - menuRect.width - 10;
+        }
+        if (top < 10) top = y + 20; // 上にはみ出る場合は下に表示
+        if (top + menuRect.height > viewportHeight - 10) {
+            top = viewportHeight - menuRect.height - 10;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+
+        // リアクション絵文字のクリックイベント
+        menu.querySelectorAll('.reaction-quick-emoji').forEach(emoji => {
+            emoji.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                if (action === 'more-reactions') {
+                    // リアクションピッカーを表示
+                    menu.remove();
+                    currentMessageMenu = null;
+                    const addReactionBtn = document.querySelector(`.add-reaction-btn[data-message-id="${messageId}"]`);
+                    if (addReactionBtn) {
+                        showReactionPicker(messageId, addReactionBtn);
+                    }
+                } else {
+                    const emojiChar = e.currentTarget.dataset.emoji;
+                    addReaction(messageId, emojiChar);
+                    menu.remove();
+                    currentMessageMenu = null;
+                }
+            });
+        });
+
+        // メニュー項目のクリックイベント
+        menu.querySelectorAll('.message-menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                if (action === 'edit') {
+                    editMessage(messageId, message);
+                } else if (action === 'delete') {
+                    deleteMessage(messageId);
+                }
+                menu.remove();
+                currentMessageMenu = null;
+            });
+        });
+
+        // メニュー外をタップしたら閉じる
+        setTimeout(() => {
+            const closeMenuHandler = (e) => {
+                if (currentMessageMenu && !currentMessageMenu.contains(e.target)) {
+                    currentMessageMenu.remove();
+                    currentMessageMenu = null;
+                    document.removeEventListener('click', closeMenuHandler);
+                    document.removeEventListener('touchstart', closeMenuHandler);
+                }
+            };
+            document.addEventListener('click', closeMenuHandler);
+            document.addEventListener('touchstart', closeMenuHandler);
+        }, 100);
+    }
+
+    // メッセージメニューを表示（メニューボタンクリック用）
+    function showMessageMenu(messageId, message, button, isOwnMessage) {
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
             currentMessageMenu.remove();
