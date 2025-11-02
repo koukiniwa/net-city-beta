@@ -380,7 +380,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 編集されたメッセージの内容を更新
                 const messageContent = existingMessageDiv.querySelector('.message-content');
-                if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
+                if (messageContent) {
+                    // 編集UIがある場合は削除
+                    const editContainer = messageContent.querySelector('.message-edit-container');
+                    if (editContainer) {
+                        editContainer.remove();
+                    }
+
+                    // メッセージを更新
                     const escapedText = escapeHtml(message.text);
                     const linkedText = linkifyText(escapedText);
                     messageContent.innerHTML = linkedText;
