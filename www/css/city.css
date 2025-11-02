@@ -1359,33 +1359,43 @@ body.neon-mode .theme-option .checkmark {
 
 /* メニューボタン（⋮ボタン） */
 .message-menu-btn {
-    background: transparent;
-    border: none;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
     color: #888;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
-    padding: 4px 8px;
-    margin-left: auto;
+    padding: 2px 6px;
     opacity: 1; /* デバッグ用：常に表示 */
-    transition: opacity 0.2s ease, color 0.2s ease;
+    transition: all 0.2s ease;
+    z-index: 10;
 }
 
 .message:hover .message-menu-btn {
     opacity: 1;
+    background: rgba(255, 255, 255, 1);
     color: #555; /* ホバー時に少し濃く */
 }
 
 .message-menu-btn:hover {
     color: #333;
+    border-color: #ccc;
 }
 
 /* ネオンモード用 */
 body.neon-mode .message-menu-btn {
+    background: rgba(26, 26, 46, 0.9);
+    border-color: #00ffff;
     color: #00ffff;
 }
 
 body.neon-mode .message-menu-btn:hover {
+    background: rgba(26, 26, 46, 1);
     color: #00ccff;
+    border-color: #00ccff;
 }
 
 /* メッセージメニュー */
