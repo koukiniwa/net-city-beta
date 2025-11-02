@@ -315,6 +315,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            // 選択されたルームタブをスクロールして見やすい位置に
+            scrollToActiveRoomTab(roomId);
+
             // フェードインアニメーション開始
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
@@ -338,6 +341,33 @@ document.addEventListener('DOMContentLoaded', function() {
     async function leaveRoom(roomId) {
         const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
         await remove(userRef);
+    }
+
+    // 選択されたルームタブをスクロールして見やすい位置に移動
+    function scrollToActiveRoomTab(roomId) {
+        const activeTab = document.querySelector(`.room-tab[data-room-id="${roomId}"]`);
+        if (!activeTab) return;
+
+        const roomTabsElement = document.getElementById('roomTabs');
+        if (!roomTabsElement) return;
+
+        // タブの位置を取得
+        const tabRect = activeTab.getBoundingClientRect();
+        const tabsRect = roomTabsElement.getBoundingClientRect();
+
+        // 現在のスクロール位置
+        const currentScroll = roomTabsElement.scrollLeft;
+
+        // タブをタブコンテナの左端に配置するために必要なスクロール量を計算
+        const targetScroll = currentScroll + (tabRect.left - tabsRect.left) - 10; // 10pxの余白
+
+        // スムーズにスクロール
+        roomTabsElement.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+        });
+
+        console.log(`ルームタブをスクロール: ${roomId}`);
     }
 
     // ルームのメッセージを読み込み
