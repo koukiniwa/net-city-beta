@@ -413,7 +413,7 @@ body {
     border-left: 4px solid #1976d2; /* 太く濃く */
     border-radius: 12px;
     color: #212121; /* より濃い文字色 */
-    font-weight: 400;
+    font-weight: 500; /* 少し太く */
     line-height: 1.5;
     word-wrap: break-word; /* 長い文字を折り返す */
 }
@@ -656,7 +656,7 @@ body {
     border-radius: 25px;
     color: #212121; /* より濃い文字色 */
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 500; /* 少し太く */
     outline: none;
     transition: all 0.3s ease;
 }
@@ -1119,8 +1119,9 @@ body.neon-mode .message-time {
 
 body.neon-mode .message-content {
     background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid rgba(0, 255, 255, 0.5);
+    border-left: 4px solid rgba(0, 255, 255, 0.5); /* 太く */
     color: #ffffff;
+    font-weight: 500; /* 少し太く */
 }
 
 body.neon-mode .message.own .message-username {
@@ -1509,6 +1510,7 @@ body.neon-mode .message.deleted .message-content {
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
+    font-weight: 500; /* 少し太く */
     resize: vertical;
     box-sizing: border-box;
 }
