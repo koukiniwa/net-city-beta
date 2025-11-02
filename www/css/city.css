@@ -373,6 +373,8 @@ body {
     gap: 5px;
     animation: messageSlideIn 0.3s ease; /* 出現アニメーション */
     position: relative; /* リアクションを絶対配置するため */
+    max-width: 70%; /* メッセージの最大幅を制限 */
+    align-self: flex-start; /* デフォルトは左寄せ */
 }
 
 /* メッセージが出現するアニメーション */
@@ -453,6 +455,10 @@ body {
 }
 
 /* 自分のメッセージ */
+.message.own {
+    align-self: flex-end; /* 右寄せ */
+}
+
 .message.own .message-username {
     color: #7b1fa2;
 }
