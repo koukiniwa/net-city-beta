@@ -702,13 +702,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // メニューボタン（自分のメッセージのみ）
-        const menuButtonHTML = isOwnMessage && !message.imageUrl ? `
-            <button class="message-menu-btn" data-message-id="${messageId}">⋮</button>
-        ` : '';
-
-        console.log(`メニューボタン生成: isOwnMessage=${isOwnMessage}, hasImage=${!!message.imageUrl}, HTML="${menuButtonHTML}"`);
-
         // メッセージのHTML構造を作成
         // 表示用番号がない場合は番号から生成
         const displayName = message.displayNumber || `No.${message.userNumber}`;
@@ -716,7 +709,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="message-header">
                 <span class="message-username">${escapeHtml(displayName)}</span>
                 <span class="message-time">${timeString}</span>
-                ${menuButtonHTML}
             </div>
             ${contentHTML}
             <div class="message-reactions" data-message-id="${messageId}">
@@ -734,36 +726,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showReactionPicker(messageId, addReactionBtn);
         });
 
-        // メニューボタンのイベントを設定（自分のメッセージのみ）
-        if (isOwnMessage && !message.imageUrl) {
-            const menuBtn = messageDiv.querySelector('.message-menu-btn');
-            console.log(`メニューボタン検索結果:`, menuBtn);
-            if (menuBtn) {
-                console.log(`メニューボタンにイベントリスナー設定`);
-                menuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    console.log(`メニューボタンクリック！`);
-                    showMessageMenu(messageId, message, menuBtn, isOwnMessage);
-                });
-
-                // モバイル対応：タッチでメニューボタンを表示
-                messageDiv.addEventListener('touchstart', () => {
-                    menuBtn.style.opacity = '1';
-                }, { passive: true });
-
-                // タッチ終了後、少し遅延させて非表示に戻す
-                messageDiv.addEventListener('touchend', () => {
-                    setTimeout(() => {
-                        if (!currentMessageMenu) {
-                            menuBtn.style.opacity = '';
-                        }
-                    }, 3000); // 3秒後に非表示
-                }, { passive: true });
-            } else {
-                console.warn(`メニューボタンが見つかりません`);
-            }
-        }
-
         // 長押しでメニュー表示（LINEスタイル）
         let longPressTimer = null;
         let touchMoved = false;
@@ -771,10 +733,8 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.addEventListener('touchstart', (e) => {
             // リアクションボタンや他のボタンをタップした場合は長押しメニューを表示しない
             if (e.target.closest('.add-reaction-btn') ||
-                e.target.closest('.message-menu-btn') ||
                 e.target.closest('.reaction-item') ||
-                e.target.closest('.message-link') ||
-                e.target.closest('.message-edit-container')) {
+                e.target.closest('.message-link')) {
                 return;
             }
 
@@ -1092,58 +1052,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // メッセージメニューを表示（メニューボタンクリック用 - 削除のみ）
-    function showMessageMenu(messageId, message, button, isOwnMessage) {
-        // 既存のメニューを閉じる
-        if (currentMessageMenu) {
-            currentMessageMenu.remove();
-            currentMessageMenu = null;
-            return;
-        }
+    // ※メニューボタン（⋮）を削除したため、この関数は使用されません
+    // function showMessageMenu(messageId, message, button, isOwnMessage) {
+    //     // 既存のメニューを閉じる
+    //     if (currentMessageMenu) {
+    //         currentMessageMenu.remove();
+    //         currentMessageMenu = null;
+    //         return;
+    //     }
 
-        // メニューを作成
-        const menu = document.createElement('div');
-        menu.className = 'message-menu active';
+    //     // メニューを作成
+    //     const menu = document.createElement('div');
+    //     menu.className = 'message-menu active';
 
-        // 削除のみ
-        menu.innerHTML = `
-            <div class="message-menu-item delete" data-action="delete">
-                <span class="menu-icon">🗑️</span>
-                <span class="menu-text">削除</span>
-            </div>
-        `;
+    //     // 削除のみ
+    //     menu.innerHTML = `
+    //         <div class="message-menu-item delete" data-action="delete">
+    //             <span class="menu-icon">🗑️</span>
+    //             <span class="menu-text">削除</span>
+    //         </div>
+    //     `;
 
-        // ボタンの位置を取得してメニューを配置
-        const buttonRect = button.getBoundingClientRect();
-        menu.style.left = `${buttonRect.left}px`;
-        menu.style.top = `${buttonRect.bottom + 5}px`;
+    //     // ボタンの位置を取得してメニューを配置
+    //     const buttonRect = button.getBoundingClientRect();
+    //     menu.style.left = `${buttonRect.left}px`;
+    //     menu.style.top = `${buttonRect.bottom + 5}px`;
 
-        // bodyに追加
-        document.body.appendChild(menu);
-        currentMessageMenu = menu;
+    //     // bodyに追加
+    //     document.body.appendChild(menu);
+    //     currentMessageMenu = menu;
 
-        // メニュー項目のクリックイベント
-        menu.querySelectorAll('.message-menu-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const action = e.currentTarget.dataset.action;
-                if (action === 'delete') {
-                    deleteMessage(messageId);
-                }
-                menu.remove();
-                currentMessageMenu = null;
-            });
-        });
+    //     // メニュー項目のクリックイベント
+    //     menu.querySelectorAll('.message-menu-item').forEach(item => {
+    //         item.addEventListener('click', (e) => {
+    //             const action = e.currentTarget.dataset.action;
+    //             if (action === 'delete') {
+    //                 deleteMessage(messageId);
+    //             }
+    //             menu.remove();
+    //             currentMessageMenu = null;
+    //         });
+    //     });
 
-        // メニュー外をクリックしたら閉じる
-        setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (currentMessageMenu && !currentMessageMenu.contains(e.target) && e.target !== button) {
-                    currentMessageMenu.remove();
-                    currentMessageMenu = null;
-                    document.removeEventListener('click', closeMenu);
-                }
-            });
-        }, 100);
-    }
+    //     // メニュー外をクリックしたら閉じる
+    //     setTimeout(() => {
+    //         document.addEventListener('click', function closeMenu(e) {
+    //             if (currentMessageMenu && !currentMessageMenu.contains(e.target) && e.target !== button) {
+    //                 currentMessageMenu.remove();
+    //                 currentMessageMenu = null;
+    //                 document.removeEventListener('click', closeMenu);
+    //             }
+    //         });
+    //     }, 100);
+    // }
 
     // メッセージを削除する
     async function deleteMessage(messageId) {
