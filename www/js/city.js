@@ -347,8 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 一度だけ実行してウェルカムメッセージを消す
         let isFirstMessage = true;
 
-        // onChildAddedはoff関数を返すので保存
-        currentMessagesListener = onChildAdded(roomMessagesRef, (snapshot) => {
+        // メッセージの追加を監視
+        const unsubscribeAdded = onChildAdded(roomMessagesRef, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
 
@@ -365,6 +365,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateReactionsDisplay(messageId, reactionsSnapshot.val());
             });
         });
+
+        // メッセージの変更を監視（編集・削除）
+        const unsubscribeChanged = onValue(roomMessagesRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const messages = snapshot.val();
+                Object.keys(messages).forEach(messageId => {
+                    const message = messages[messageId];
+                    const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+
+                    if (existingMessageDiv) {
+                        // 既存のメッセージを更新（スクロール位置を保持）
+                        const scrollPosition = messagesArea.scrollTop;
+                        const scrollHeight = messagesArea.scrollHeight;
+                        const isAtBottom = scrollHeight - scrollPosition - messagesArea.clientHeight < 50;
+
+                        // メッセージを再描画
+                        const newMessageDiv = document.createElement('div');
+                        newMessageDiv.className = existingMessageDiv.className;
+                        newMessageDiv.dataset.messageId = messageId;
+
+                        // 削除されたメッセージの場合
+                        if (message.deleted) {
+                            newMessageDiv.classList.add('deleted');
+                            newMessageDiv.innerHTML = `
+                                <div class="message-header">
+                                    <span class="message-username">${escapeHtml(message.username)}</span>
+                                    <span class="message-time">${formatTime(message.timestamp)}</span>
+                                </div>
+                                <div class="message-content deleted-message">
+                                    このメッセージは削除されました
+                                </div>
+                            `;
+                            existingMessageDiv.replaceWith(newMessageDiv);
+                            return;
+                        }
+
+                        // 編集されたメッセージの場合
+                        if (message.edited) {
+                            const messageContent = existingMessageDiv.querySelector('.message-content');
+                            if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
+                                const escapedText = escapeHtml(message.text);
+                                const linkedText = linkifyText(escapedText);
+                                messageContent.innerHTML = `
+                                    ${linkedText}
+                                    <span class="edited-label">(編集済み)</span>
+                                `;
+                            }
+                        }
+
+                        // スクロール位置を復元
+                        if (isAtBottom) {
+                            messagesArea.scrollTop = messagesArea.scrollHeight;
+                        } else {
+                            messagesArea.scrollTop = scrollPosition;
+                        }
+                    }
+                });
+            }
+        });
+
+        // リスナーを保存（複数のリスナーを管理）
+        currentMessagesListener = () => {
+            unsubscribeAdded();
+            unsubscribeChanged();
+        };
     }
 
     // ========================================
@@ -502,17 +567,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 古いメッセージの削除処理
     // ========================================
 
-    // 24時間(1日)前のタイムスタンプを計算
-    function getOneDayAgoTimestamp() {
-        const oneDayInMs = 24 * 60 * 60 * 1000; // 24時間のミリ秒
-        return Date.now() - oneDayInMs;
+    // 7日間前のタイムスタンプを計算
+    function getSevenDaysAgoTimestamp() {
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; // 7日間のミリ秒
+        return Date.now() - sevenDaysInMs;
     }
 
     // 古いメッセージを削除する関数（全ルーム対象）
     async function deleteOldMessages() {
         try {
-            const oneDayAgo = getOneDayAgoTimestamp();
-            console.log(`24時間前のタイムスタンプ: ${oneDayAgo} (${new Date(oneDayAgo).toLocaleString()})`);
+            const sevenDaysAgo = getSevenDaysAgoTimestamp();
+            console.log(`7日前のタイムスタンプ: ${sevenDaysAgo} (${new Date(sevenDaysAgo).toLocaleString()})`);
 
             // 全ルームを取得
             const roomsSnapshot = await get(roomsRef);
@@ -537,8 +602,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     for (const messageId in allMessages) {
                         const message = allMessages[messageId];
 
-                        // タイムスタンプが存在し、24時間以上前の場合は削除
-                        if (message.timestamp && message.timestamp < oneDayAgo) {
+                        // タイムスタンプが存在し、7日間以上前の場合は削除
+                        if (message.timestamp && message.timestamp < sevenDaysAgo) {
                             try {
                                 await remove(ref(database, `roomMessages/${roomId}/${messageId}`));
                                 totalDeleted++;
@@ -583,20 +648,30 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.dataset.messageId = messageId; // メッセージIDを保存
 
         // 自分のメッセージかどうかをチェック
-        if (message.username === username) {
+        const isOwnMessage = message.username === username;
+        if (isOwnMessage) {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
 
-        // 時刻をフォーマット（例: 14:30）
-        let timeString = '';
-        if (message.timestamp) {
-            const date = new Date(message.timestamp);
-            const hours = date.getHours().toString().padStart(2, '0'); // 2桁にする（例: 09）
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            timeString = `${hours}:${minutes}`;
-        } else {
-            timeString = '送信中...';
+        // 削除されたメッセージの場合
+        if (message.deleted) {
+            messageDiv.classList.add('deleted');
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-username">${escapeHtml(message.username)}</span>
+                    <span class="message-time">${formatTime(message.timestamp)}</span>
+                </div>
+                <div class="message-content deleted-message">
+                    このメッセージは削除されました
+                </div>
+            `;
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            return;
         }
+
+        // 時刻をフォーマット（例: 14:30）
+        const timeString = formatTime(message.timestamp);
 
         // メッセージの内容を決定（テキストまたは画像）
         let contentHTML = '';
@@ -614,15 +689,22 @@ document.addEventListener('DOMContentLoaded', function() {
             contentHTML = `
                 <div class="message-content">
                     ${linkedText}
+                    ${message.edited ? '<span class="edited-label">(編集済み)</span>' : ''}
                 </div>
             `;
         }
+
+        // メニューボタン（自分のメッセージのみ）
+        const menuButtonHTML = isOwnMessage && !message.imageUrl ? `
+            <button class="message-menu-btn" data-message-id="${messageId}">⋮</button>
+        ` : '';
 
         // メッセージのHTML構造を作成
         messageDiv.innerHTML = `
             <div class="message-header">
                 <span class="message-username">${escapeHtml(message.username)}</span>
                 <span class="message-time">${timeString}</span>
+                ${menuButtonHTML}
             </div>
             ${contentHTML}
             <div class="message-reactions" data-message-id="${messageId}">
@@ -640,8 +722,28 @@ document.addEventListener('DOMContentLoaded', function() {
             showReactionPicker(messageId, addReactionBtn);
         });
 
+        // メニューボタンのイベントを設定（自分のメッセージのみ）
+        if (isOwnMessage && !message.imageUrl) {
+            const menuBtn = messageDiv.querySelector('.message-menu-btn');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showMessageMenu(messageId, message, menuBtn);
+                });
+            }
+        }
+
         // 自動的に一番下までスクロール（新しいメッセージが見えるように）
         messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // 時刻をフォーマットする関数
+    function formatTime(timestamp) {
+        if (!timestamp) return '送信中...';
+        const date = new Date(timestamp);
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
     }
 
     // ========================================
@@ -790,6 +892,154 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // +ボタンの前に挿入
             reactionsContainer.insertBefore(reactionItem, addBtn);
+        });
+    }
+
+    // ========================================
+    // メッセージの編集・削除機能
+    // ========================================
+
+    let currentMessageMenu = null;
+
+    // メッセージメニューを表示
+    function showMessageMenu(messageId, message, button) {
+        // 既存のメニューを閉じる
+        if (currentMessageMenu) {
+            currentMessageMenu.remove();
+            currentMessageMenu = null;
+            return;
+        }
+
+        // メニューを作成
+        const menu = document.createElement('div');
+        menu.className = 'message-menu active';
+
+        menu.innerHTML = `
+            <div class="message-menu-item" data-action="edit">
+                <span class="menu-icon">✏️</span>
+                <span class="menu-text">編集</span>
+            </div>
+            <div class="message-menu-item delete" data-action="delete">
+                <span class="menu-icon">🗑️</span>
+                <span class="menu-text">削除</span>
+            </div>
+        `;
+
+        // ボタンの位置を取得してメニューを配置
+        const buttonRect = button.getBoundingClientRect();
+        menu.style.left = `${buttonRect.left}px`;
+        menu.style.top = `${buttonRect.bottom + 5}px`;
+
+        // bodyに追加
+        document.body.appendChild(menu);
+        currentMessageMenu = menu;
+
+        // メニュー項目のクリックイベント
+        menu.querySelectorAll('.message-menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                if (action === 'edit') {
+                    editMessage(messageId, message);
+                } else if (action === 'delete') {
+                    deleteMessage(messageId);
+                }
+                menu.remove();
+                currentMessageMenu = null;
+            });
+        });
+
+        // メニュー外をクリックしたら閉じる
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (currentMessageMenu && !currentMessageMenu.contains(e.target) && e.target !== button) {
+                    currentMessageMenu.remove();
+                    currentMessageMenu = null;
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+
+    // メッセージを削除する
+    async function deleteMessage(messageId) {
+        if (!confirm('このメッセージを削除しますか？')) {
+            return;
+        }
+
+        try {
+            // 完全に削除せず、deletedフラグを立てる
+            const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
+            await update(messageRef, {
+                deleted: true,
+                deletedAt: Date.now()
+            });
+
+            console.log('メッセージを削除しました');
+        } catch (error) {
+            console.error('メッセージ削除エラー:', error);
+            alert('メッセージの削除に失敗しました');
+        }
+    }
+
+    // メッセージを編集する
+    function editMessage(messageId, message) {
+        const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+        if (!messageDiv) return;
+
+        const messageContent = messageDiv.querySelector('.message-content');
+        if (!messageContent) return;
+
+        // 編集用のテキストエリアを作成
+        const currentText = message.text;
+        const textarea = document.createElement('textarea');
+        textarea.className = 'message-edit-textarea';
+        textarea.value = currentText;
+        textarea.maxLength = 200;
+
+        // 保存・キャンセルボタンを作成
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'message-edit-buttons';
+        buttonContainer.innerHTML = `
+            <button class="btn-save-edit">保存</button>
+            <button class="btn-cancel-edit">キャンセル</button>
+        `;
+
+        // 元の内容を保存
+        const originalHTML = messageContent.innerHTML;
+
+        // 編集UIに切り替え
+        messageContent.innerHTML = '';
+        messageContent.appendChild(textarea);
+        messageContent.appendChild(buttonContainer);
+        textarea.focus();
+
+        // 保存ボタン
+        buttonContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
+            const newText = textarea.value.trim();
+            if (!newText) {
+                alert('メッセージを入力してください');
+                return;
+            }
+
+            try {
+                const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
+                await update(messageRef, {
+                    text: newText,
+                    edited: true,
+                    editedAt: Date.now()
+                });
+
+                console.log('メッセージを編集しました');
+            } catch (error) {
+                console.error('メッセージ編集エラー:', error);
+                alert('メッセージの編集に失敗しました');
+                messageContent.innerHTML = originalHTML;
+            }
+        });
+
+        // キャンセルボタン
+        buttonContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
+            messageContent.innerHTML = originalHTML;
         });
     }
 
@@ -946,8 +1196,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const rooms = roomsSnapshot.val();
             const now = Date.now();
-            const oneHourInMs = 60 * 60 * 1000; // 1時間
             const oneDayInMs = 24 * 60 * 60 * 1000; // 24時間
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; // 7日間
 
             for (const roomId in rooms) {
                 const room = rooms[roomId];
@@ -961,19 +1211,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const users = usersSnapshot.val();
                 const userCount = users ? Object.keys(users).length : 0;
 
-                // 削除条件1: 1時間以上誰もいない
-                const isEmptyForOneHour = userCount === 0 && (now - room.createdAt) > oneHourInMs;
+                // 削除条件1: 24時間以上誰もいない
+                const isEmptyForOneDay = userCount === 0 && (now - room.createdAt) > oneDayInMs;
 
-                // 削除条件2: 作成から24時間経過
-                const isOlderThanOneDay = (now - room.createdAt) > oneDayInMs;
+                // 削除条件2: 作成から7日間経過
+                const isOlderThanSevenDays = (now - room.createdAt) > sevenDaysInMs;
 
-                if (isEmptyForOneHour || isOlderThanOneDay) {
+                if (isEmptyForOneDay || isOlderThanSevenDays) {
                     // ルームを削除
                     await remove(ref(database, `rooms/${roomId}`));
                     await remove(ref(database, `roomUsers/${roomId}`));
                     await remove(ref(database, `roomMessages/${roomId}`));
 
-                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isOlderThanOneDay ? '24時間経過' : '1時間以上空室'}）`);
+                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isOlderThanSevenDays ? '7日間経過' : '24時間以上空室'}）`);
                 }
             }
         } catch (error) {

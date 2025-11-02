@@ -1352,3 +1352,195 @@ body.neon-mode .theme-option .checkmark {
         padding: 12px 20px;
     }
 }
+
+/* ========================================
+   メッセージの編集・削除機能のスタイル
+   ======================================== */
+
+/* メニューボタン（⋮ボタン） */
+.message-menu-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.message:hover .message-menu-btn {
+    opacity: 1;
+}
+
+.message-menu-btn:hover {
+    color: #333;
+}
+
+/* ネオンモード用 */
+body.neon-mode .message-menu-btn {
+    color: #00ffff;
+}
+
+body.neon-mode .message-menu-btn:hover {
+    color: #00ccff;
+}
+
+/* メッセージメニュー */
+.message-menu {
+    position: fixed;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    z-index: 1000;
+    min-width: 150px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.message-menu.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.message-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.message-menu-item:hover {
+    background: #f5f5f5;
+}
+
+.message-menu-item.delete:hover {
+    background: #ffe6e6;
+    color: #d32f2f;
+}
+
+.message-menu-item .menu-icon {
+    font-size: 16px;
+}
+
+.message-menu-item .menu-text {
+    font-size: 14px;
+}
+
+/* ネオンモード用 */
+body.neon-mode .message-menu {
+    background: #1a1a2e;
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+body.neon-mode .message-menu-item:hover {
+    background: rgba(0, 255, 255, 0.1);
+}
+
+body.neon-mode .message-menu-item.delete:hover {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+}
+
+/* 編集済みラベル */
+.edited-label {
+    font-size: 11px;
+    color: #888;
+    margin-left: 6px;
+    font-style: italic;
+}
+
+body.neon-mode .edited-label {
+    color: #00ffff;
+}
+
+/* 削除されたメッセージ */
+.message.deleted .message-content {
+    opacity: 0.6;
+    font-style: italic;
+    color: #888;
+}
+
+body.neon-mode .message.deleted .message-content {
+    color: #666;
+}
+
+/* 編集用テキストエリア */
+.message-edit-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 8px;
+}
+
+body.neon-mode .message-edit-textarea {
+    background: #1a1a2e;
+    color: #ffffff;
+    border-color: #00ffff;
+}
+
+/* 編集ボタン */
+.message-edit-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-save-edit,
+.btn-cancel-edit {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save-edit {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-save-edit:hover {
+    background: #45a049;
+}
+
+.btn-cancel-edit {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-cancel-edit:hover {
+    background: #d0d0d0;
+}
+
+/* ネオンモード用 */
+body.neon-mode .btn-save-edit {
+    background: #00ffff;
+    color: #0f0f1e;
+}
+
+body.neon-mode .btn-save-edit:hover {
+    background: #00ccff;
+}
+
+body.neon-mode .btn-cancel-edit {
+    background: rgba(255, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+}
+
+body.neon-mode .btn-cancel-edit:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
