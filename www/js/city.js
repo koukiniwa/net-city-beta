@@ -3,7 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { ref, push, onChildAdded, onChildChanged, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
 // ========================================
@@ -367,61 +367,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // メッセージの変更を監視（編集・削除）
-        const unsubscribeChanged = onValue(roomMessagesRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const messages = snapshot.val();
-                Object.keys(messages).forEach(messageId => {
-                    const message = messages[messageId];
-                    const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+        const unsubscribeChanged = onChildChanged(roomMessagesRef, (snapshot) => {
+            const message = snapshot.val();
+            const messageId = snapshot.key;
+            const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
 
-                    if (existingMessageDiv) {
-                        // 既存のメッセージを更新（スクロール位置を保持）
-                        const scrollPosition = messagesArea.scrollTop;
-                        const scrollHeight = messagesArea.scrollHeight;
-                        const isAtBottom = scrollHeight - scrollPosition - messagesArea.clientHeight < 50;
+            if (existingMessageDiv) {
+                // 既存のメッセージを更新（スクロール位置を保持）
+                const scrollPosition = messagesArea.scrollTop;
+                const scrollHeight = messagesArea.scrollHeight;
+                const isAtBottom = scrollHeight - scrollPosition - messagesArea.clientHeight < 50;
 
-                        // メッセージを再描画
-                        const newMessageDiv = document.createElement('div');
-                        newMessageDiv.className = existingMessageDiv.className;
-                        newMessageDiv.dataset.messageId = messageId;
-
-                        // 削除されたメッセージの場合
-                        if (message.deleted) {
-                            newMessageDiv.classList.add('deleted');
-                            newMessageDiv.innerHTML = `
-                                <div class="message-header">
-                                    <span class="message-username">${escapeHtml(message.username)}</span>
-                                    <span class="message-time">${formatTime(message.timestamp)}</span>
-                                </div>
-                                <div class="message-content deleted-message">
-                                    このメッセージは削除されました
-                                </div>
-                            `;
-                            existingMessageDiv.replaceWith(newMessageDiv);
-                            return;
-                        }
-
-                        // 編集されたメッセージの場合
-                        if (message.edited) {
-                            const messageContent = existingMessageDiv.querySelector('.message-content');
-                            if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
-                                const escapedText = escapeHtml(message.text);
-                                const linkedText = linkifyText(escapedText);
-                                messageContent.innerHTML = `
-                                    ${linkedText}
-                                    <span class="edited-label">(編集済み)</span>
-                                `;
-                            }
-                        }
-
-                        // スクロール位置を復元
-                        if (isAtBottom) {
-                            messagesArea.scrollTop = messagesArea.scrollHeight;
-                        } else {
-                            messagesArea.scrollTop = scrollPosition;
-                        }
+                // 削除されたメッセージの場合
+                if (message.deleted) {
+                    existingMessageDiv.classList.add('deleted');
+                    existingMessageDiv.innerHTML = `
+                        <div class="message-header">
+                            <span class="message-username">${escapeHtml(message.username)}</span>
+                            <span class="message-time">${formatTime(message.timestamp)}</span>
+                        </div>
+                        <div class="message-content deleted-message">
+                            このメッセージは削除されました
+                        </div>
+                    `;
+                }
+                // 編集されたメッセージの場合
+                else if (message.edited) {
+                    const messageContent = existingMessageDiv.querySelector('.message-content');
+                    if (messageContent && !messageContent.querySelector('.message-edit-textarea')) {
+                        const escapedText = escapeHtml(message.text);
+                        const linkedText = linkifyText(escapedText);
+                        messageContent.innerHTML = `
+                            ${linkedText}
+                            <span class="edited-label">(編集済み)</span>
+                        `;
                     }
-                });
+                }
+
+                // スクロール位置を復元
+                if (isAtBottom) {
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                } else {
+                    messagesArea.scrollTop = scrollPosition;
+                }
             }
         });
 
