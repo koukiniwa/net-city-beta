@@ -1014,8 +1014,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentMessageMenu = null;
 
-    // 長押しメニューを表示（LINEスタイル）
+    // 長押しメニューを表示（削除のみ）
     function showLongPressMenu(messageId, message, isOwnMessage, x, y) {
+        // 自分のメッセージでない場合は何もしない
+        if (!isOwnMessage || message.imageUrl) {
+            return;
+        }
+
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
             currentMessageMenu.remove();
@@ -1026,36 +1031,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const menu = document.createElement('div');
         menu.className = 'long-press-menu active';
 
-        let menuHTML = '';
-
-        // リアクションセクション（全てのメッセージで表示）
-        menuHTML += `
-            <div class="menu-section-title">リアクション</div>
-            <div class="reaction-quick-picks">
+        // 削除オプションのみ
+        menu.innerHTML = `
+            <div class="message-menu-item delete" data-action="delete">
+                <span class="menu-icon">🗑️</span>
+                <span class="menu-text">削除</span>
+            </div>
         `;
-        // 先頭5つのリアクション絵文字を表示
-        availableReactions.slice(0, 5).forEach(emoji => {
-            menuHTML += `<div class="reaction-quick-emoji" data-emoji="${emoji}">${emoji}</div>`;
-        });
-        menuHTML += `<div class="reaction-quick-emoji more" data-action="more-reactions">+</div>`;
-        menuHTML += `</div>`;
-
-        // 自分のメッセージの場合は編集・削除オプションを追加
-        if (isOwnMessage && !message.imageUrl) {
-            menuHTML += `
-                <div class="menu-divider"></div>
-                <div class="message-menu-item" data-action="edit">
-                    <span class="menu-icon">✏️</span>
-                    <span class="menu-text">編集</span>
-                </div>
-                <div class="message-menu-item delete" data-action="delete">
-                    <span class="menu-icon">🗑️</span>
-                    <span class="menu-text">削除</span>
-                </div>
-            `;
-        }
-
-        menu.innerHTML = menuHTML;
 
         // bodyに一旦追加してサイズを取得
         document.body.appendChild(menu);
@@ -1082,34 +1064,11 @@ document.addEventListener('DOMContentLoaded', function() {
         menu.style.left = `${left}px`;
         menu.style.top = `${top}px`;
 
-        // リアクション絵文字のクリックイベント
-        menu.querySelectorAll('.reaction-quick-emoji').forEach(emoji => {
-            emoji.addEventListener('click', (e) => {
-                const action = e.currentTarget.dataset.action;
-                if (action === 'more-reactions') {
-                    // リアクションピッカーを表示
-                    menu.remove();
-                    currentMessageMenu = null;
-                    const addReactionBtn = document.querySelector(`.add-reaction-btn[data-message-id="${messageId}"]`);
-                    if (addReactionBtn) {
-                        showReactionPicker(messageId, addReactionBtn);
-                    }
-                } else {
-                    const emojiChar = e.currentTarget.dataset.emoji;
-                    addReaction(messageId, emojiChar);
-                    menu.remove();
-                    currentMessageMenu = null;
-                }
-            });
-        });
-
         // メニュー項目のクリックイベント
         menu.querySelectorAll('.message-menu-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const action = e.currentTarget.dataset.action;
-                if (action === 'edit') {
-                    editMessage(messageId, message);
-                } else if (action === 'delete') {
+                if (action === 'delete') {
                     deleteMessage(messageId);
                 }
                 menu.remove();
@@ -1132,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
 
-    // メッセージメニューを表示（メニューボタンクリック用）
+    // メッセージメニューを表示（メニューボタンクリック用 - 削除のみ）
     function showMessageMenu(messageId, message, button, isOwnMessage) {
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
@@ -1145,11 +1104,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const menu = document.createElement('div');
         menu.className = 'message-menu active';
 
+        // 削除のみ
         menu.innerHTML = `
-            <div class="message-menu-item" data-action="edit">
-                <span class="menu-icon">✏️</span>
-                <span class="menu-text">編集</span>
-            </div>
             <div class="message-menu-item delete" data-action="delete">
                 <span class="menu-icon">🗑️</span>
                 <span class="menu-text">削除</span>
@@ -1169,9 +1125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         menu.querySelectorAll('.message-menu-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const action = e.currentTarget.dataset.action;
-                if (action === 'edit') {
-                    editMessage(messageId, message);
-                } else if (action === 'delete') {
+                if (action === 'delete') {
                     deleteMessage(messageId);
                 }
                 menu.remove();
@@ -1209,81 +1163,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // メッセージを編集する
-    function editMessage(messageId, message) {
-        const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
-        if (!messageDiv) return;
+    // メッセージを編集する（機能を無効化）
+    // function editMessage(messageId, message) {
+    //     const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+    //     if (!messageDiv) return;
 
-        const messageContent = messageDiv.querySelector('.message-content');
-        if (!messageContent) return;
+    //     const messageContent = messageDiv.querySelector('.message-content');
+    //     if (!messageContent) return;
 
-        // 編集用のテキストエリアを作成
-        const currentText = message.text;
-        const editContainer = document.createElement('div');
-        editContainer.className = 'message-edit-container';
-        editContainer.innerHTML = `
-            <textarea class="message-edit-textarea" maxlength="200" placeholder="メッセージを編集...">${currentText}</textarea>
-            <div class="message-edit-actions">
-                <button class="btn-cancel-edit" title="キャンセル">✕</button>
-                <button class="btn-save-edit" title="保存">✓</button>
-            </div>
-        `;
+    //     // 編集用のテキストエリアを作成
+    //     const currentText = message.text;
+    //     const editContainer = document.createElement('div');
+    //     editContainer.className = 'message-edit-container';
+    //     editContainer.innerHTML = `
+    //         <textarea class="message-edit-textarea" maxlength="200" placeholder="メッセージを編集...">${currentText}</textarea>
+    //         <div class="message-edit-actions">
+    //             <button class="btn-cancel-edit" title="キャンセル">✕</button>
+    //             <button class="btn-save-edit" title="保存">✓</button>
+    //         </div>
+    //     `;
 
-        // 元の内容を保存
-        const originalHTML = messageContent.innerHTML;
+    //     // 元の内容を保存
+    //     const originalHTML = messageContent.innerHTML;
 
-        // 編集UIに切り替え
-        messageContent.innerHTML = '';
-        messageContent.appendChild(editContainer);
+    //     // 編集UIに切り替え
+    //     messageContent.innerHTML = '';
+    //     messageContent.appendChild(editContainer);
 
-        const textarea = editContainer.querySelector('.message-edit-textarea');
-        textarea.focus();
-        textarea.setSelectionRange(textarea.value.length, textarea.value.length); // カーソルを最後に
+    //     const textarea = editContainer.querySelector('.message-edit-textarea');
+    //     textarea.focus();
+    //     textarea.setSelectionRange(textarea.value.length, textarea.value.length); // カーソルを最後に
 
-        // 保存ボタン
-        editContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
-            const newText = textarea.value.trim();
-            if (!newText) {
-                alert('メッセージを入力してください');
-                return;
-            }
+    //     // 保存ボタン
+    //     editContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
+    //         const newText = textarea.value.trim();
+    //         if (!newText) {
+    //             alert('メッセージを入力してください');
+    //             return;
+    //         }
 
-            if (newText === currentText) {
-                // 変更がない場合は元に戻す
-                messageContent.innerHTML = originalHTML;
-                return;
-            }
+    //         if (newText === currentText) {
+    //             // 変更がない場合は元に戻す
+    //             messageContent.innerHTML = originalHTML;
+    //             return;
+    //         }
 
-            try {
-                const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
-                await update(messageRef, {
-                    text: newText
-                    // editedフラグは立てない
-                });
+    //         try {
+    //             const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
+    //             await update(messageRef, {
+    //                 text: newText
+    //                 // editedフラグは立てない
+    //             });
 
-                console.log('メッセージを編集しました');
-            } catch (error) {
-                console.error('メッセージ編集エラー:', error);
-                alert('メッセージの編集に失敗しました');
-                messageContent.innerHTML = originalHTML;
-            }
-        });
+    //             console.log('メッセージを編集しました');
+    //         } catch (error) {
+    //             console.error('メッセージ編集エラー:', error);
+    //             alert('メッセージの編集に失敗しました');
+    //             messageContent.innerHTML = originalHTML;
+    //         }
+    //     });
 
-        // キャンセルボタン
-        editContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
-            messageContent.innerHTML = originalHTML;
-        });
+    //     // キャンセルボタン
+    //     editContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
+    //         messageContent.innerHTML = originalHTML;
+    //     });
 
-        // Enterキーで保存（Shift+Enterで改行）
-        textarea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                editContainer.querySelector('.btn-save-edit').click();
-            } else if (e.key === 'Escape') {
-                editContainer.querySelector('.btn-cancel-edit').click();
-            }
-        });
-    }
+    //     // Enterキーで保存（Shift+Enterで改行）
+    //     textarea.addEventListener('keydown', (e) => {
+    //         if (e.key === 'Enter' && !e.shiftKey) {
+    //             e.preventDefault();
+    //             editContainer.querySelector('.btn-save-edit').click();
+    //         } else if (e.key === 'Escape') {
+    //             editContainer.querySelector('.btn-cancel-edit').click();
+    //         }
+    //     });
+    // }
 
     // ========================================
     // ルーム内のオンライン人数の管理
