@@ -821,13 +821,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
         picker.appendChild(grid);
 
-        // ボタンの位置を取得してピッカーを配置
-        const buttonRect = button.getBoundingClientRect();
-        picker.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
-        picker.style.top = `${buttonRect.top}px`;
-
-        // bodyに追加
+        // bodyに一旦追加してサイズを取得
         document.body.appendChild(picker);
+
+        // ボタンの位置を取得
+        const buttonRect = button.getBoundingClientRect();
+        const pickerRect = picker.getBoundingClientRect();
+
+        // 画面のサイズを取得
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // 初期位置（ボタンの中央上）
+        let left = buttonRect.left + buttonRect.width / 2 - pickerRect.width / 2;
+        let top = buttonRect.top - pickerRect.height - 10;
+
+        // 左端からはみ出る場合
+        if (left < 10) {
+            left = 10;
+        }
+
+        // 右端からはみ出る場合
+        if (left + pickerRect.width > viewportWidth - 10) {
+            left = viewportWidth - pickerRect.width - 10;
+        }
+
+        // 上端からはみ出る場合はボタンの下に表示
+        if (top < 10) {
+            top = buttonRect.bottom + 10;
+        }
+
+        // 下端からはみ出る場合
+        if (top + pickerRect.height > viewportHeight - 10) {
+            top = viewportHeight - pickerRect.height - 10;
+        }
+
+        // 位置を設定
+        picker.style.left = `${left}px`;
+        picker.style.top = `${top}px`;
+
         currentPicker = picker;
 
         // ピッカー外をクリックしたら閉じる

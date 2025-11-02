@@ -553,16 +553,15 @@ body {
 
 /* リアクション選択パネル */
 .reaction-picker {
-    position: fixed; /* absoluteからfixedに変更 */
+    position: fixed;
     display: none;
     background: #ffffff;
     border: 1px solid #e0e0e0;
-    border-radius: 16px;
-    padding: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    transform: translate(-50%, -100%);
-    margin-top: -10px;
+    max-width: calc(100vw - 20px); /* 画面幅に収める */
 }
 
 .reaction-picker.active {
@@ -571,26 +570,42 @@ body {
 
 .reaction-picker-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr); /* 5列グリッド */
+    gap: 6px;
+    max-width: 240px; /* グリッド全体の最大幅 */
 }
 
 .reaction-picker-emoji {
-    font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
+    font-size: 1.6rem;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 8px;
     transition: all 0.2s ease;
     user-select: none;
 }
 
 .reaction-picker-emoji:hover {
     background: #e3f2fd;
-    transform: scale(1.2);
+    transform: scale(1.15);
+}
+
+/* モバイル対応 */
+@media (max-width: 480px) {
+    .reaction-picker-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        max-width: 220px;
+    }
+
+    .reaction-picker-emoji {
+        font-size: 1.4rem;
+        width: 40px;
+        height: 40px;
+    }
 }
 
 /* ========================================
