@@ -14,18 +14,21 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gsta
 document.addEventListener('DOMContentLoaded', function() {
 
     // ========================================
-    // ユーザー名の取得とチェック
+    // ユーザー番号の取得とチェック
     // ========================================
 
-    // localStorageから名前を取得
-    const username = localStorage.getItem('netcity_username');
+    // localStorageから番号を取得
+    const userNumber = localStorage.getItem('netcity_userNumber');
 
-    // 名前が保存されていない場合は、入場画面に戻す
-    if (!username) {
-        alert('先に名前を入力してください');
+    // 番号が保存されていない場合は、入場画面に戻す
+    if (!userNumber) {
+        alert('先に番号を取得してください');
         window.location.href = 'index.html';
         return; // ここで処理を終了
     }
+
+    // 表示用の番号（No.XX形式）
+    const displayNumber = `No.${userNumber}`;
 
     // ========================================
     // HTML要素を取得
@@ -44,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarMenu = document.getElementById('sidebarMenu'); // サイドバーメニュー
     const sidebarOverlay = document.getElementById('sidebarOverlay'); // オーバーレイ
     const closeMenu = document.getElementById('closeMenu'); // 閉じるボタン
-    const editNameMenu = document.getElementById('editNameMenu'); // 名前変更メニュー
+    const editNumberMenu = document.getElementById('editNumberMenu'); // 番号変更メニュー
     const lightModeBtn = document.getElementById('lightMode'); // ライトモードボタン
     const neonModeBtn = document.getElementById('neonMode'); // ネオンモードボタン
 
@@ -59,10 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmCreateRoom = document.getElementById('confirmCreateRoom'); // 作成ボタン
 
     // ========================================
-    // ヘッダーに名前を表示
+    // ヘッダーに番号を表示
     // ========================================
 
-    usernameDisplay.textContent = username;
+    usernameDisplay.textContent = displayNumber;
 
     // ========================================
     // Firebase Databaseの参照を取得
@@ -291,7 +294,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // ユーザー情報を登録
             const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
             await set(userRef, {
-                username: username,
+                userNumber: userNumber,
+                displayNumber: displayNumber,
                 joinedAt: Date.now(),
                 lastActive: Date.now()
             });
@@ -522,7 +526,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // メッセージとして保存
             const messageData = {
-                username: username,
+                userNumber: userNumber,
+                displayNumber: displayNumber,
                 imageUrl: imageUrl,
                 timestamp: serverTimestamp()
             };
@@ -562,7 +567,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Firebaseに送信するデータ
         const messageData = {
-            username: username,          // 送信者の名前
+            userNumber: userNumber,       // 送信者の番号
+            displayNumber: displayNumber, // 表示用番号（No.XX）
             text: messageText,            // メッセージ本文
             timestamp: serverTimestamp() // サーバーの時刻（自動で設定）
         };
@@ -667,8 +673,8 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.dataset.messageId = messageId; // メッセージIDを保存
 
         // 自分のメッセージかどうかをチェック
-        const isOwnMessage = message.username === username;
-        console.log(`メッセージ表示: username="${message.username}", 自分="${username}", isOwnMessage=${isOwnMessage}`);
+        const isOwnMessage = message.userNumber === userNumber;
+        console.log(`メッセージ表示: userNumber="${message.userNumber}", 自分="${userNumber}", isOwnMessage=${isOwnMessage}`);
         if (isOwnMessage) {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
@@ -704,9 +710,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`メニューボタン生成: isOwnMessage=${isOwnMessage}, hasImage=${!!message.imageUrl}, HTML="${menuButtonHTML}"`);
 
         // メッセージのHTML構造を作成
+        // 表示用番号がない場合は番号から生成
+        const displayName = message.displayNumber || `No.${message.userNumber}`;
         messageDiv.innerHTML = `
             <div class="message-header">
-                <span class="message-username">${escapeHtml(message.username)}</span>
+                <span class="message-username">${escapeHtml(displayName)}</span>
                 <span class="message-time">${timeString}</span>
                 ${menuButtonHTML}
             </div>
@@ -1398,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 isPermanent: false,
                 createdAt: Date.now(),
                 createdBy: userId,
-                creatorName: username
+                creatorNumber: displayNumber
             };
 
             // Firebaseに保存
@@ -1555,25 +1563,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // オーバーレイクリック
     sidebarOverlay.addEventListener('click', closeSidebar);
 
-    // 名前変更メニュークリック
-    editNameMenu.addEventListener('click', function() {
+    // 番号変更メニュークリック
+    editNumberMenu.addEventListener('click', function() {
         closeSidebar();
-        // 既存の名前変更処理を呼び出す
-        const newName = prompt('新しい名前を入力してください:', username);
-        if (newName && newName.trim()) {
-            const trimmedName = newName.trim();
-            if (trimmedName.length > 20) {
-                alert('名前は20文字以内にしてください');
-                return;
-            }
-            // localStorageに保存
-            localStorage.setItem('netcity_username', trimmedName);
-            // 画面に反映
-            usernameDisplay.textContent = trimmedName;
-            // 表示を更新
-            alert(`名前を「${trimmedName}」に変更しました！`);
-        }
+        handleNumberChange();
     });
+
+    // 番号変更処理（1日1回まで）
+    function handleNumberChange() {
+        // 最終変更日を確認
+        const lastChangeDate = localStorage.getItem('netcity_numberChangeDate');
+        const today = new Date().toDateString();
+
+        if (lastChangeDate === today) {
+            alert('番号の変更は1日1回までです。明日また変更できます。');
+            return;
+        }
+
+        // 番号変更の確認
+        if (!confirm('番号を変更しますか？\n（1日1回まで変更可能）')) {
+            return;
+        }
+
+        // 新しい番号を生成（1-99）
+        const newNumber = Math.floor(Math.random() * 99) + 1;
+        const newDisplayNumber = `No.${newNumber}`;
+
+        // localStorageに保存
+        localStorage.setItem('netcity_userNumber', newNumber.toString());
+        localStorage.setItem('netcity_numberChangeDate', today);
+
+        // 画面に反映
+        usernameDisplay.textContent = newDisplayNumber;
+
+        // グローバル変数を更新（注意：const で宣言されているため、この方法では動作しません）
+        // 代わりに、ページをリロードして新しい番号を反映させます
+        alert(`番号を ${newDisplayNumber} に変更しました！\nページを再読み込みします。`);
+        window.location.reload();
+    }
 
     // ========================================
     // テーマ切り替え

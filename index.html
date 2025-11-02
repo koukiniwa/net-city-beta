@@ -63,16 +63,14 @@
 
         <!-- 入場フォーム -->
         <div class="entry-form">
-            <label for="username">あなたの名前</label>
-            <input
-                type="text"
-                id="username"
-                placeholder="名前を入力してください"
-                maxlength="20"
-                autocomplete="off"
-            >
-            <!-- エラーメッセージ表示エリア -->
-            <p class="error-message" id="errorMessage"></p>
+            <label for="userNumber">あなたの番号</label>
+            <div class="number-display-area">
+                <div class="number-badge">
+                    <span class="number-prefix">No.</span>
+                    <span class="number-value" id="userNumber">--</span>
+                </div>
+                <p class="number-info">この番号であなたを識別します</p>
+            </div>
 
             <!-- 入場ボタン -->
             <button id="enterButton" class="enter-button">
