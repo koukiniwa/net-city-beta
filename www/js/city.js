@@ -637,6 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 自分のメッセージかどうかをチェック
         const isOwnMessage = message.username === username;
+        console.log(`メッセージ表示: username="${message.username}", 自分="${username}", isOwnMessage=${isOwnMessage}`);
         if (isOwnMessage) {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
@@ -687,6 +688,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="message-menu-btn" data-message-id="${messageId}">⋮</button>
         ` : '';
 
+        console.log(`メニューボタン生成: isOwnMessage=${isOwnMessage}, hasImage=${!!message.imageUrl}, HTML="${menuButtonHTML}"`);
+
         // メッセージのHTML構造を作成
         messageDiv.innerHTML = `
             <div class="message-header">
@@ -713,11 +716,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // メニューボタンのイベントを設定（自分のメッセージのみ）
         if (isOwnMessage && !message.imageUrl) {
             const menuBtn = messageDiv.querySelector('.message-menu-btn');
+            console.log(`メニューボタン検索結果:`, menuBtn);
             if (menuBtn) {
+                console.log(`メニューボタンにイベントリスナー設定`);
                 menuBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    console.log(`メニューボタンクリック！`);
                     showMessageMenu(messageId, message, menuBtn);
                 });
+            } else {
+                console.warn(`メニューボタンが見つかりません`);
             }
         }
 

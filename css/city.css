@@ -1366,12 +1366,13 @@ body.neon-mode .theme-option .checkmark {
     cursor: pointer;
     padding: 4px 8px;
     margin-left: auto;
-    opacity: 0;
+    opacity: 1; /* デバッグ用：常に表示 */
     transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 .message:hover .message-menu-btn {
     opacity: 1;
+    color: #555; /* ホバー時に少し濃く */
 }
 
 .message-menu-btn:hover {
