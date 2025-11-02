@@ -526,7 +526,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // メッセージとして保存
             const messageData = {
-                userNumber: userNumber,
+                userId: userId,               // 送信者の固有ID（識別用）
+                userNumber: userNumber,       // 送信者の番号（表示用）
                 displayNumber: displayNumber,
                 imageUrl: imageUrl,
                 timestamp: serverTimestamp()
@@ -567,7 +568,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Firebaseに送信するデータ
         const messageData = {
-            userNumber: userNumber,       // 送信者の番号
+            userId: userId,               // 送信者の固有ID（識別用）
+            userNumber: userNumber,       // 送信者の番号（表示用）
             displayNumber: displayNumber, // 表示用番号（No.XX）
             text: messageText,            // メッセージ本文
             timestamp: serverTimestamp() // サーバーの時刻（自動で設定）
@@ -672,9 +674,9 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = 'message';
         messageDiv.dataset.messageId = messageId; // メッセージIDを保存
 
-        // 自分のメッセージかどうかをチェック
-        const isOwnMessage = message.userNumber === userNumber;
-        console.log(`メッセージ表示: userNumber="${message.userNumber}", 自分="${userNumber}", isOwnMessage=${isOwnMessage}`);
+        // 自分のメッセージかどうかをチェック（固有IDで判定）
+        const isOwnMessage = message.userId === userId;
+        console.log(`メッセージ表示: userId="${message.userId}", 自分="${userId}", isOwnMessage=${isOwnMessage}`);
         if (isOwnMessage) {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
