@@ -692,10 +692,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // メッセージのHTML構造を作成
         messageDiv.innerHTML = `
-            ${menuButtonHTML}
             <div class="message-header">
                 <span class="message-username">${escapeHtml(message.username)}</span>
                 <span class="message-time">${timeString}</span>
+                ${menuButtonHTML}
             </div>
             ${contentHTML}
             <div class="message-reactions" data-message-id="${messageId}">
@@ -724,6 +724,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log(`メニューボタンクリック！`);
                     showMessageMenu(messageId, message, menuBtn);
                 });
+
+                // モバイル対応：タッチでメニューボタンを表示
+                messageDiv.addEventListener('touchstart', () => {
+                    menuBtn.style.opacity = '1';
+                }, { passive: true });
+
+                // タッチ終了後、少し遅延させて非表示に戻す
+                messageDiv.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        if (!currentMessageMenu) {
+                            menuBtn.style.opacity = '';
+                        }
+                    }, 3000); // 3秒後に非表示
+                }, { passive: true });
             } else {
                 console.warn(`メニューボタンが見つかりません`);
             }
