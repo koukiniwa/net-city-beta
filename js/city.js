@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (updatedRooms) {
                     roomsCache = updatedRooms;
                     updateRoomTabs(updatedRooms);
+                    updateSidebarRoomList(updatedRooms);
                 }
             });
 
@@ -186,6 +187,56 @@ document.addEventListener('DOMContentLoaded', function() {
         roomArray.forEach(room => {
             const tab = createRoomTab(room);
             roomTabs.appendChild(tab);
+        });
+    }
+
+    // サイドバーのルーム一覧を更新
+    function updateSidebarRoomList(rooms) {
+        const roomListContainer = document.getElementById('roomListContainer');
+        if (!roomListContainer) return;
+
+        // ルームを配列に変換して並び替え
+        const roomArray = Object.values(rooms);
+
+        // 固定ルーム（広場）を最初に、その後は作成日時順
+        roomArray.sort((a, b) => {
+            if (a.isPermanent) return -1;
+            if (b.isPermanent) return 1;
+            return b.createdAt - a.createdAt;
+        });
+
+        // コンテナをクリア
+        roomListContainer.innerHTML = '';
+
+        // 各ルームの情報を表示
+        roomArray.forEach(room => {
+            const roomItem = document.createElement('div');
+            roomItem.className = 'sidebar-room-item';
+            if (room.id === currentRoomId) {
+                roomItem.classList.add('current');
+            }
+
+            roomItem.innerHTML = `
+                <div class="sidebar-room-info">
+                    <span class="sidebar-room-icon">${room.icon || '💬'}</span>
+                    <div class="sidebar-room-details">
+                        <div class="sidebar-room-name">${room.name}</div>
+                        <div class="sidebar-room-meta">
+                            <span class="sidebar-room-users">👤 ${room.currentUsers || 0}/${room.maxUsers || 30}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // クリックでルームに移動
+            roomItem.addEventListener('click', () => {
+                joinRoom(room.id);
+                // メニューを閉じる
+                document.getElementById('sidebarMenu').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            roomListContainer.appendChild(roomItem);
         });
     }
 
@@ -320,7 +371,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // 選択されたルームタブをスクロールして見やすい位置に
+            // スクロールによる自動切り替えを防ぐため、フラグを立てる
+            isAutoSwitching = true;
             scrollToActiveRoomTab(roomId);
+            // スクロール完了後にフラグをリセット（smoothスクロールの完了を待つ）
+            setTimeout(() => {
+                isAutoSwitching = false;
+            }, 500);
 
             // フェードインアニメーション開始
             messagesArea.classList.remove('fade-out');
