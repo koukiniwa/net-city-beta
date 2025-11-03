@@ -172,8 +172,9 @@ body {
     /* スムーズなスクロール */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    /* スナップスクロール */
-    scroll-snap-type: x proximity;
+    /* スナップスクロール（段階的にタブに吸着） */
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 20px;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
