@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // クリックイベント
         tab.addEventListener('click', () => {
             if (!tab.classList.contains('full') || room.id === currentRoomId) {
-                // ルームに入室（joinRoom内でスクロールも処理される）
+                // ルームに入室（joinRoom内でスクロールとフラグ制御が処理される）
                 joinRoom(room.id);
             }
         });
