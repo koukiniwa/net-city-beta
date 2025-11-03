@@ -199,11 +199,10 @@ document.addEventListener('DOMContentLoaded', function() {
         roomUserListeners = {}; // リセット
 
         // 現在のアクティブルームの位置を記憶（スクロール地獄バグ対策）
-        // ただし広場（index 0）は除外
         let currentRoomIndex = -1;
         const currentTabs = roomTabs.querySelectorAll('.room-tab');
         currentTabs.forEach((tab, index) => {
-            if (tab.classList.contains('active') && index > 0) { // 広場は固定なのでカウントしない
+            if (tab.classList.contains('active')) {
                 currentRoomIndex = index;
             }
         });
@@ -213,17 +212,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // ルームを配列に変換
         const roomArray = Object.values(rooms);
 
-        // 広場（固定ルーム）を抽出
-        const permanentRooms = roomArray.filter(r => r.isPermanent);
+        // 現在のルームを抽出
+        const currentRoomObj = currentRoomId ? roomArray.find(r => r.id === currentRoomId) : null;
 
-        // 現在のルームを抽出（広場でない場合のみ）
-        const currentRoomObj = currentRoomId ? roomArray.find(r => r.id === currentRoomId && !r.isPermanent) : null;
+        // 現在のルーム以外をソート対象に
+        const roomsToSort = roomArray.filter(r => r.id !== currentRoomId);
 
-        // 広場でも現在のルームでもないものをソート対象に
-        const roomsToSort = roomArray.filter(r => !r.isPermanent && r.id !== currentRoomId);
-
-        // 人気スコア順にソート
+        // 固定ルーム（広場）を最初に、その後は人気スコア順
         roomsToSort.sort((a, b) => {
+            if (a.isPermanent) return -1;
+            if (b.isPermanent) return 1;
+
             // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
@@ -244,33 +243,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 最終的な配列を構築
-        // 1. 広場は常に最初
-        // 2. 現在のルーム（広場以外）は元の位置に固定
-        // 3. その他はスコア順
-        let finalRoomArray = [...permanentRooms];
+        // 現在のルームは元の位置に固定、その他はスコア順
+        let finalRoomArray;
 
-        if (currentRoomObj) {
-            // 現在のルームが広場以外の場合、必ず表示する
-            if (currentRoomIndex > 0) {
-                // 元の位置に挿入（広場の次以降）
-                const insertIndex = Math.min(currentRoomIndex - 1, roomsToSort.length);
-                finalRoomArray = [
-                    ...finalRoomArray,
-                    ...roomsToSort.slice(0, insertIndex),
-                    currentRoomObj,
-                    ...roomsToSort.slice(insertIndex)
-                ];
-            } else {
-                // 位置情報がない場合は広場の直後に配置
-                finalRoomArray = [
-                    ...finalRoomArray,
-                    currentRoomObj,
-                    ...roomsToSort
-                ];
-            }
+        if (currentRoomObj && currentRoomIndex >= 0) {
+            // 元の位置に挿入
+            const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
+            finalRoomArray = [
+                ...roomsToSort.slice(0, insertIndex),
+                currentRoomObj,
+                ...roomsToSort.slice(insertIndex)
+            ];
         } else {
-            // 現在のルームがない、または広場の場合
-            finalRoomArray = [...finalRoomArray, ...roomsToSort];
+            // 現在のルームがない場合
+            finalRoomArray = roomsToSort;
         }
 
         // 各ルームのタブを作成

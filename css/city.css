@@ -177,7 +177,9 @@ body {
     -ms-overflow-style: none;
     /* タッチスクロール最適化 */
     touch-action: pan-x pan-y; /* 縦横両方のスワイプを許可 */
-    overscroll-behavior: contain;
+    /* スクロール範囲を制限（最後まで行ったら止まる） */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
     /* iOS Safari対策 */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
@@ -353,7 +355,9 @@ body {
     /* タッチスクロール最適化 */
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
-    overscroll-behavior: contain;
+    /* スクロール範囲を制限（最後まで行ったら止まる） */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
     /* iOS Safari対策 */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
