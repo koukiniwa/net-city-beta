@@ -124,7 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     maxUsers: 0, // 0 = 無制限
                     isPermanent: true,
                     createdAt: Date.now(),
-                    createdBy: 'system'
+                    createdBy: 'system',
+                    currentUsers: 0
                 });
             }
 
@@ -177,11 +178,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // ルームを配列に変換して並び替え
         const roomArray = Object.values(rooms);
 
-        // 固定ルーム（広場）を最初に、その後は作成日時順
+        // 固定ルーム（広場）を最初に、その後は人気スコア順
         roomArray.sort((a, b) => {
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
-            return b.createdAt - a.createdAt;
+
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数)
+            // ユーザー数を重視しつつ、新しいルームにボーナス
+            const now = Date.now();
+            const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
+            const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
+
+            const scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA);
+            const scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB);
+
+            return scoreB - scoreA;
         });
 
         // 各ルームのタブを作成
@@ -199,11 +210,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // ルームを配列に変換して並び替え
         const roomArray = Object.values(rooms);
 
-        // 固定ルーム（広場）を最初に、その後は作成日時順
+        // 固定ルーム（広場）を最初に、その後は人気スコア順
         roomArray.sort((a, b) => {
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
-            return b.createdAt - a.createdAt;
+
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数)
+            // ユーザー数を重視しつつ、新しいルームにボーナス
+            const now = Date.now();
+            const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
+            const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
+
+            const scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA);
+            const scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB);
+
+            return scoreB - scoreA;
         });
 
         // コンテナをクリア
@@ -339,6 +360,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const unsubscribe = onValue(roomUserRef, (snapshot) => {
             const users = snapshot.val();
             const count = users ? Object.keys(users).length : 0;
+
+            // FirebaseのルームデータにcurrentUsersを保存（並び順用）
+            const roomRef = ref(database, `rooms/${room.id}/currentUsers`);
+            set(roomRef, count);
 
             if (room.maxUsers === 0) {
                 // 無制限の場合
@@ -1460,7 +1485,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 createdAt: Date.now(),
                 createdBy: userId,
                 creatorNumber: displayNumber,
-                expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7日後
+                expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7日後
+                currentUsers: 0 // 初期ユーザー数
             };
 
             // Firebaseに保存
