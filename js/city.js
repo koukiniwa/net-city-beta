@@ -105,6 +105,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // ルーム機能
     // ========================================
 
+    // 最近訪問したルームを記録
+    function saveRecentlyVisitedRoom(roomId) {
+        // 最近訪問したルームのリストを取得（最大5件）
+        let recentRooms = JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
+
+        // 既に存在する場合は削除
+        recentRooms = recentRooms.filter(id => id !== roomId);
+
+        // 先頭に追加
+        recentRooms.unshift(roomId);
+
+        // 最大5件まで保持
+        if (recentRooms.length > 5) {
+            recentRooms = recentRooms.slice(0, 5);
+        }
+
+        // 保存
+        localStorage.setItem('netcity_recentRooms', JSON.stringify(recentRooms));
+    }
+
+    // 最近訪問したルームのリストを取得
+    function getRecentlyVisitedRooms() {
+        return JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
+    }
+
     // ルームの初期化
     async function initializeRooms() {
         try {
@@ -183,14 +208,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
 
-            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数)
-            // ユーザー数を重視しつつ、新しいルームにボーナス
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
+            // 新しさの重みを増やして新規ルームが埋もれないように
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
             const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
 
-            const scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA);
-            const scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB);
+            let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
+            let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
+
+            // 満員のルームはスコアを半減（参加できないため）
+            if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
+                scoreA = scoreA * 0.5;
+            }
+            if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) {
+                scoreB = scoreB * 0.5;
+            }
 
             return scoreB - scoreA;
         });
@@ -215,14 +248,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
 
-            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数)
-            // ユーザー数を重視しつつ、新しいルームにボーナス
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
+            // 新しさの重みを増やして新規ルームが埋もれないように
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
             const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
 
-            const scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA);
-            const scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB);
+            let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
+            let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
+
+            // 満員のルームはスコアを半減（参加できないため）
+            if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
+                scoreA = scoreA * 0.5;
+            }
+            if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) {
+                scoreB = scoreB * 0.5;
+            }
 
             return scoreB - scoreA;
         });
@@ -236,6 +277,10 @@ document.addEventListener('DOMContentLoaded', function() {
             roomItem.className = 'sidebar-room-item';
             if (room.id === currentRoomId) {
                 roomItem.classList.add('current');
+            }
+            // 満員の場合は特別なクラスを追加
+            if (room.maxUsers > 0 && (room.currentUsers || 0) >= room.maxUsers) {
+                roomItem.classList.add('full');
             }
 
             roomItem.innerHTML = `
@@ -351,6 +396,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.add('active');
         }
 
+        // 最近訪問したルームの場合はrecentクラスを追加
+        const recentRooms = getRecentlyVisitedRooms();
+        if (recentRooms.includes(room.id)) {
+            tab.classList.add('recent');
+        }
+
         // 人数を取得（リアルタイムで更新）
         const userCountSpan = document.createElement('span');
         userCountSpan.className = 'room-count';
@@ -442,6 +493,9 @@ document.addEventListener('DOMContentLoaded', function() {
             currentRoomId = roomId;
             messagesRef = ref(database, `roomMessages/${roomId}`);
             currentRoomUsersRef = ref(database, `roomUsers/${roomId}`);
+
+            // 訪問履歴を記録（最近訪問したルームを保存）
+            saveRecentlyVisitedRoom(roomId);
 
             // メッセージエリアをクリア
             messagesArea.innerHTML = '<div class="welcome-message"><p>ルームに入室しました</p></div>';
