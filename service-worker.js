@@ -3,7 +3,7 @@
 // オフライン対応とキャッシュ管理
 // ========================================
 
-const CACHE_NAME = 'net-city-v1';
+const CACHE_NAME = 'net-city-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -56,7 +56,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // ========================================
-// フェッチ時: キャッシュ優先で取得
+// フェッチ時: ネットワーク優先で取得（キャッシュはバックアップ）
 // ========================================
 self.addEventListener('fetch', (event) => {
   // Firebase へのリクエストはキャッシュしない
@@ -67,39 +67,59 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request)
+    // まずネットワークから取得を試みる
+    fetch(event.request)
       .then((response) => {
-        // キャッシュにあればそれを返す
-        if (response) {
-          console.log('[Service Worker] キャッシュから取得:', event.request.url);
+        // レスポンスが有効でないならそのまま返す
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
 
-        // なければネットワークから取得
         console.log('[Service Worker] ネットワークから取得:', event.request.url);
-        return fetch(event.request).then((response) => {
-          // レスポンスが有効でないならそのまま返す
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
 
-          // レスポンスをクローンしてキャッシュに保存
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-
-          return response;
+        // レスポンスをクローンしてキャッシュに保存
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
         });
+
+        return response;
+      })
+      .catch(() => {
+        // ネットワークが使えない場合はキャッシュから取得
+        console.log('[Service Worker] オフライン - キャッシュから取得:', event.request.url);
+        return caches.match(event.request);
       })
   );
 });
 
 // ========================================
-// メッセージ受信（将来の拡張用）
+// メッセージ受信（キャッシュクリアなど）
 // ========================================
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  // キャッシュクリア命令
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('[Service Worker] キャッシュを削除:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        console.log('[Service Worker] すべてのキャッシュを削除しました');
+        // クライアントに完了を通知
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'CACHE_CLEARED' });
+          });
+        });
+      })
+    );
   }
 });

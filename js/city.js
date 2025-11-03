@@ -1623,6 +1623,44 @@ document.addEventListener('DOMContentLoaded', function() {
         handleNumberChange();
     });
 
+    // キャッシュクリアボタン
+    const clearCacheMenu = document.getElementById('clearCacheMenu');
+    clearCacheMenu.addEventListener('click', function() {
+        closeSidebar();
+        handleClearCache();
+    });
+
+    // キャッシュクリア処理
+    function handleClearCache() {
+        if (!confirm('キャッシュをクリアしてページを再読み込みしますか？\n最新の状態に更新されます。')) {
+            return;
+        }
+
+        // Service Workerにキャッシュクリアを指示
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+
+            // Service Workerからの応答を待つ
+            navigator.serviceWorker.addEventListener('message', function handler(event) {
+                if (event.data && event.data.type === 'CACHE_CLEARED') {
+                    console.log('キャッシュがクリアされました');
+                    navigator.serviceWorker.removeEventListener('message', handler);
+
+                    // ページを強制リロード
+                    window.location.reload(true);
+                }
+            });
+
+            // タイムアウト処理（3秒後に強制リロード）
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 3000);
+        } else {
+            // Service Workerがない場合は通常のリロード
+            window.location.reload(true);
+        }
+    }
+
     // 番号変更処理（1日1回まで）
     function handleNumberChange() {
         // 最終変更日を確認
