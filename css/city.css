@@ -353,6 +353,10 @@ body {
     flex-direction: column;
     gap: 10px; /* メッセージ間の間隔 */
     transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
+    /* タッチスクロール最適化 */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
 }
 
 /* ルーム切り替え時のフェードアウト */
@@ -965,6 +969,10 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 10px 0;
+    /* タッチスクロール最適化 */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
 }
 
 .menu-item {
@@ -1027,6 +1035,10 @@ body {
     max-height: 400px;
     overflow-y: auto;
     padding: 10px 0;
+    /* タッチスクロール最適化 */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
 }
 
 .room-list-loading {
@@ -1100,6 +1112,10 @@ body {
     max-height: 300px;
     overflow-y: auto;
     padding: 10px 0;
+    /* タッチスクロール最適化 */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
 }
 
 .my-rooms-empty {

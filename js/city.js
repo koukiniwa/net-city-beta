@@ -105,9 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ルーム機能
     // ========================================
 
-    // 最近訪問したルームを記録
-    function saveRecentlyVisitedRoom(roomId) {
-        // 最近訪問したルームのリストを取得（最大5件）
+    // 最近コメントしたルームを記録
+    function saveRecentlyCommentedRoom(roomId) {
+        // 最近コメントしたルームのリストを取得（最大5件）
         let recentRooms = JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
 
         // 既に存在する場合は削除
@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('netcity_recentRooms', JSON.stringify(recentRooms));
     }
 
-    // 最近訪問したルームのリストを取得
-    function getRecentlyVisitedRooms() {
+    // 最近コメントしたルームのリストを取得
+    function getRecentlyCommentedRooms() {
         return JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
     }
 
@@ -396,8 +396,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.add('active');
         }
 
-        // 最近訪問したルームの場合はrecentクラスを追加
-        const recentRooms = getRecentlyVisitedRooms();
+        // 最近コメントしたルームの場合はrecentクラスを追加
+        const recentRooms = getRecentlyCommentedRooms();
         if (recentRooms.includes(room.id)) {
             tab.classList.add('recent');
         }
@@ -493,9 +493,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentRoomId = roomId;
             messagesRef = ref(database, `roomMessages/${roomId}`);
             currentRoomUsersRef = ref(database, `roomUsers/${roomId}`);
-
-            // 訪問履歴を記録（最近訪問したルームを保存）
-            saveRecentlyVisitedRoom(roomId);
 
             // メッセージエリアをクリア
             messagesArea.innerHTML = '<div class="welcome-message"><p>ルームに入室しました</p></div>';
@@ -753,6 +750,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('画像を送信しました');
             imageInput.value = ''; // 入力をクリア
 
+            // コメント履歴を記録
+            if (currentRoomId) {
+                saveRecentlyCommentedRoom(currentRoomId);
+            }
+
         } catch (error) {
             console.error('画像アップロードエラー:', error);
             alert('画像の送信に失敗しました');
@@ -797,6 +799,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('メッセージを送信しました');
                 messageInput.value = ''; // 入力欄をクリア
                 messageInput.style.height = 'auto'; // 高さをリセット
+
+                // コメント履歴を記録
+                if (currentRoomId) {
+                    saveRecentlyCommentedRoom(currentRoomId);
+                }
             })
             .catch((error) => {
                 // 送信失敗
