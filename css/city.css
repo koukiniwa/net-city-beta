@@ -154,8 +154,8 @@ body {
 .room-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: 8px;
+    padding: 4px 6px;
     background: #fafafa;
     border-bottom: 1px solid #cccccc;
     overflow: hidden;
@@ -163,12 +163,12 @@ body {
 
 .room-tabs {
     display: flex;
-    gap: 2px;
+    gap: 0px;
     flex: 1;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px 2px;
+    padding: 0px 0px;
     /* インスタリール風の滑らかなスクロール */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -192,8 +192,8 @@ body {
 .room-tab {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
+    gap: 6px;
+    padding: 8px 20px;
     background: #ffffff;
     border: 1.5px solid #d0d0d0;
     border-radius: 24px;
@@ -261,13 +261,13 @@ body {
 
 .create-room-btn {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: #ffffff;
     border: 1px dashed #2196f3;
     border-radius: 50%;
     color: #2196f3;
-    font-size: 1.2rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
