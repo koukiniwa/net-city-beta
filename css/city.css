@@ -1238,7 +1238,7 @@ body.neon-mode .message-time {
 body.neon-mode .message-content {
     background: rgba(255, 255, 255, 0.05);
     border-left: 4px solid rgba(0, 255, 255, 0.5); /* 太く */
-    color: #ffffff;
+    color: #cccccc;
     font-weight: 500; /* 少し太く */
 }
 

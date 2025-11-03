@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // ========================================
-    // 番号システム: 1-99のランダム番号を割り当て
+    // 番号システム: 1-999のランダム番号を割り当て
     // ========================================
 
     // 既に番号が保存されている場合は自動的にチャット画面へ
@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const enterButton = document.getElementById('enterButton'); // 入場ボタン
 
     // ========================================
-    // 1-99のランダムな番号を生成
+    // 1-999のランダムな番号を生成
     // ========================================
     function generateRandomNumber() {
-        return Math.floor(Math.random() * 99) + 1; // 1から99のランダムな整数
+        return Math.floor(Math.random() * 999) + 1; // 1から999のランダムな整数
     }
 
     // 初回起動時に番号を割り当て

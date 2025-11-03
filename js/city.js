@@ -1559,8 +1559,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 新しい番号を生成（1-99）
-        const newNumber = Math.floor(Math.random() * 99) + 1;
+        // 新しい番号を生成（1-999）
+        const newNumber = Math.floor(Math.random() * 999) + 1;
         const newDisplayNumber = `No.${newNumber}`;
 
         // localStorageに保存
