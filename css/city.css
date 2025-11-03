@@ -169,11 +169,11 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     padding: 2px 4px;
-    /* インスタリール風の滑らかなスクロール */
-    scroll-behavior: smooth;
+    /* スクロール感度を優先 */
+    scroll-behavior: auto; /* smooth から auto に変更（即座に反応） */
     -webkit-overflow-scrolling: touch;
-    /* スナップスクロール（段階的にタブに吸着） */
-    scroll-snap-type: x mandatory;
+    /* スナップスクロール（緩く吸着） */
+    scroll-snap-type: x proximity; /* mandatory から proximity に変更（感度優先） */
     scroll-padding: 0 50%;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
