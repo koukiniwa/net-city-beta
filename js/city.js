@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             roomItem.innerHTML = `
                 <div class="sidebar-room-info">
-                    <span class="sidebar-room-icon">${room.icon || '💬'}</span>
+                    <span class="sidebar-room-icon">${room.emoji || '💬'}</span>
                     <div class="sidebar-room-details">
                         <div class="sidebar-room-name">${room.name}</div>
                         <div class="sidebar-room-meta">
