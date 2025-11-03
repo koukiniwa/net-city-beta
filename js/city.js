@@ -198,13 +198,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         roomUserListeners = {}; // リセット
 
+        // 現在のアクティブルームの位置を記憶（スクロール地獄バグ対策）
+        let currentRoomIndex = -1;
+        const currentTabs = roomTabs.querySelectorAll('.room-tab');
+        currentTabs.forEach((tab, index) => {
+            if (tab.classList.contains('active')) {
+                currentRoomIndex = index;
+            }
+        });
+
         roomTabs.innerHTML = ''; // 既存のタブをクリア
 
-        // ルームを配列に変換して並び替え
+        // ルームを配列に変換
         const roomArray = Object.values(rooms);
 
+        // 現在のルームを抽出
+        const currentRoomObj = currentRoomId ? roomArray.find(r => r.id === currentRoomId) : null;
+
+        // 現在のルーム以外をソート対象に
+        const roomsToSort = currentRoomId ? roomArray.filter(r => r.id !== currentRoomId) : roomArray;
+
         // 固定ルーム（広場）を最初に、その後は人気スコア順
-        roomArray.sort((a, b) => {
+        roomsToSort.sort((a, b) => {
             if (a.isPermanent) return -1;
             if (b.isPermanent) return 1;
 
@@ -228,8 +243,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return scoreB - scoreA;
         });
 
+        // 現在のルームを元の位置に挿入（スクロール地獄バグ対策）
+        let finalRoomArray;
+        if (currentRoomObj && currentRoomIndex >= 0) {
+            // 元の位置に挿入（範囲外なら末尾）
+            const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
+            finalRoomArray = [
+                ...roomsToSort.slice(0, insertIndex),
+                currentRoomObj,
+                ...roomsToSort.slice(insertIndex)
+            ];
+        } else {
+            finalRoomArray = roomsToSort;
+        }
+
         // 各ルームのタブを作成
-        roomArray.forEach(room => {
+        finalRoomArray.forEach(room => {
             const tab = createRoomTab(room);
             roomTabs.appendChild(tab);
         });
