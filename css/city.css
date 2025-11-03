@@ -163,54 +163,63 @@ body {
 
 .room-tabs {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: thin;
+    padding: 4px;
+    /* スムーズなスクロール */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* スナップスクロール */
+    scroll-snap-type: x proximity;
+    /* スクロールバーを非表示 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
+/* スクロールバーを完全に非表示 */
 .room-tabs::-webkit-scrollbar {
-    height: 4px;
-}
-
-.room-tabs::-webkit-scrollbar-track {
-    background: #f5f5f5;
-}
-
-.room-tabs::-webkit-scrollbar-thumb {
-    background: #bdbdbd;
-    border-radius: 2px;
+    display: none;
 }
 
 .room-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 8px 16px;
     background: #ffffff;
-    border: 1px solid #bbb; /* より濃い境界線 */
-    border-radius: 20px;
-    color: #212121; /* より濃い文字色 */
+    border: 2px solid #d0d0d0;
+    border-radius: 24px;
+    color: #333333;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     user-select: none;
+    min-height: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    /* スナップポイント */
+    scroll-snap-align: start;
+    flex-shrink: 0;
 }
 
 .room-tab:hover {
-    background: #f5f5f5;
+    background: #f8f9fa;
     border-color: #2196f3;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(33, 150, 243, 0.15);
 }
 
 .room-tab.active {
-    background: #e3f2fd;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
     border-color: #2196f3;
-    color: #1976d2;
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+    color: #1565c0;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    transform: scale(1.05);
+    font-weight: 600;
 }
 
 .room-tab.full {
@@ -219,21 +228,30 @@ body {
 }
 
 .room-emoji {
-    font-size: 1rem;
+    font-size: 1.3rem;
     line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .room-name {
     font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .room-count {
-    font-size: 0.75rem;
-    color: #757575;
+    font-size: 0.8rem;
+    color: #666666;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 28px;
+    text-align: center;
 }
 
 .room-count.full {
-    color: #f44336;
+    color: #ffffff;
+    background: #f44336;
 }
 
 .create-room-btn {
@@ -1077,19 +1095,28 @@ body.neon-mode .room-bar {
 
 body.neon-mode .room-tab {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 255, 255, 0.1);
 }
 
 body.neon-mode .room-tab:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.3);
+    border-color: rgba(0, 255, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.2);
 }
 
 body.neon-mode .room-tab.active {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.25) 0%, rgba(0, 200, 255, 0.2) 100%);
+    border-color: #00ffff;
+    color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 4px 12px rgba(0, 255, 255, 0.3);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+body.neon-mode .room-count {
+    background: rgba(0, 255, 255, 0.15);
+    color: #00ffff;
 }
 
 body.neon-mode .create-room-btn {
