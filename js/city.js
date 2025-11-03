@@ -249,15 +249,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // 3. その他はスコア順
         let finalRoomArray = [...permanentRooms];
 
-        if (currentRoomObj && currentRoomIndex > 0) {
-            // 現在のルームを元の位置に挿入（広場の次以降）
-            const insertIndex = Math.min(currentRoomIndex - 1, roomsToSort.length);
-            finalRoomArray = [
-                ...finalRoomArray,
-                ...roomsToSort.slice(0, insertIndex),
-                currentRoomObj,
-                ...roomsToSort.slice(insertIndex)
-            ];
+        if (currentRoomObj) {
+            // 現在のルームが広場以外の場合、必ず表示する
+            if (currentRoomIndex > 0) {
+                // 元の位置に挿入（広場の次以降）
+                const insertIndex = Math.min(currentRoomIndex - 1, roomsToSort.length);
+                finalRoomArray = [
+                    ...finalRoomArray,
+                    ...roomsToSort.slice(0, insertIndex),
+                    currentRoomObj,
+                    ...roomsToSort.slice(insertIndex)
+                ];
+            } else {
+                // 位置情報がない場合は広場の直後に配置
+                finalRoomArray = [
+                    ...finalRoomArray,
+                    currentRoomObj,
+                    ...roomsToSort
+                ];
+            }
         } else {
             // 現在のルームがない、または広場の場合
             finalRoomArray = [...finalRoomArray, ...roomsToSort];
@@ -268,6 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const tab = createRoomTab(room);
             roomTabs.appendChild(tab);
         });
+
+        // デバッグ: 表示されているルームを確認
+        console.log('表示中のルーム:', finalRoomArray.map(r => `${r.name}(${r.id === currentRoomId ? 'active' : 'inactive'})`).join(', '));
     }
 
     // サイドバーのルーム一覧を更新
@@ -482,11 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // クリックイベント
         tab.addEventListener('click', () => {
             if (!tab.classList.contains('full') || room.id === currentRoomId) {
-                // スクロール連動を一時無効化
-                isAutoSwitching = true;
-                // タブを中央にスクロール
-                scrollTabToCenter(tab);
-                // ルームに入室
+                // ルームに入室（joinRoom内でスクロールも処理される）
                 joinRoom(room.id);
             }
         });
