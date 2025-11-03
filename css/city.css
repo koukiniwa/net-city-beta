@@ -1081,6 +1081,83 @@ body {
     gap: 4px;
 }
 
+/* ========================================
+   サイドバーの自分のルーム
+   ======================================== */
+
+.my-rooms-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.my-rooms-empty {
+    text-align: center;
+    color: #999999;
+    padding: 20px;
+    font-size: 0.85rem;
+}
+
+.my-room-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    position: relative;
+}
+
+.my-room-item:hover {
+    background: #f5f5f5;
+}
+
+.my-room-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.my-room-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.my-room-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-room-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.my-room-expires {
+    font-size: 0.75rem;
+    color: #ff9800;
+    font-weight: 500;
+}
+
+.delete-room-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.delete-room-btn:hover {
+    background: #ffebee;
+    transform: scale(1.1);
+}
+
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -1473,6 +1550,27 @@ body.neon-mode .sidebar-room-name {
 
 body.neon-mode .sidebar-room-meta {
     color: #888888;
+}
+
+/* ネオンモードの自分のルーム */
+body.neon-mode .my-rooms-empty {
+    color: #666666;
+}
+
+body.neon-mode .my-room-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.neon-mode .my-room-name {
+    color: #e0e0e0;
+}
+
+body.neon-mode .my-room-expires {
+    color: #ff9800;
+}
+
+body.neon-mode .delete-room-btn:hover {
+    background: rgba(255, 82, 82, 0.2);
 }
 
 /* ========================================

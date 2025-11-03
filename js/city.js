@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     roomsCache = updatedRooms;
                     updateRoomTabs(updatedRooms);
                     updateSidebarRoomList(updatedRooms);
+                    updateMyRoomsList(updatedRooms);
                 }
             });
 
@@ -238,6 +239,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
             roomListContainer.appendChild(roomItem);
         });
+    }
+
+    // サイドバーの「自分のルーム」を更新
+    function updateMyRoomsList(rooms) {
+        const myRoomsContainer = document.getElementById('myRoomsContainer');
+        if (!myRoomsContainer) return;
+
+        // 自分が作成したルームを抽出
+        const myRooms = Object.values(rooms).filter(room => room.createdBy === userId && !room.isPermanent);
+
+        // コンテナをクリア
+        myRoomsContainer.innerHTML = '';
+
+        if (myRooms.length === 0) {
+            myRoomsContainer.innerHTML = '<div class="my-rooms-empty">作成したルームはありません</div>';
+            return;
+        }
+
+        // 自分のルームを表示
+        myRooms.forEach(room => {
+            const roomItem = document.createElement('div');
+            roomItem.className = 'my-room-item';
+
+            // 期限までの残り日数を計算
+            const now = Date.now();
+            const expiresAt = room.expiresAt || (room.createdAt + (7 * 24 * 60 * 60 * 1000));
+            const daysLeft = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
+
+            roomItem.innerHTML = `
+                <div class="my-room-info">
+                    <span class="my-room-icon">${room.emoji || '💬'}</span>
+                    <div class="my-room-details">
+                        <div class="my-room-name">${room.name}</div>
+                        <div class="my-room-expires">期限: あと${daysLeft}日</div>
+                    </div>
+                    <button class="delete-room-btn" data-room-id="${room.id}" title="削除">
+                        🗑️
+                    </button>
+                </div>
+            `;
+
+            // 削除ボタンのイベント
+            const deleteBtn = roomItem.querySelector('.delete-room-btn');
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`ルーム「${room.name}」を削除しますか？\nこの操作は取り消せません。`)) {
+                    await deleteRoom(room.id);
+                }
+            });
+
+            // ルーム名クリックで移動
+            roomItem.querySelector('.my-room-info').addEventListener('click', () => {
+                joinRoom(room.id);
+                // メニューを閉じる
+                document.getElementById('sidebarMenu').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            myRoomsContainer.appendChild(roomItem);
+        });
+    }
+
+    // ルーム削除関数
+    async function deleteRoom(roomId) {
+        try {
+            await remove(ref(database, `rooms/${roomId}`));
+            await remove(ref(database, `roomUsers/${roomId}`));
+            await remove(ref(database, `roomMessages/${roomId}`));
+            console.log(`ルーム ${roomId} を削除しました`);
+
+            // 削除したルームにいた場合は広場に移動
+            if (currentRoomId === roomId) {
+                await joinRoom('plaza');
+            }
+        } catch (error) {
+            console.error('ルーム削除エラー:', error);
+            alert('ルームの削除に失敗しました');
+        }
     }
 
     // ルームタブを作成
@@ -1380,7 +1459,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 isPermanent: false,
                 createdAt: Date.now(),
                 createdBy: userId,
-                creatorNumber: displayNumber
+                creatorNumber: displayNumber,
+                expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7日後
             };
 
             // Firebaseに保存
@@ -1430,16 +1510,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 削除条件1: 24時間以上誰もいない
                 const isEmptyForOneDay = userCount === 0 && (now - room.createdAt) > oneDayInMs;
 
-                // 削除条件2: 作成から7日間経過
-                const isOlderThanSevenDays = (now - room.createdAt) > sevenDaysInMs;
+                // 削除条件2: 作成から7日間経過（expiresAtがある場合はそれを優先）
+                const isExpired = room.expiresAt ? now > room.expiresAt : (now - room.createdAt) > sevenDaysInMs;
 
-                if (isEmptyForOneDay || isOlderThanSevenDays) {
+                if (isEmptyForOneDay || isExpired) {
                     // ルームを削除
                     await remove(ref(database, `rooms/${roomId}`));
                     await remove(ref(database, `roomUsers/${roomId}`));
                     await remove(ref(database, `roomMessages/${roomId}`));
 
-                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isOlderThanSevenDays ? '7日間経過' : '24時間以上空室'}）`);
+                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isExpired ? '期限切れ' : '24時間以上空室'}）`);
                 }
             }
         } catch (error) {
