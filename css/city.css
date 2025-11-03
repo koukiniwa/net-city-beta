@@ -155,7 +155,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 15px;
+    padding: 8px 10px;
     background: #fafafa;
     border-bottom: 1px solid #cccccc;
     overflow: hidden;
@@ -163,23 +163,25 @@ body {
 
 .room-tabs {
     display: flex;
-    gap: 8px;
+    gap: 2px;
     flex: 1;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px 4px;
-    /* スムーズなスクロール */
+    padding: 2px 2px;
+    /* インスタリール風の滑らかなスクロール */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     /* スナップスクロール（段階的にタブに吸着） */
     scroll-snap-type: x mandatory;
-    scroll-padding: 0 20px;
+    scroll-padding: 0 50%;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
     /* タッチイベント最適化 */
     touch-action: pan-x;
+    /* 慣性スクロールの改善 */
+    overscroll-behavior-x: contain;
 }
 
 /* スクロールバーを完全に非表示 */
@@ -190,22 +192,22 @@ body {
 .room-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 10px 20px;
     background: #ffffff;
     border: 1.5px solid #d0d0d0;
-    border-radius: 18px;
+    border-radius: 24px;
     color: #333333;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    /* インスタリール風スナップスクロール */
+    scroll-snap-align: center;
+    scroll-snap-stop: normal;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     user-select: none;
-    min-height: 32px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    /* スナップポイント */
-    scroll-snap-align: start;
     flex-shrink: 0;
 }
 
@@ -334,6 +336,7 @@ body {
 .messages-area {
     flex: 1; /* 残りのスペースを全て使う */
     padding: 20px;
+    padding-bottom: 100px; /* 固定入力欄のスペースを確保 */
     overflow-y: auto; /* 縦スクロール可能 */
     display: flex;
     flex-direction: column;
@@ -645,13 +648,18 @@ body {
    ======================================== */
 
 .input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     padding: 20px;
     background: #fafafa;
     border-top: 1px solid #cccccc;
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
+    z-index: 50;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .image-button {
