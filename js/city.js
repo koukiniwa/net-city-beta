@@ -476,11 +476,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // クリックイベント
         tab.addEventListener('click', () => {
             if (!tab.classList.contains('full') || room.id === currentRoomId) {
+                // スクロール連動を一時無効化
+                isAutoSwitching = true;
+                // タブを中央にスクロール
+                scrollTabToCenter(tab);
+                // ルームに入室
                 joinRoom(room.id);
             }
         });
 
         return tab;
+    }
+
+    // タブを中央にスクロールする関数
+    function scrollTabToCenter(tab) {
+        const tabLeft = tab.offsetLeft;
+        const tabWidth = tab.offsetWidth;
+        const containerWidth = roomTabs.offsetWidth;
+        const scrollPosition = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+
+        roomTabs.scrollTo({
+            left: scrollPosition,
+            behavior: 'smooth'
+        });
     }
 
     // ルームに入室
@@ -593,26 +611,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeTab = document.querySelector(`.room-tab[data-room-id="${roomId}"]`);
         if (!activeTab) return;
 
-        const roomTabsElement = document.getElementById('roomTabs');
-        if (!roomTabsElement) return;
+        // タブを中央にスクロール
+        scrollTabToCenter(activeTab);
 
-        // タブの位置を取得
-        const tabRect = activeTab.getBoundingClientRect();
-        const tabsRect = roomTabsElement.getBoundingClientRect();
-
-        // 現在のスクロール位置
-        const currentScroll = roomTabsElement.scrollLeft;
-
-        // タブをタブコンテナの左端に配置するために必要なスクロール量を計算
-        const targetScroll = currentScroll + (tabRect.left - tabsRect.left) - 10; // 10pxの余白
-
-        // スムーズにスクロール
-        roomTabsElement.scrollTo({
-            left: targetScroll,
-            behavior: 'smooth'
-        });
-
-        console.log(`ルームタブをスクロール: ${roomId}`);
+        console.log(`ルームタブを中央にスクロール: ${roomId}`);
     }
 
     // ルームのメッセージを読み込み

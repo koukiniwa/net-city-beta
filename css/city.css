@@ -169,18 +169,16 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     padding: 2px 4px;
-    /* スクロール感度を優先 */
-    scroll-behavior: auto; /* smooth から auto に変更（即座に反応） */
+    /* スクロール設定 */
+    scroll-behavior: auto; /* JavaScriptでsmoothスクロールを制御 */
     -webkit-overflow-scrolling: touch;
-    /* スナップスクロール（緩く吸着） */
-    scroll-snap-type: x proximity; /* mandatory から proximity に変更（感度優先） */
-    scroll-padding: 0 50%;
+    /* スナップスクロールは無効化（自由なスクロールを優先） */
+    /* scroll-snap-type: none; */
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* タッチイベント最適化 */
+    /* タッチスクロール最適化 */
     touch-action: pan-x;
-    /* 慣性スクロールの改善 */
     overscroll-behavior-x: contain;
 }
 
@@ -200,9 +198,6 @@ body {
     color: #333333;
     font-weight: 500;
     font-size: 0.95rem;
-    /* インスタリール風スナップスクロール */
-    scroll-snap-align: center;
-    scroll-snap-stop: normal;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
