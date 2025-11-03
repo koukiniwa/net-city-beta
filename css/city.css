@@ -163,12 +163,12 @@ body {
 
 .room-tabs {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     flex: 1;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 4px;
+    padding: 2px 4px;
     /* スムーズなスクロール */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -177,6 +177,8 @@ body {
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* タッチイベント最適化 */
+    touch-action: pan-x;
 }
 
 /* スクロールバーを完全に非表示 */
@@ -187,20 +189,20 @@ body {
 .room-tab {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    gap: 6px;
+    padding: 6px 12px;
     background: #ffffff;
-    border: 2px solid #d0d0d0;
-    border-radius: 24px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 18px;
     color: #333333;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     user-select: none;
-    min-height: 40px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    min-height: 32px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     /* スナップポイント */
     scroll-snap-align: start;
     flex-shrink: 0;
@@ -210,15 +212,15 @@ body {
     background: #f8f9fa;
     border-color: #2196f3;
     transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(33, 150, 243, 0.15);
+    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.12);
 }
 
 .room-tab.active {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    background: linear-gradient(135deg, #e3f2fd 0%, #d1e9fc 100%);
     border-color: #2196f3;
     color: #1565c0;
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+    transform: scale(1.03);
     font-weight: 600;
 }
 
@@ -228,24 +230,24 @@ body {
 }
 
 .room-emoji {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
 }
 
 .room-name {
     font-weight: 500;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
 }
 
 .room-count {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: #666666;
     font-weight: 600;
-    background: rgba(0, 0, 0, 0.05);
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 28px;
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 5px;
+    border-radius: 8px;
+    min-width: 24px;
     text-align: center;
 }
 
@@ -1094,29 +1096,29 @@ body.neon-mode .room-bar {
 }
 
 body.neon-mode .room-tab {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 255, 255, 0.05);
 }
 
 body.neon-mode .room-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(0, 255, 255, 0.25);
+    box-shadow: 0 2px 6px rgba(0, 255, 255, 0.12);
 }
 
 body.neon-mode .room-tab.active {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.25) 0%, rgba(0, 200, 255, 0.2) 100%);
-    border-color: #00ffff;
-    color: #00ffff;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 4px 12px rgba(0, 255, 255, 0.3);
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.12) 0%, rgba(0, 200, 255, 0.08) 100%);
+    border-color: rgba(0, 255, 255, 0.5);
+    color: #80d4ff;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2), 0 2px 6px rgba(0, 255, 255, 0.15);
+    text-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
 }
 
 body.neon-mode .room-count {
-    background: rgba(0, 255, 255, 0.15);
-    color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+    color: #80d4ff;
 }
 
 body.neon-mode .create-room-btn {
