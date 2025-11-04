@@ -199,11 +199,17 @@ document.addEventListener('DOMContentLoaded', function() {
         roomUserListeners = {}; // リセット
 
         // 現在のアクティブルームの位置を記憶（スクロール地獄バグ対策）
+        // ただし「家」（固定ルーム）は除外
         let currentRoomIndex = -1;
         const currentTabs = roomTabs.querySelectorAll('.room-tab');
         currentTabs.forEach((tab, index) => {
             if (tab.classList.contains('active')) {
-                currentRoomIndex = index;
+                const roomId = tab.dataset.roomId;
+                const room = Object.values(rooms).find(r => r.id === roomId);
+                // 「家」でなければインデックスを記録
+                if (room && !room.isPermanent) {
+                    currentRoomIndex = index - 1; // 「家」の分を引く
+                }
             }
         });
 
@@ -212,17 +218,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // ルームを配列に変換
         const roomArray = Object.values(rooms);
 
-        // 現在のルームを抽出
-        const currentRoomObj = currentRoomId ? roomArray.find(r => r.id === currentRoomId) : null;
+        // 「家」（固定ルーム）を抽出
+        const permanentRooms = roomArray.filter(r => r.isPermanent);
 
-        // 現在のルーム以外をソート対象に
-        const roomsToSort = roomArray.filter(r => r.id !== currentRoomId);
+        // 現在のルームを抽出（「家」でない場合のみ）
+        const currentRoomObj = currentRoomId
+            ? roomArray.find(r => r.id === currentRoomId && !r.isPermanent)
+            : null;
 
-        // 固定ルーム（広場）を最初に、その後は人気スコア順
+        // 「家」でも現在のルームでもないものをソート対象に
+        const roomsToSort = roomArray.filter(r => !r.isPermanent && r.id !== currentRoomId);
+
+        // 人気スコア順にソート
         roomsToSort.sort((a, b) => {
-            if (a.isPermanent) return -1;
-            if (b.isPermanent) return 1;
-
             // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
@@ -243,26 +251,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 最終的な配列を構築
-        // 現在のルームは元の位置に固定、その他はスコア順
-        let finalRoomArray;
+        // 1. 「家」は常に先頭（位置固定しない）
+        // 2. 現在のルーム（「家」以外）は元の位置に固定、その他はスコア順
+        let sortedRooms;
 
         if (currentRoomObj) {
             if (currentRoomIndex >= 0) {
                 // 元の位置に挿入
                 const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
-                finalRoomArray = [
+                sortedRooms = [
                     ...roomsToSort.slice(0, insertIndex),
                     currentRoomObj,
                     ...roomsToSort.slice(insertIndex)
                 ];
             } else {
                 // 位置情報がない場合は先頭に配置
-                finalRoomArray = [currentRoomObj, ...roomsToSort];
+                sortedRooms = [currentRoomObj, ...roomsToSort];
             }
         } else {
             // 現在のルームがない場合
-            finalRoomArray = roomsToSort;
+            sortedRooms = roomsToSort;
         }
+
+        // 「家」を最初に、その後にソート済みルーム
+        const finalRoomArray = [...permanentRooms, ...sortedRooms];
 
         // 各ルームのタブを作成
         finalRoomArray.forEach(room => {
@@ -273,10 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // デバッグ: 表示されているルームを確認
         console.log('=== ルームタブ更新 ===');
         console.log('全ルーム数:', roomArray.length);
+        console.log('「家」ルーム数:', permanentRooms.length);
         console.log('現在のルームID:', currentRoomId);
-        console.log('現在のルームIndex:', currentRoomIndex);
-        console.log('現在のルーム:', currentRoomObj ? currentRoomObj.name : 'なし');
-        console.log('表示中のルーム:', finalRoomArray.map(r => `${r.name}(${r.id === currentRoomId ? 'active' : 'inactive'})`).join(', '));
+        console.log('現在のルームIndex（家除く）:', currentRoomIndex);
+        console.log('現在のルーム:', currentRoomObj ? currentRoomObj.name : (permanentRooms.length > 0 && permanentRooms[0].id === currentRoomId ? '「家」' : 'なし'));
+        console.log('表示中のルーム:', finalRoomArray.map(r => `${r.name}(${r.isPermanent ? '家' : ''}${r.id === currentRoomId ? 'active' : 'inactive'})`).join(', '));
         console.log('==================');
     }
 
@@ -457,9 +470,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const users = snapshot.val();
             const count = users ? Object.keys(users).length : 0;
 
-            // FirebaseのルームデータにcurrentUsersを保存（並び順用）
-            const roomRef = ref(database, `rooms/${room.id}/currentUsers`);
-            set(roomRef, count);
+            // 「家」（固定ルーム）以外はFirebaseのルームデータにcurrentUsersを保存（並び順用）
+            if (!room.isPermanent) {
+                const roomRef = ref(database, `rooms/${room.id}/currentUsers`);
+                set(roomRef, count);
+            }
 
             if (room.maxUsers === 0) {
                 // 無制限の場合
