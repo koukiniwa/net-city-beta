@@ -167,13 +167,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // ルーム一覧をリアルタイムで監視（2回目以降の更新用）
+            // デバウンス処理で無限スクロールバグを防止
+            let updateTimeout = null;
             onValue(roomsRef, (snapshot) => {
                 const updatedRooms = snapshot.val();
                 if (updatedRooms) {
                     roomsCache = updatedRooms;
-                    updateRoomTabs(updatedRooms);
-                    updateSidebarRoomList(updatedRooms);
-                    updateMyRoomsList(updatedRooms);
+
+                    // 短時間に複数回更新があっても、500msごとに1回だけ更新
+                    clearTimeout(updateTimeout);
+                    updateTimeout = setTimeout(() => {
+                        updateRoomTabs(updatedRooms);
+                        updateSidebarRoomList(updatedRooms);
+                        updateMyRoomsList(updatedRooms);
+                    }, 500);
                 }
             });
 
@@ -229,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 「家」でも現在のルームでもないものをソート対象に
         const roomsToSort = roomArray.filter(r => !r.isPermanent && r.id !== currentRoomId);
 
-        // 人気スコア順にソート
+        // 人気スコア順にソート（安定ソート：スコアが同じ場合はルームIDでソート）
         roomsToSort.sort((a, b) => {
             // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
             const now = Date.now();
@@ -247,7 +254,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 scoreB = scoreB * 0.5;
             }
 
-            return scoreB - scoreA;
+            // スコアが異なる場合はスコア順
+            if (scoreB !== scoreA) {
+                return scoreB - scoreA;
+            }
+
+            // スコアが同じ場合はルームIDでソート（安定化）
+            // これにより、同じスコアのルームは常に同じ順序になる
+            return a.id.localeCompare(b.id);
         });
 
         // 最終的な配列を構築
