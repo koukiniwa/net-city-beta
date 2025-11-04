@@ -246,14 +246,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // 現在のルームは元の位置に固定、その他はスコア順
         let finalRoomArray;
 
-        if (currentRoomObj && currentRoomIndex >= 0) {
-            // 元の位置に挿入
-            const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
-            finalRoomArray = [
-                ...roomsToSort.slice(0, insertIndex),
-                currentRoomObj,
-                ...roomsToSort.slice(insertIndex)
-            ];
+        if (currentRoomObj) {
+            if (currentRoomIndex >= 0) {
+                // 元の位置に挿入
+                const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
+                finalRoomArray = [
+                    ...roomsToSort.slice(0, insertIndex),
+                    currentRoomObj,
+                    ...roomsToSort.slice(insertIndex)
+                ];
+            } else {
+                // 位置情報がない場合は先頭に配置
+                finalRoomArray = [currentRoomObj, ...roomsToSort];
+            }
         } else {
             // 現在のルームがない場合
             finalRoomArray = roomsToSort;
@@ -266,7 +271,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // デバッグ: 表示されているルームを確認
+        console.log('=== ルームタブ更新 ===');
+        console.log('全ルーム数:', roomArray.length);
+        console.log('現在のルームID:', currentRoomId);
+        console.log('現在のルームIndex:', currentRoomIndex);
+        console.log('現在のルーム:', currentRoomObj ? currentRoomObj.name : 'なし');
         console.log('表示中のルーム:', finalRoomArray.map(r => `${r.name}(${r.id === currentRoomId ? 'active' : 'inactive'})`).join(', '));
+        console.log('==================');
     }
 
     // サイドバーのルーム一覧を更新
