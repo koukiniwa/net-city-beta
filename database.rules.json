@@ -3,7 +3,7 @@
     "rooms": {
       "$roomId": {
         ".read": true,
-        ".write": "!data.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
+        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
         "currentUsers": {
           ".write": true,
           ".validate": "newData.isNumber() && newData.val() >= 0"
@@ -32,7 +32,7 @@
       "$roomId": {
         "$userId": {
           ".read": true,
-          ".write": "$userId === newData.child('userId').val()",
+          ".write": "!newData.exists() || $userId === newData.child('userId').val()",
           "userNumber": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999"
           },
@@ -49,7 +49,7 @@
       "$roomId": {
         ".read": true,
         "$messageId": {
-          ".write": "!data.exists() || data.child('userId').val() === newData.child('userId').val()",
+          ".write": "!data.exists() || !newData.exists() || data.child('userId').val() === newData.child('userId').val()",
           "text": {
             ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 200)"
           },

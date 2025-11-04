@@ -718,9 +718,12 @@ body {
     font-weight: 500; /* 少し太く */
     outline: none;
     transition: all 0.3s ease;
-    /* input type="text"のため、高さを固定 */
-    height: 48px;
+    /* textareaのため、自動拡張 */
+    min-height: 48px;
+    max-height: 150px;
     line-height: 1.5;
+    resize: none;
+    overflow-y: auto;
     /* タッチ・入力の確実な有効化 */
     pointer-events: auto !important;
     touch-action: manipulation;
