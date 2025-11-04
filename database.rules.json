@@ -1,27 +1,13 @@
 {
   "rules": {
-    // ========================================
-    // ルーム情報
-    // ========================================
     "rooms": {
       "$roomId": {
-        // 誰でも読み取り可能
         ".read": true,
-
-        // 新規作成は誰でも可能、既存の更新は制限
-        ".write": "!data.exists() || (
-          // 作成者のみルーム情報を編集可能
-          data.child('createdBy').val() === newData.child('createdBy').val()
-        )",
-
-        // currentUsersフィールドは誰でも更新可能（人数カウント用）
+        ".write": "!data.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
         "currentUsers": {
-          ".write": true
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() >= 0"
         },
-
-        // データのバリデーション
-        ".validate": "newData.hasChildren(['id', 'name', 'emoji', 'maxUsers', 'createdAt', 'createdBy'])",
-
         "name": {
           ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 15"
         },
@@ -32,70 +18,43 @@
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
         },
         "description": {
-          ".validate": "newData.isString() && newData.val().length <= 50"
-        },
-        "currentUsers": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
         },
         "isPermanent": {
-          ".validate": "newData.isBoolean()"
+          ".validate": "!newData.exists() || newData.isBoolean()"
+        },
+        "$other": {
+          ".validate": true
         }
       }
     },
-
-    // ========================================
-    // ルームのユーザー情報
-    // ========================================
     "roomUsers": {
       "$roomId": {
         "$userId": {
-          // 誰でも読み取り可能
           ".read": true,
-
-          // 各ユーザーは自分の情報のみ書き込み可能
           ".write": "$userId === newData.child('userId').val()",
-
-          // データのバリデーション
-          ".validate": "newData.hasChildren(['userNumber']) && newData.child('userNumber').isNumber()",
-
           "userNumber": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999"
           },
           "userId": {
             ".validate": "newData.isString()"
+          },
+          "$other": {
+            ".validate": true
           }
         }
       }
     },
-
-    // ========================================
-    // ルームのメッセージ
-    // ========================================
     "roomMessages": {
       "$roomId": {
-        // 誰でも読み取り可能
         ".read": true,
-
         "$messageId": {
-          // メッセージの書き込み制限
-          ".write": "(
-            // 新規作成は誰でも可能
-            !data.exists() ||
-            // 編集・削除は作成者のみ
-            data.child('userId').val() === newData.child('userId').val()
-          )",
-
-          // メッセージの必須フィールド
-          ".validate": "(
-            newData.hasChildren(['userId', 'userNumber', 'displayNumber', 'timestamp']) &&
-            (newData.hasChild('text') || newData.hasChild('imageUrl'))
-          )",
-
+          ".write": "!data.exists() || data.child('userId').val() === newData.child('userId').val()",
           "text": {
-            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 200)"
           },
           "imageUrl": {
-            ".validate": "newData.isString() && newData.val().length <= 500"
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)"
           },
           "userId": {
             ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 100"
@@ -109,16 +68,12 @@
           "timestamp": {
             ".validate": "newData.val() !== null"
           },
-          "editedAt": {
-            ".validate": "newData.val() !== null"
+          "$other": {
+            ".validate": true
           }
         }
       }
     },
-
-    // ========================================
-    // その他のパスは全て拒否
-    // ========================================
     ".read": false,
     ".write": false
   }

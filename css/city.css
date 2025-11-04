@@ -680,8 +680,9 @@ body {
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    z-index: 50;
+    z-index: 1000;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    pointer-events: auto;
 }
 
 .image-button {
@@ -717,6 +718,11 @@ body {
     font-weight: 500; /* 少し太く */
     outline: none;
     transition: all 0.3s ease;
+    /* タッチ・入力の確実な有効化 */
+    pointer-events: auto;
+    touch-action: manipulation;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .message-input:focus {
