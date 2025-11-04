@@ -815,18 +815,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ========================================
-    // テキストエリアの自動リサイズ
+    // テキストエリアの自動リサイズ（input要素では不要）
     // ========================================
 
-    // 入力内容に応じて高さを調整する関数
-    function autoResizeTextarea() {
-        messageInput.style.height = 'auto'; // 一旦リセット
-        const newHeight = Math.min(messageInput.scrollHeight, 120); // 最大高さを120pxに制限
-        messageInput.style.height = newHeight + 'px';
-    }
+    // 注：textareaからinput type="text"に変更したため、自動リサイズは不要
+    // function autoResizeTextarea() {
+    //     messageInput.style.height = 'auto'; // 一旦リセット
+    //     const newHeight = Math.min(messageInput.scrollHeight, 120); // 最大高さを120pxに制限
+    //     messageInput.style.height = newHeight + 'px';
+    // }
 
     // 入力時に自動リサイズを実行
-    messageInput.addEventListener('input', autoResizeTextarea);
+    // messageInput.addEventListener('input', autoResizeTextarea);
 
     // ========================================
     // 入力のサニタイズ（XSS対策）
@@ -899,7 +899,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 送信成功
                 console.log('メッセージを送信しました');
                 messageInput.value = ''; // 入力欄をクリア
-                messageInput.style.height = 'auto'; // 高さをリセット
 
                 // コメント履歴を記録
                 if (currentRoomId) {

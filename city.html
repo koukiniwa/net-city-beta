@@ -153,14 +153,15 @@
 
         <!-- メッセージ入力エリア -->
         <div class="input-area">
-            <textarea
+            <input
+                type="text"
                 id="messageInput"
                 class="message-input"
                 placeholder="メッセージを入力..."
                 maxlength="200"
                 autocomplete="off"
-                rows="1"
-            ></textarea>
+                inputmode="text"
+            />
             <button id="sendButton" class="send-button">
                 <span>送信</span>
             </button>
