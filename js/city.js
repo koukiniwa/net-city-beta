@@ -3,8 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, limitToLast, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
 // ========================================
 // 初期化処理
@@ -38,8 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesArea = document.getElementById('messagesArea'); // メッセージ表示エリア
     const messageInput = document.getElementById('messageInput'); // 入力欄
     const sendButton = document.getElementById('sendButton'); // 送信ボタン
-    const imageButton = document.getElementById('imageButton'); // 画像ボタン
-    const imageInput = document.getElementById('imageInput'); // 画像入力
     const inputArea = document.querySelector('.input-area'); // 入力エリア
 
     // ハンバーガーメニュー関連の要素
@@ -89,6 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let roomsCache = {};
     let selectedEmoji = '💬'; // 選択された絵文字（デフォルト）
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
+    let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
+    let isScrolling = false; // スクロール中フラグ（グローバルで管理）
 
     // ユニークなユーザーIDを生成（タイムスタンプ + ランダム値）
     // localStorageから取得、なければ新規生成して保存
@@ -169,18 +168,45 @@ document.addEventListener('DOMContentLoaded', function() {
             // ルーム一覧をリアルタイムで監視（2回目以降の更新用）
             // デバウンス処理で無限スクロールバグを防止
             let updateTimeout = null;
+            let scrollEndTimeout = null;
+
+            // スクロール検出（実際にスクロール位置が変化した場合のみ）
+            roomTabs.addEventListener('scroll', () => {
+                const currentScrollLeft = roomTabs.scrollLeft;
+
+                // スクロール位置が実際に変化した場合のみスクロール中とする（1px以上の変化）
+                if (Math.abs(currentScrollLeft - lastScrollLeft) > 1) {
+                    isScrolling = true;
+                    lastScrollLeft = currentScrollLeft;
+
+                    clearTimeout(scrollEndTimeout);
+                    scrollEndTimeout = setTimeout(() => {
+                        isScrolling = false;
+                    }, 100); // スクロール終了後100ms待機（高速化）
+                }
+            }, { passive: true });
+
             onValue(roomsRef, (snapshot) => {
                 const updatedRooms = snapshot.val();
                 if (updatedRooms) {
                     roomsCache = updatedRooms;
 
-                    // 短時間に複数回更新があっても、500msごとに1回だけ更新
+                    // スクロール中は完全にDOM更新をスキップ（快適なスクロールのため）
                     clearTimeout(updateTimeout);
-                    updateTimeout = setTimeout(() => {
-                        updateRoomTabs(updatedRooms);
-                        updateSidebarRoomList(updatedRooms);
-                        updateMyRoomsList(updatedRooms);
-                    }, 500);
+
+                    const performUpdate = () => {
+                        if (!isScrolling) {
+                            updateRoomTabs(updatedRooms);
+                            updateSidebarRoomList(updatedRooms);
+                            updateMyRoomsList(updatedRooms);
+                        } else {
+                            // スクロール中の場合は再度チェック
+                            updateTimeout = setTimeout(performUpdate, 500);
+                        }
+                    };
+
+                    // デバウンス時間を延長（2秒）してDOM更新の頻度を減らす
+                    updateTimeout = setTimeout(performUpdate, 2000);
                 }
             });
 
@@ -204,6 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         roomUserListeners = {}; // リセット
+
+        // スクロール位置を保存（DOM再構築時のスクロール中断を防止）
+        const savedScrollLeft = roomTabs.scrollLeft;
 
         // 現在のアクティブルームの位置を記憶（スクロール地獄バグ対策）
         // ただし「家」（固定ルーム）は除外
@@ -294,6 +323,13 @@ document.addEventListener('DOMContentLoaded', function() {
         finalRoomArray.forEach(room => {
             const tab = createRoomTab(room);
             roomTabs.appendChild(tab);
+        });
+
+        // スクロール位置を復元（DOM更新後に実行）
+        requestAnimationFrame(() => {
+            roomTabs.scrollLeft = savedScrollLeft;
+            // 復元した位置を記録（スクロール検出の誤認識を防ぐ）
+            lastScrollLeft = savedScrollLeft;
         });
 
         // デバッグ: 表示されているルームを確認
@@ -520,6 +556,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // クリックイベント
         tab.addEventListener('click', () => {
+            // スクロール中のタップは無視（誤タップ防止）
+            if (isScrolling) {
+                console.log('スクロール中のため、タップを無視しました');
+                return;
+            }
+
             if (!tab.classList.contains('full') || room.id === currentRoomId) {
                 // ルームに入室（joinRoom内でスクロールとフラグ制御が処理される）
                 joinRoom(room.id);
@@ -660,13 +702,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ルームのメッセージを読み込み
     function loadRoomMessages(roomId) {
+        // 最新50件のみを読み込むクエリ（パフォーマンス改善）
         const roomMessagesRef = ref(database, `roomMessages/${roomId}`);
+        const messagesQuery = query(
+            roomMessagesRef,
+            orderByChild('timestamp'),
+            limitToLast(50)
+        );
 
         // 一度だけ実行してウェルカムメッセージを消す
         let isFirstMessage = true;
 
-        // メッセージの追加を監視
-        const unsubscribeAdded = onChildAdded(roomMessagesRef, (snapshot) => {
+        // メッセージの追加を監視（最新50件のみ）
+        const unsubscribeAdded = onChildAdded(messagesQuery, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
 
@@ -684,8 +732,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // メッセージの変更を監視（編集）
-        const unsubscribeChanged = onChildChanged(roomMessagesRef, (snapshot) => {
+        // メッセージの変更を監視（編集、最新50件のみ）
+        const unsubscribeChanged = onChildChanged(messagesQuery, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
             const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
@@ -720,8 +768,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // メッセージの削除を監視
-        const unsubscribeRemoved = onChildRemoved(roomMessagesRef, (snapshot) => {
+        // メッセージの削除を監視（最新50件のみ）
+        const unsubscribeRemoved = onChildRemoved(messagesQuery, (snapshot) => {
             const messageId = snapshot.key;
             const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
 
@@ -767,74 +815,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 入力時に自動リサイズを実行
     messageInput.addEventListener('input', autoResizeTextarea);
-
-    // ========================================
-    // 画像送信の処理
-    // ========================================
-
-    // 画像ボタンをクリックした時
-    imageButton.addEventListener('click', () => {
-        imageInput.click(); // ファイル選択ダイアログを開く
-    });
-
-    // 画像が選択された時
-    imageInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // ファイルサイズチェック（5MB以下）
-        if (file.size > 5 * 1024 * 1024) {
-            alert('画像サイズは5MB以下にしてください');
-            imageInput.value = '';
-            return;
-        }
-
-        // 画像タイプチェック
-        if (!file.type.startsWith('image/')) {
-            alert('画像ファイルを選択してください');
-            imageInput.value = '';
-            return;
-        }
-
-        try {
-            // アップロード中の表示
-            sendButton.disabled = true;
-            sendButton.textContent = 'アップロード中...';
-
-            // Firebase Storageにアップロード
-            const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${file.name.split('.').pop()}`;
-            const imageRef = storageRef(storage, `chat-images/${fileName}`);
-
-            await uploadBytes(imageRef, file);
-            const imageUrl = await getDownloadURL(imageRef);
-
-            // メッセージとして保存
-            const messageData = {
-                userId: userId,               // 送信者の固有ID（識別用）
-                userNumber: userNumber,       // 送信者の番号（表示用）
-                displayNumber: displayNumber,
-                imageUrl: imageUrl,
-                timestamp: serverTimestamp()
-            };
-
-            await push(messagesRef, messageData);
-
-            console.log('画像を送信しました');
-            imageInput.value = ''; // 入力をクリア
-
-            // コメント履歴を記録
-            if (currentRoomId) {
-                saveRecentlyCommentedRoom(currentRoomId);
-            }
-
-        } catch (error) {
-            console.error('画像アップロードエラー:', error);
-            alert('画像の送信に失敗しました');
-        } finally {
-            sendButton.disabled = false;
-            sendButton.textContent = '送信';
-        }
-    });
 
     // ========================================
     // メッセージを送信する関数

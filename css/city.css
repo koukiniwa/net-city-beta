@@ -155,7 +155,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 6px;
+    padding: 6px 8px;
     background: #fafafa;
     border-bottom: 1px solid #cccccc;
     overflow: hidden;
@@ -163,25 +163,26 @@ body {
 
 .room-tabs {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     flex: 1;
     min-width: 0;
-    overflow-x: auto; /* scrollからautoに戻す */
+    overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px 4px;
-    /* スクロール設定 */
-    scroll-behavior: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 3px 6px;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* タッチスクロール最適化 */
-    touch-action: pan-x;
-    /* スクロール範囲を制限（最後まで行ったら止まる） */
+    /* 高速スクロール最適化 */
+    -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
-    /* iOS Safari対策 */
-    -webkit-transform: translateZ(0);
+    /* GPUアクセラレーション有効化 */
+    will-change: scroll-position;
     transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* タッチ操作最適化 */
+    touch-action: pan-x;
+    /* 慣性スクロール */
+    scroll-behavior: auto;
 }
 
 /* スクロールバーを完全に非表示 */
@@ -192,20 +193,24 @@ body {
 .room-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
+    gap: 8px;
+    padding: 10px 24px;
     background: #ffffff;
     border: 1.5px solid #d0d0d0;
-    border-radius: 24px;
+    border-radius: 28px;
     color: #333333;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     user-select: none;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
+    /* スクロールパフォーマンス最適化 */
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .room-tab:hover {
@@ -241,7 +246,7 @@ body {
 }
 
 .room-emoji {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     line-height: 1;
     filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
 }
@@ -252,13 +257,13 @@ body {
 }
 
 .room-count {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #666666;
     font-weight: 600;
     background: rgba(0, 0, 0, 0.06);
-    padding: 2px 5px;
-    border-radius: 8px;
-    min-width: 24px;
+    padding: 3px 6px;
+    border-radius: 9px;
+    min-width: 28px;
     text-align: center;
 }
 
@@ -269,13 +274,13 @@ body {
 
 .create-room-btn {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     background: #ffffff;
     border: 1px dashed #2196f3;
     border-radius: 50%;
     color: #2196f3;
-    font-size: 1rem;
+    font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
