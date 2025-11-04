@@ -795,6 +795,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 送信ボタンをクリックした時
     sendButton.addEventListener('click', sendMessage);
 
+    // PWA対策：入力欄をタップしたときに確実にフォーカス
+    messageInput.addEventListener('touchstart', function(e) {
+        // 入力欄を確実にフォーカス
+        this.focus();
+    }, { passive: true });
+
+    // クリックイベントでもフォーカス（デスクトップ対応）
+    messageInput.addEventListener('click', function() {
+        this.focus();
+    });
+
     // Enterキーを押した時
     messageInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
