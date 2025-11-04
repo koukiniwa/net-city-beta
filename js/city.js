@@ -1896,54 +1896,55 @@ document.addEventListener('DOMContentLoaded', function() {
     let scrollTimeout = null;
     let isAutoSwitching = false; // 自動切り替え中フラグ
 
-    roomTabs.addEventListener('scroll', () => {
-        // デバウンス処理（スクロール終了後に実行）
-        clearTimeout(scrollTimeout);
+    // スクロール連動機能を一時的に無効化
+    // roomTabs.addEventListener('scroll', () => {
+    //     // デバウンス処理（スクロール終了後に実行）
+    //     clearTimeout(scrollTimeout);
 
-        scrollTimeout = setTimeout(() => {
-            if (isAutoSwitching) return; // 自動切り替え中はスキップ
+    //     scrollTimeout = setTimeout(() => {
+    //         if (isAutoSwitching) return; // 自動切り替え中はスキップ
 
-            const scrollLeft = roomTabs.scrollLeft;
-            const containerWidth = roomTabs.offsetWidth;
-            const centerPosition = scrollLeft + containerWidth / 2;
+    //         const scrollLeft = roomTabs.scrollLeft;
+    //         const containerWidth = roomTabs.offsetWidth;
+    //         const centerPosition = scrollLeft + containerWidth / 2;
 
-            // すべてのタブを取得
-            const tabs = Array.from(roomTabs.querySelectorAll('.room-tab'));
+    //         // すべてのタブを取得
+    //         const tabs = Array.from(roomTabs.querySelectorAll('.room-tab'));
 
-            // 中央に最も近いタブを検出
-            let closestTab = null;
-            let minDistance = Infinity;
+    //         // 中央に最も近いタブを検出
+    //         let closestTab = null;
+    //         let minDistance = Infinity;
 
-            tabs.forEach(tab => {
-                const tabLeft = tab.offsetLeft;
-                const tabWidth = tab.offsetWidth;
-                const tabCenter = tabLeft + tabWidth / 2;
-                const distance = Math.abs(centerPosition - tabCenter);
+    //         tabs.forEach(tab => {
+    //             const tabLeft = tab.offsetLeft;
+    //             const tabWidth = tab.offsetWidth;
+    //             const tabCenter = tabLeft + tabWidth / 2;
+    //             const distance = Math.abs(centerPosition - tabCenter);
 
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestTab = tab;
-                }
-            });
+    //             if (distance < minDistance) {
+    //                 minDistance = distance;
+    //                 closestTab = tab;
+    //             }
+    //         });
 
-            // 中央のタブのルームIDを取得
-            if (closestTab) {
-                const roomId = closestTab.dataset.roomId;
+    //         // 中央のタブのルームIDを取得
+    //         if (closestTab) {
+    //             const roomId = closestTab.dataset.roomId;
 
-                // 現在のルームと異なる場合のみ切り替え
-                if (roomId && roomId !== currentRoomId) {
-                    console.log(`スクロール連動: ルーム ${roomId} に自動切り替え`);
-                    isAutoSwitching = true;
-                    joinRoom(roomId).finally(() => {
-                        // 切り替え完了後、フラグをリセット
-                        setTimeout(() => {
-                            isAutoSwitching = false;
-                        }, 300);
-                    });
-                }
-            }
-        }, 150); // 150ms後に実行
-    }, { passive: true });
+    //             // 現在のルームと異なる場合のみ切り替え
+    //             if (roomId && roomId !== currentRoomId) {
+    //                 console.log(`スクロール連動: ルーム ${roomId} に自動切り替え`);
+    //                 isAutoSwitching = true;
+    //                 joinRoom(roomId).finally(() => {
+    //                     // 切り替え完了後、フラグをリセット
+    //                     setTimeout(() => {
+    //                         isAutoSwitching = false;
+    //                     }, 300);
+    //                 });
+    //             }
+    //         }
+    //     }, 150); // 150ms後に実行
+    // }, { passive: true });
 
     // ========================================
     // 初期化
