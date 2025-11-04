@@ -630,7 +630,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // ユーザー情報を登録
             const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
             await set(userRef, {
-                userNumber: userNumber,
+                userId: userId,  // セキュリティルールでチェック用
+                userNumber: parseInt(userNumber),  // 数値型に変換
                 displayNumber: displayNumber,
                 joinedAt: Date.now(),
                 lastActive: Date.now()
@@ -817,14 +818,48 @@ document.addEventListener('DOMContentLoaded', function() {
     messageInput.addEventListener('input', autoResizeTextarea);
 
     // ========================================
+    // 入力のサニタイズ（XSS対策）
+    // ========================================
+    function sanitizeInput(text) {
+        // 基本的なHTMLタグを無害化
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ========================================
+    // メッセージのバリデーション
+    // ========================================
+    function validateMessage(text) {
+        // 空文字チェック
+        if (!text || text.trim() === '') {
+            return { valid: false, error: 'メッセージを入力してください' };
+        }
+
+        // 長さチェック（1-200文字）
+        if (text.length > 200) {
+            return { valid: false, error: 'メッセージは200文字以内で入力してください' };
+        }
+
+        // 禁止文字チェック（制御文字など）
+        if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(text)) {
+            return { valid: false, error: '不正な文字が含まれています' };
+        }
+
+        return { valid: true };
+    }
+
+    // ========================================
     // メッセージを送信する関数
     // ========================================
     function sendMessage() {
         // 入力されたメッセージを取得（前後の空白を削除）
         const messageText = messageInput.value.trim();
 
-        // 空のメッセージは送信しない
-        if (messageText === '') {
+        // バリデーション
+        const validation = validateMessage(messageText);
+        if (!validation.valid) {
+            alert(validation.error);
             return;
         }
 
@@ -835,12 +870,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // サニタイズ（XSS対策）
+        const sanitizedText = sanitizeInput(messageText);
+
         // Firebaseに送信するデータ
         const messageData = {
             userId: userId,               // 送信者の固有ID（識別用）
-            userNumber: userNumber,       // 送信者の番号（表示用）
+            userNumber: parseInt(userNumber), // 送信者の番号（表示用、数値型に変換）
             displayNumber: displayNumber, // 表示用番号（No.XX）
-            text: messageText,            // メッセージ本文
+            text: sanitizedText,          // サニタイズ済みメッセージ本文
             timestamp: serverTimestamp() // サーバーの時刻（自動で設定）
         };
 
@@ -860,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch((error) => {
                 // 送信失敗
                 console.error('送信エラー:', error);
-                alert('メッセージの送信に失敗しました。Firebaseの設定を確認してください。');
+                alert('メッセージの送信に失敗しました。もう一度お試しください。');
             });
     }
 
@@ -1547,24 +1585,61 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ========================================
+    // ルーム作成のバリデーション
+    // ========================================
+    function validateRoomData(roomName, description, emoji, maxUsers) {
+        // ルーム名のバリデーション
+        if (!roomName || roomName.trim() === '') {
+            return { valid: false, error: 'ルーム名を入力してください' };
+        }
+        if (roomName.length < 1) {
+            return { valid: false, error: 'ルーム名は1文字以上で入力してください' };
+        }
+        if (roomName.length > 15) {
+            return { valid: false, error: 'ルーム名は15文字以内で入力してください' };
+        }
+
+        // 説明のバリデーション
+        if (description && description.length > 50) {
+            return { valid: false, error: '説明は50文字以内で入力してください' };
+        }
+
+        // 絵文字のバリデーション
+        if (!emoji || emoji.length === 0) {
+            return { valid: false, error: '絵文字を選択してください' };
+        }
+
+        // 最大人数のバリデーション
+        const validMaxUsers = [10, 20, 30, 50];
+        if (!validMaxUsers.includes(maxUsers)) {
+            return { valid: false, error: '無効な最大人数です' };
+        }
+
+        // 禁止文字チェック（制御文字など）
+        if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(roomName) ||
+            /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(description)) {
+            return { valid: false, error: '不正な文字が含まれています' };
+        }
+
+        return { valid: true };
+    }
+
     // ルーム作成確定ボタン
     confirmCreateRoom.addEventListener('click', async () => {
         const roomName = roomNameInput.value.trim();
-
-        // バリデーション
-        if (!roomName || roomName.length < 2) {
-            alert('ルーム名は2文字以上で入力してください');
-            return;
-        }
-
-        if (roomName.length > 15) {
-            alert('ルーム名は15文字以内で入力してください');
-            return;
-        }
+        const description = roomDescriptionInput.value.trim();
 
         // 選択されたmaxUsersを取得
         const maxUsersRadio = document.querySelector('input[name="maxUsers"]:checked');
         const maxUsers = parseInt(maxUsersRadio.value);
+
+        // バリデーション
+        const validation = validateRoomData(roomName, description, selectedEmoji, maxUsers);
+        if (!validation.valid) {
+            alert(validation.error);
+            return;
+        }
 
         try {
             // 既存のルーム数をチェック（広場を除く）
@@ -1587,13 +1662,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // ルームIDを生成
             const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+            // サニタイズ（XSS対策）
+            const sanitizedRoomName = sanitizeInput(roomName);
+            const sanitizedDescription = sanitizeInput(description);
+
             // ルームデータを作成
             const roomData = {
                 id: roomId,
-                name: roomName,
+                name: sanitizedRoomName,
                 emoji: selectedEmoji,
                 maxUsers: maxUsers,
-                description: roomDescriptionInput.value.trim() || '',
+                description: sanitizedDescription || '',
                 isPermanent: false,
                 createdAt: Date.now(),
                 createdBy: userId,
