@@ -1657,15 +1657,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const rooms = roomsSnapshot.val() || {};
             const customRooms = Object.values(rooms).filter(room => !room.isPermanent);
 
-            if (customRooms.length >= 8) {
-                alert('カスタムルームは最大8個までです');
+            if (customRooms.length >= 100) {
+                alert('カスタムルームは最大100個までです');
                 return;
             }
 
-            // ユーザーが既にルームを作成していないかチェック
-            const userCreatedRoom = customRooms.find(room => room.createdBy === userId);
-            if (userCreatedRoom) {
-                alert('既にルームを作成しています。作成できるルームは1つまでです。');
+            // ユーザーが既にルームを作成していないかチェック（2つまで）
+            const userCreatedRooms = customRooms.filter(room => room.createdBy === userId);
+            if (userCreatedRooms.length >= 2) {
+                alert('既にルームを2つ作成しています。作成できるルームは1人2つまでです。');
                 return;
             }
 
