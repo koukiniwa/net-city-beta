@@ -3,21 +3,21 @@
     "rooms": {
       "$roomId": {
         ".read": true,
-        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val() || newData.child('createdBy').val() === 'system'",
+        ".write": "newData.child('createdBy').val() === 'system' || !data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
         "id": {
-          ".validate": "newData.isString()"
+          ".validate": "!newData.exists() || newData.isString()"
         },
         "name": {
-          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 15"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 20)"
         },
         "emoji": {
-          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 10"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 10)"
         },
         "maxUsers": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)"
         },
         "currentUsers": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0)"
         },
         "description": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
@@ -29,10 +29,10 @@
           ".validate": "!newData.exists() || newData.isBoolean()"
         },
         "createdAt": {
-          ".validate": "newData.isNumber()"
+          ".validate": "!newData.exists() || newData.isNumber()"
         },
         "createdBy": {
-          ".validate": "newData.isString()"
+          ".validate": "!newData.exists() || newData.isString()"
         },
         "$other": {
           ".validate": true
