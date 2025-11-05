@@ -1,91 +1,16 @@
 {
   "rules": {
     "rooms": {
-      "$roomId": {
-        ".read": true,
-        ".write": "newData.child('createdBy').val() === 'system' || !data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
-        "id": {
-          ".validate": "!newData.exists() || newData.isString()"
-        },
-        "name": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 20)"
-        },
-        "emoji": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 10)"
-        },
-        "maxUsers": {
-          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)"
-        },
-        "currentUsers": {
-          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0)"
-        },
-        "description": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
-        },
-        "category": {
-          ".validate": "!newData.exists() || (newData.isString() && (newData.val() === 'chat' || newData.val() === 'consultation' || newData.val() === 'love' || newData.val() === 'hobby' || newData.val() === 'news' || newData.val() === 'life'))"
-        },
-        "isPermanent": {
-          ".validate": "!newData.exists() || newData.isBoolean()"
-        },
-        "createdAt": {
-          ".validate": "!newData.exists() || newData.isNumber()"
-        },
-        "createdBy": {
-          ".validate": "!newData.exists() || newData.isString()"
-        },
-        "$other": {
-          ".validate": true
-        }
-      }
+      ".read": true,
+      ".write": true
     },
     "roomUsers": {
-      "$roomId": {
-        "$userId": {
-          ".read": true,
-          ".write": "!newData.exists() || $userId === newData.child('userId').val()",
-          "userNumber": {
-            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999"
-          },
-          "userId": {
-            ".validate": "newData.isString()"
-          },
-          "$other": {
-            ".validate": true
-          }
-        }
-      }
+      ".read": true,
+      ".write": true
     },
     "roomMessages": {
-      "$roomId": {
-        ".read": true,
-        "$messageId": {
-          ".write": "!data.exists() || !newData.exists() || data.child('userId').val() === newData.child('userId').val()",
-          "text": {
-            ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 200)"
-          },
-          "imageUrl": {
-            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)"
-          },
-          "userId": {
-            ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 100"
-          },
-          "userNumber": {
-            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999"
-          },
-          "displayNumber": {
-            ".validate": "newData.isString() && newData.val().matches(/^No\\.[0-9]{1,3}$/)"
-          },
-          "timestamp": {
-            ".validate": "newData.val() !== null"
-          },
-          "$other": {
-            ".validate": true
-          }
-        }
-      }
-    },
-    ".read": false,
-    ".write": false
+      ".read": true,
+      ".write": true
+    }
   }
 }
