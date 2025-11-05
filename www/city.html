@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- SEO対策: 基本のmetaタグ -->
     <title>NET CITY β - チャット中 | リアルタイムチャット</title>
@@ -70,7 +70,7 @@
     <!-- ヘッダー（上部のバー） -->
     <header class="header">
         <div class="header-left">
-            <button class="hamburger-menu" id="hamburgerMenu">
+            <button class="hamburger-menu" id="hamburgerMenu" aria-label="メニューを開く">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -86,7 +86,7 @@
     <div class="sidebar-menu" id="sidebarMenu">
         <div class="sidebar-header">
             <h2>設定</h2>
-            <button class="close-menu" id="closeMenu">✕</button>
+            <button class="close-menu" id="closeMenu" aria-label="メニューを閉じる">✕</button>
         </div>
         <div class="sidebar-content">
             <div class="menu-item" id="editNumberMenu">
@@ -154,7 +154,7 @@
             </div>
 
             <!-- ルーム作成ボタン（下部中央） -->
-            <button class="floating-create-btn" id="createRoomBtn" title="新しいルームを作成">
+            <button class="floating-create-btn" id="createRoomBtn" aria-label="新しいルームを作成">
                 ➕
             </button>
         </div>
@@ -163,7 +163,7 @@
         <div class="chat-view" id="chatView" style="display: none;">
             <!-- チャットヘッダー -->
             <div class="chat-header">
-                <button class="back-button" id="backToRoomList">
+                <button class="back-button" id="backToRoomList" aria-label="ルーム一覧に戻る">
                     ← 戻る
                 </button>
                 <div class="chat-room-info">
@@ -248,16 +248,16 @@
             <div class="form-group">
                 <label>絵文字アイコン</label>
                 <div class="emoji-selector" id="emojiSelector">
-                    <button class="emoji-option" data-emoji="💬">💬</button>
-                    <button class="emoji-option" data-emoji="🎮">🎮</button>
-                    <button class="emoji-option" data-emoji="🎵">🎵</button>
-                    <button class="emoji-option" data-emoji="📚">📚</button>
-                    <button class="emoji-option" data-emoji="🎨">🎨</button>
-                    <button class="emoji-option" data-emoji="⚽">⚽</button>
-                    <button class="emoji-option" data-emoji="🍕">🍕</button>
-                    <button class="emoji-option" data-emoji="☕">☕</button>
-                    <button class="emoji-option" data-emoji="🌙">🌙</button>
-                    <button class="emoji-option" data-emoji="⭐">⭐</button>
+                    <button class="emoji-option" data-emoji="💬" aria-label="チャット絵文字">💬</button>
+                    <button class="emoji-option" data-emoji="🎮" aria-label="ゲーム絵文字">🎮</button>
+                    <button class="emoji-option" data-emoji="🎵" aria-label="音楽絵文字">🎵</button>
+                    <button class="emoji-option" data-emoji="📚" aria-label="本絵文字">📚</button>
+                    <button class="emoji-option" data-emoji="🎨" aria-label="アート絵文字">🎨</button>
+                    <button class="emoji-option" data-emoji="⚽" aria-label="サッカー絵文字">⚽</button>
+                    <button class="emoji-option" data-emoji="🍕" aria-label="ピザ絵文字">🍕</button>
+                    <button class="emoji-option" data-emoji="☕" aria-label="コーヒー絵文字">☕</button>
+                    <button class="emoji-option" data-emoji="🌙" aria-label="月絵文字">🌙</button>
+                    <button class="emoji-option" data-emoji="⭐" aria-label="星絵文字">⭐</button>
                 </div>
             </div>
             <div class="form-group">
@@ -283,7 +283,6 @@
     <!-- チャット機能のJavaScriptを読み込み -->
     <script type="module" src="js/city.js"></script>
 
-    
     <!-- Service Worker 登録 -->
     <script>
         // Service Worker がサポートされているかチェック
