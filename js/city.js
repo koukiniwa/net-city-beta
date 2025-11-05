@@ -48,8 +48,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const lightModeBtn = document.getElementById('lightMode'); // ライトモードボタン
     const neonModeBtn = document.getElementById('neonMode'); // ネオンモードボタン
 
+    // カテゴリ関連の要素
+    const categoryTabs = document.getElementById('categoryTabs'); // カテゴリタブコンテナ
+
+    // ビュー関連の要素
+    const roomListView = document.getElementById('roomListView'); // ルーム一覧ビュー
+    const chatView = document.getElementById('chatView'); // チャットビュー
+    const roomCardsContainer = document.getElementById('roomCardsContainer'); // ルームカードコンテナ
+    const backToRoomList = document.getElementById('backToRoomList'); // 戻るボタン
+    const chatRoomName = document.getElementById('chatRoomName'); // チャットルーム名
+    const chatRoomEmoji = document.getElementById('chatRoomEmoji'); // チャットルーム絵文字
+    const chatUserCount = document.getElementById('chatUserCount'); // チャットルームユーザー数
+
     // ルーム関連の要素
-    const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
+    // const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ（削除）
     const createRoomBtn = document.getElementById('createRoomBtn'); // ルーム作成ボタン
     const createRoomModal = document.getElementById('createRoomModal'); // ルーム作成モーダル
     const roomNameInput = document.getElementById('roomName'); // ルーム名入力
@@ -85,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ルームデータのキャッシュ
     let roomsCache = {};
     let selectedEmoji = '💬'; // 選択された絵文字（デフォルト）
+    let selectedCategory = 'chat'; // 選択されたカテゴリ（デフォルト：雑談）
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
     let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
     let isScrolling = false; // スクロール中フラグ（グローバルで管理）
@@ -99,6 +112,62 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('既存のユーザーIDを使用します:', userId);
     }
+
+    // ========================================
+    // ビュー切り替え機能
+    // ========================================
+
+    // ルーム一覧ビューを表示
+    function showRoomListView() {
+        roomListView.style.display = 'block';
+        chatView.style.display = 'none';
+        console.log('ルーム一覧ビューを表示');
+    }
+
+    // チャットビューを表示
+    function showChatView(roomId, roomName, roomEmoji) {
+        roomListView.style.display = 'none';
+        chatView.style.display = 'flex';
+        chatRoomName.textContent = roomName;
+        chatRoomEmoji.textContent = roomEmoji;
+        console.log('チャットビューを表示:', roomName);
+    }
+
+    // 戻るボタンのクリックイベント
+    backToRoomList.addEventListener('click', async () => {
+        // 現在のルームから退出
+        if (currentRoomId) {
+            await leaveRoom(currentRoomId);
+            currentRoomId = null;
+        }
+        showRoomListView();
+    });
+
+    // ========================================
+    // カテゴリ機能
+    // ========================================
+
+    // カテゴリタブのクリックイベント
+    categoryTabs.addEventListener('click', (e) => {
+        if (e.target.classList.contains('category-tab')) {
+            // 全てのタブからactiveクラスを削除
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // クリックされたタブにactiveクラスを追加
+            e.target.classList.add('active');
+
+            // 選択されたカテゴリを更新
+            selectedCategory = e.target.dataset.category;
+            console.log('カテゴリ切り替え:', selectedCategory);
+
+            // ルームカードを更新
+            updateRoomCards(roomsCache);
+            // サイドバーのルーム一覧を更新（カテゴリでフィルタリング）
+            updateSidebarRoomList(roomsCache);
+        }
+    });
 
     // ========================================
     // ルーム機能
@@ -129,144 +198,131 @@ document.addEventListener('DOMContentLoaded', function() {
         return JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
     }
 
+    // 固定ルームの定義
+    const permanentRooms = [
+        // 雑談カテゴリ
+        { id: 'plaza', name: '広場', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
+        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
+        // 相談カテゴリ
+        { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
+        { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },
+        // 恋愛カテゴリ
+        { id: 'love_talk', name: '恋バナルーム', emoji: '💕', category: 'love', description: '恋愛トークで盛り上がろう', maxUsers: 50 },
+        { id: 'heartbreak_cafe', name: '失恋カフェ', emoji: '💔', category: 'love', description: '失恋の傷を癒す場所', maxUsers: 50 },
+        // 時事カテゴリ
+        { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
+        // 人生カテゴリ
+        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'life', description: '音楽やアニメについて語ろう', maxUsers: 50 },
+        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'life', description: 'ゲーム好き集まれ！', maxUsers: 50 }
+    ];
+
     // ルームの初期化
     async function initializeRooms() {
         try {
-            console.log('ルーム初期化開始...');
+            console.log('🚀 ルーム初期化開始...');
+            console.log('固定ルーム定義:', permanentRooms);
 
-            // 固定ルーム（広場）を作成または確認
-            const plazaRef = ref(database, 'rooms/plaza');
-            const plazaSnapshot = await get(plazaRef);
+            // 固定ルームを全て作成または確認
+            for (const room of permanentRooms) {
+                try {
+                    const roomRef = ref(database, `rooms/${room.id}`);
+                    const roomSnapshot = await get(roomRef);
 
-            if (!plazaSnapshot.exists()) {
-                // 広場が存在しない場合は作成
-                console.log('広場を新規作成します');
-                await set(plazaRef, {
-                    id: 'plaza',
-                    name: '広場',
-                    emoji: '🏠',
-                    maxUsers: 0, // 0 = 無制限
-                    isPermanent: true,
-                    createdAt: Date.now(),
-                    createdBy: 'system',
-                    currentUsers: 0
-                });
+                    if (!roomSnapshot.exists()) {
+                        // ルームが存在しない場合は作成
+                        console.log(`✨ ${room.name}(${room.category})を新規作成します...`);
+                        const roomData = {
+                            id: room.id,
+                            name: room.name,
+                            emoji: room.emoji,
+                            category: room.category,
+                            description: room.description,
+                            maxUsers: room.maxUsers,
+                            currentUsers: 0,
+                            isPermanent: true,
+                            createdAt: Date.now(),
+                            createdBy: 'system'
+                        };
+                        console.log('作成データ:', roomData);
+                        await set(roomRef, roomData);
+                        console.log(`✅ ${room.name}の作成完了`);
+                    } else {
+                        console.log(`📋 ${room.name}(${room.category})は既に存在します`);
+                    }
+                } catch (roomError) {
+                    console.error(`❌ ${room.name}の作成エラー:`, roomError);
+                }
             }
 
             // 最初に一度ルーム一覧を取得
+            console.log('📥 ルーム一覧を取得中...');
             const roomsSnapshot = await get(roomsRef);
             const rooms = roomsSnapshot.val();
 
             if (rooms) {
-                console.log('ルーム一覧を取得しました:', Object.keys(rooms));
+                console.log('✅ ルーム一覧を取得しました:', Object.keys(rooms));
+                console.log('ルーム詳細:', rooms);
                 roomsCache = rooms;
-                updateRoomTabs(rooms);
+                // ルームカードを表示
+                updateRoomCards(rooms);
             } else {
-                console.error('ルーム一覧の取得に失敗しました');
+                console.error('❌ ルーム一覧の取得に失敗しました（データがnull）');
             }
 
-            // ルーム一覧をリアルタイムで監視（2回目以降の更新用）
-            // デバウンス処理で無限スクロールバグを防止
-            let updateTimeout = null;
-            let scrollEndTimeout = null;
-
-            // スクロール検出（実際にスクロール位置が変化した場合のみ）
-            roomTabs.addEventListener('scroll', () => {
-                const currentScrollLeft = roomTabs.scrollLeft;
-
-                // スクロール位置が実際に変化した場合のみスクロール中とする（1px以上の変化）
-                if (Math.abs(currentScrollLeft - lastScrollLeft) > 1) {
-                    isScrolling = true;
-                    lastScrollLeft = currentScrollLeft;
-
-                    clearTimeout(scrollEndTimeout);
-                    scrollEndTimeout = setTimeout(() => {
-                        isScrolling = false;
-                    }, 100); // スクロール終了後100ms待機（高速化）
-                }
-            }, { passive: true });
-
+            // ルーム一覧をリアルタイムで監視
+            console.log('👀 ルーム一覧のリアルタイム監視を開始');
             onValue(roomsRef, (snapshot) => {
                 const updatedRooms = snapshot.val();
                 if (updatedRooms) {
+                    console.log('🔄 ルーム一覧が更新されました');
                     roomsCache = updatedRooms;
-
-                    // スクロール中は完全にDOM更新をスキップ（快適なスクロールのため）
-                    clearTimeout(updateTimeout);
-
-                    const performUpdate = () => {
-                        if (!isScrolling) {
-                            updateRoomTabs(updatedRooms);
-                            updateSidebarRoomList(updatedRooms);
-                            updateMyRoomsList(updatedRooms);
-                        } else {
-                            // スクロール中の場合は再度チェック
-                            updateTimeout = setTimeout(performUpdate, 500);
-                        }
-                    };
-
-                    // デバウンス時間を延長（2秒）してDOM更新の頻度を減らす
-                    updateTimeout = setTimeout(performUpdate, 2000);
+                    updateRoomCards(updatedRooms);
+                    updateSidebarRoomList(updatedRooms);
+                    updateMyRoomsList(updatedRooms);
                 }
             });
 
-            // 初期ルーム（広場）に入室
-            console.log('広場に入室します...');
-            await joinRoom('plaza');
-            console.log('ルーム初期化完了');
+            console.log('✅ ルーム初期化完了');
 
         } catch (error) {
-            console.error('ルーム初期化エラー:', error);
-            alert('ルームの初期化に失敗しました。ページを再読み込みしてください。');
+            console.error('❌ ルーム初期化エラー:', error);
+            console.error('エラー詳細:', error.message, error.stack);
+            alert('ルームの初期化に失敗しました。ページを再読み込みしてください。\nエラー: ' + error.message);
         }
     }
 
-    // ルームタブの表示を更新
-    function updateRoomTabs(rooms) {
-        // 古いリスナーを全て削除
-        Object.keys(roomUserListeners).forEach(roomId => {
-            if (roomUserListeners[roomId]) {
-                roomUserListeners[roomId](); // off関数を実行
-            }
-        });
-        roomUserListeners = {}; // リセット
+    // ルームタブの表示を更新（削除：ルームタブバーを削除したため）
+    // function updateRoomTabs(rooms) { ... }
 
-        // スクロール位置を保存（DOM再構築時のスクロール中断を防止）
-        const savedScrollLeft = roomTabs.scrollLeft;
-
-        // 現在のアクティブルームの位置を記憶（スクロール地獄バグ対策）
-        // ただし「家」（固定ルーム）は除外
-        let currentRoomIndex = -1;
-        const currentTabs = roomTabs.querySelectorAll('.room-tab');
-        currentTabs.forEach((tab, index) => {
-            if (tab.classList.contains('active')) {
-                const roomId = tab.dataset.roomId;
-                const room = Object.values(rooms).find(r => r.id === roomId);
-                // 「家」でなければインデックスを記録
-                if (room && !room.isPermanent) {
-                    currentRoomIndex = index - 1; // 「家」の分を引く
-                }
-            }
-        });
-
-        roomTabs.innerHTML = ''; // 既存のタブをクリア
+    // ルームカードの表示を更新
+    function updateRoomCards(rooms) {
+        roomCardsContainer.innerHTML = ''; // 既存のカードをクリア
 
         // ルームを配列に変換
-        const roomArray = Object.values(rooms);
+        let roomArray = Object.values(rooms);
+        console.log('全ルーム数:', roomArray.length, 'カテゴリ:', selectedCategory);
+        console.log('ルーム一覧:', roomArray.map(r => `${r.name}(${r.category})`));
 
-        // 「家」（固定ルーム）を抽出
-        const permanentRooms = roomArray.filter(r => r.isPermanent);
+        // カテゴリでフィルタリング
+        roomArray = roomArray.filter(r => {
+            const match = r.category === selectedCategory;
+            console.log(`${r.name}: category=${r.category}, selected=${selectedCategory}, match=${match}`);
+            return match; // 選択されたカテゴリのルームのみ表示
+        });
 
-        // 現在のルームを抽出（「家」でない場合のみ）
-        const currentRoomObj = currentRoomId
-            ? roomArray.find(r => r.id === currentRoomId && !r.isPermanent)
-            : null;
+        console.log('フィルタ後のルーム数:', roomArray.length);
 
-        // 「家」でも現在のルームでもないものをソート対象に
-        const roomsToSort = roomArray.filter(r => !r.isPermanent && r.id !== currentRoomId);
+        // 人気スコア順にソート（固定ルームは常に上位）
+        roomArray.sort((a, b) => {
+            // 固定ルームは最初（isPermanentがtrueのもの）
+            if (a.isPermanent && !b.isPermanent) return -1;
+            if (!a.isPermanent && b.isPermanent) return 1;
 
-        // 人気スコア順にソート（安定ソート：スコアが同じ場合はルームIDでソート）
-        roomsToSort.sort((a, b) => {
+            // 両方とも固定ルームの場合、作成日時順（古い順）
+            if (a.isPermanent && b.isPermanent) {
+                return a.createdAt - b.createdAt;
+            }
+
             // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
@@ -275,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
             let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
 
-            // 満員のルームはスコアを半減（参加できないため）
+            // 満員のルームはスコアを半減
             if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
                 scoreA = scoreA * 0.5;
             }
@@ -283,64 +339,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 scoreB = scoreB * 0.5;
             }
 
-            // スコアが異なる場合はスコア順
-            if (scoreB !== scoreA) {
-                return scoreB - scoreA;
-            }
-
-            // スコアが同じ場合はルームIDでソート（安定化）
-            // これにより、同じスコアのルームは常に同じ順序になる
-            return a.id.localeCompare(b.id);
+            return scoreB - scoreA;
         });
 
-        // 最終的な配列を構築
-        // 1. 「家」は常に先頭（位置固定しない）
-        // 2. 現在のルーム（「家」以外）は元の位置に固定、その他はスコア順
-        let sortedRooms;
+        // 各ルームのカードを作成
+        roomArray.forEach(room => {
+            const card = createRoomCard(room);
+            roomCardsContainer.appendChild(card);
+        });
 
-        if (currentRoomObj) {
-            if (currentRoomIndex >= 0) {
-                // 元の位置に挿入
-                const insertIndex = Math.min(currentRoomIndex, roomsToSort.length);
-                sortedRooms = [
-                    ...roomsToSort.slice(0, insertIndex),
-                    currentRoomObj,
-                    ...roomsToSort.slice(insertIndex)
-                ];
-            } else {
-                // 位置情報がない場合は先頭に配置
-                sortedRooms = [currentRoomObj, ...roomsToSort];
-            }
-        } else {
-            // 現在のルームがない場合
-            sortedRooms = roomsToSort;
+        console.log(`${roomArray.length}個のルームカードを表示しました`);
+    }
+
+    // ルームカードを作成
+    function createRoomCard(room) {
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.dataset.roomId = room.id;
+
+        // ユーザー数を取得
+        const currentUsers = room.currentUsers || 0;
+        const maxUsers = room.maxUsers;
+        const isFull = maxUsers > 0 && currentUsers >= maxUsers;
+
+        if (isFull) {
+            card.classList.add('full');
         }
 
-        // 「家」を最初に、その後にソート済みルーム
-        const finalRoomArray = [...permanentRooms, ...sortedRooms];
+        card.innerHTML = `
+            <div class="room-card-header">
+                <div class="room-card-emoji">${room.emoji}</div>
+                <div class="room-card-title">
+                    <div class="room-card-name">${room.name}</div>
+                    ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
+                </div>
+            </div>
+            <div class="room-card-footer">
+                <div class="room-card-users">
+                    👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}
+                </div>
+                <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
+            </div>
+        `;
 
-        // 各ルームのタブを作成
-        finalRoomArray.forEach(room => {
-            const tab = createRoomTab(room);
-            roomTabs.appendChild(tab);
+        // クリックイベント
+        card.addEventListener('click', async () => {
+            if (!isFull || room.id === currentRoomId) {
+                // ルームに入室してチャット画面に遷移
+                showChatView(room.id, room.name, room.emoji);
+                await joinRoom(room.id);
+            } else {
+                alert('このルームは満員です');
+            }
         });
 
-        // スクロール位置を復元（DOM更新後に実行）
-        requestAnimationFrame(() => {
-            roomTabs.scrollLeft = savedScrollLeft;
-            // 復元した位置を記録（スクロール検出の誤認識を防ぐ）
-            lastScrollLeft = savedScrollLeft;
-        });
-
-        // デバッグ: 表示されているルームを確認
-        console.log('=== ルームタブ更新 ===');
-        console.log('全ルーム数:', roomArray.length);
-        console.log('「家」ルーム数:', permanentRooms.length);
-        console.log('現在のルームID:', currentRoomId);
-        console.log('現在のルームIndex（家除く）:', currentRoomIndex);
-        console.log('現在のルーム:', currentRoomObj ? currentRoomObj.name : (permanentRooms.length > 0 && permanentRooms[0].id === currentRoomId ? '「家」' : 'なし'));
-        console.log('表示中のルーム:', finalRoomArray.map(r => `${r.name}(${r.isPermanent ? '家' : ''}${r.id === currentRoomId ? 'active' : 'inactive'})`).join(', '));
-        console.log('==================');
+        return card;
     }
 
     // サイドバーのルーム一覧を更新
@@ -348,16 +401,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const roomListContainer = document.getElementById('roomListContainer');
         if (!roomListContainer) return;
 
-        // ルームを配列に変換して並び替え
-        const roomArray = Object.values(rooms);
+        // ルームを配列に変換
+        let roomArray = Object.values(rooms);
 
-        // 固定ルーム（広場）を最初に、その後は人気スコア順
+        // カテゴリでフィルタリング
+        roomArray = roomArray.filter(r => {
+            return r.category === selectedCategory; // 選択されたカテゴリのルームのみ表示
+        });
+
+        // 固定ルームを最初に、その後は人気スコア順
         roomArray.sort((a, b) => {
-            if (a.isPermanent) return -1;
-            if (b.isPermanent) return 1;
+            // 固定ルームは最初（isPermanentがtrueのもの）
+            if (a.isPermanent && !b.isPermanent) return -1;
+            if (!a.isPermanent && b.isPermanent) return 1;
+
+            // 両方とも固定ルームの場合、作成日時順（古い順）
+            if (a.isPermanent && b.isPermanent) {
+                return a.createdAt - b.createdAt;
+            }
 
             // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
-            // 新しさの重みを増やして新規ルームが埋もれないように
             const now = Date.now();
             const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
             const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
@@ -1644,6 +1707,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const maxUsersRadio = document.querySelector('input[name="maxUsers"]:checked');
         const maxUsers = parseInt(maxUsersRadio.value);
 
+        // 選択されたカテゴリを取得
+        const categoryRadio = document.querySelector('input[name="category"]:checked');
+        const roomCategory = categoryRadio.value;
+
         // バリデーション
         const validation = validateRoomData(roomName, description, selectedEmoji, maxUsers);
         if (!validation.valid) {
@@ -1681,6 +1748,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: roomId,
                 name: sanitizedRoomName,
                 emoji: selectedEmoji,
+                category: roomCategory, // カテゴリを追加
                 maxUsers: maxUsers,
                 description: sanitizedDescription || '',
                 isPermanent: false,

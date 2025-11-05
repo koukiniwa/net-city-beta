@@ -3,8 +3,7 @@
 // ========================================
 
 // Firebase SDKから必要な機能をインポート
-import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, limitToLast, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
 // ========================================
 // 初期化処理
@@ -14,18 +13,21 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gsta
 document.addEventListener('DOMContentLoaded', function() {
 
     // ========================================
-    // ユーザー名の取得とチェック
+    // ユーザー番号の取得とチェック
     // ========================================
 
-    // localStorageから名前を取得
-    const username = localStorage.getItem('netcity_username');
+    // localStorageから番号を取得
+    const userNumber = localStorage.getItem('netcity_userNumber');
 
-    // 名前が保存されていない場合は、入場画面に戻す
-    if (!username) {
-        alert('先に名前を入力してください');
+    // 番号が保存されていない場合は、入場画面に戻す
+    if (!userNumber) {
+        alert('先に番号を取得してください');
         window.location.href = 'index.html';
         return; // ここで処理を終了
     }
+
+    // 表示用の番号（No.XX形式）
+    const displayNumber = `No.${userNumber}`;
 
     // ========================================
     // HTML要素を取得
@@ -35,8 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesArea = document.getElementById('messagesArea'); // メッセージ表示エリア
     const messageInput = document.getElementById('messageInput'); // 入力欄
     const sendButton = document.getElementById('sendButton'); // 送信ボタン
-    const imageButton = document.getElementById('imageButton'); // 画像ボタン
-    const imageInput = document.getElementById('imageInput'); // 画像入力
     const inputArea = document.querySelector('.input-area'); // 入力エリア
 
     // ハンバーガーメニュー関連の要素
@@ -44,12 +44,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarMenu = document.getElementById('sidebarMenu'); // サイドバーメニュー
     const sidebarOverlay = document.getElementById('sidebarOverlay'); // オーバーレイ
     const closeMenu = document.getElementById('closeMenu'); // 閉じるボタン
-    const editNameMenu = document.getElementById('editNameMenu'); // 名前変更メニュー
+    const editNumberMenu = document.getElementById('editNumberMenu'); // 番号変更メニュー
     const lightModeBtn = document.getElementById('lightMode'); // ライトモードボタン
     const neonModeBtn = document.getElementById('neonMode'); // ネオンモードボタン
 
+    // カテゴリ関連の要素
+    const categoryTabs = document.getElementById('categoryTabs'); // カテゴリタブコンテナ
+
+    // ビュー関連の要素
+    const roomListView = document.getElementById('roomListView'); // ルーム一覧ビュー
+    const chatView = document.getElementById('chatView'); // チャットビュー
+    const roomCardsContainer = document.getElementById('roomCardsContainer'); // ルームカードコンテナ
+    const backToRoomList = document.getElementById('backToRoomList'); // 戻るボタン
+    const chatRoomName = document.getElementById('chatRoomName'); // チャットルーム名
+    const chatRoomEmoji = document.getElementById('chatRoomEmoji'); // チャットルーム絵文字
+    const chatUserCount = document.getElementById('chatUserCount'); // チャットルームユーザー数
+
     // ルーム関連の要素
-    const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ
+    // const roomTabs = document.getElementById('roomTabs'); // ルームタブコンテナ（削除）
     const createRoomBtn = document.getElementById('createRoomBtn'); // ルーム作成ボタン
     const createRoomModal = document.getElementById('createRoomModal'); // ルーム作成モーダル
     const roomNameInput = document.getElementById('roomName'); // ルーム名入力
@@ -59,10 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmCreateRoom = document.getElementById('confirmCreateRoom'); // 作成ボタン
 
     // ========================================
-    // ヘッダーに名前を表示
+    // ヘッダーに番号を表示
     // ========================================
 
-    usernameDisplay.textContent = username;
+    usernameDisplay.textContent = displayNumber;
 
     // ========================================
     // Firebase Databaseの参照を取得
@@ -85,7 +97,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ルームデータのキャッシュ
     let roomsCache = {};
     let selectedEmoji = '💬'; // 選択された絵文字（デフォルト）
+    let selectedCategory = 'chat'; // 選択されたカテゴリ（デフォルト：雑談）
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
+    let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
+    let isScrolling = false; // スクロール中フラグ（グローバルで管理）
 
     // ユニークなユーザーIDを生成（タイムスタンプ + ランダム値）
     // localStorageから取得、なければ新規生成して保存
@@ -99,91 +114,446 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
+    // ビュー切り替え機能
+    // ========================================
+
+    // ルーム一覧ビューを表示
+    function showRoomListView() {
+        roomListView.style.display = 'block';
+        chatView.style.display = 'none';
+        console.log('ルーム一覧ビューを表示');
+    }
+
+    // チャットビューを表示
+    function showChatView(roomId, roomName, roomEmoji) {
+        roomListView.style.display = 'none';
+        chatView.style.display = 'flex';
+        chatRoomName.textContent = roomName;
+        chatRoomEmoji.textContent = roomEmoji;
+        console.log('チャットビューを表示:', roomName);
+    }
+
+    // 戻るボタンのクリックイベント
+    backToRoomList.addEventListener('click', async () => {
+        // 現在のルームから退出
+        if (currentRoomId) {
+            await leaveRoom(currentRoomId);
+            currentRoomId = null;
+        }
+        showRoomListView();
+    });
+
+    // ========================================
+    // カテゴリ機能
+    // ========================================
+
+    // カテゴリタブのクリックイベント
+    categoryTabs.addEventListener('click', (e) => {
+        if (e.target.classList.contains('category-tab')) {
+            // 全てのタブからactiveクラスを削除
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // クリックされたタブにactiveクラスを追加
+            e.target.classList.add('active');
+
+            // 選択されたカテゴリを更新
+            selectedCategory = e.target.dataset.category;
+            console.log('カテゴリ切り替え:', selectedCategory);
+
+            // ルームカードを更新
+            updateRoomCards(roomsCache);
+            // サイドバーのルーム一覧を更新（カテゴリでフィルタリング）
+            updateSidebarRoomList(roomsCache);
+        }
+    });
+
+    // ========================================
     // ルーム機能
     // ========================================
+
+    // 最近コメントしたルームを記録
+    function saveRecentlyCommentedRoom(roomId) {
+        // 最近コメントしたルームのリストを取得（最大5件）
+        let recentRooms = JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
+
+        // 既に存在する場合は削除
+        recentRooms = recentRooms.filter(id => id !== roomId);
+
+        // 先頭に追加
+        recentRooms.unshift(roomId);
+
+        // 最大5件まで保持
+        if (recentRooms.length > 5) {
+            recentRooms = recentRooms.slice(0, 5);
+        }
+
+        // 保存
+        localStorage.setItem('netcity_recentRooms', JSON.stringify(recentRooms));
+    }
+
+    // 最近コメントしたルームのリストを取得
+    function getRecentlyCommentedRooms() {
+        return JSON.parse(localStorage.getItem('netcity_recentRooms') || '[]');
+    }
+
+    // 固定ルームの定義
+    const permanentRooms = [
+        // 雑談カテゴリ
+        { id: 'plaza', name: '広場', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
+        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
+        // 相談カテゴリ
+        { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
+        { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },
+        // 恋愛カテゴリ
+        { id: 'love_talk', name: '恋バナルーム', emoji: '💕', category: 'love', description: '恋愛トークで盛り上がろう', maxUsers: 50 },
+        { id: 'heartbreak_cafe', name: '失恋カフェ', emoji: '💔', category: 'love', description: '失恋の傷を癒す場所', maxUsers: 50 },
+        // 時事カテゴリ
+        { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
+        // 人生カテゴリ
+        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'life', description: '音楽やアニメについて語ろう', maxUsers: 50 },
+        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'life', description: 'ゲーム好き集まれ！', maxUsers: 50 }
+    ];
 
     // ルームの初期化
     async function initializeRooms() {
         try {
-            console.log('ルーム初期化開始...');
+            console.log('🚀 ルーム初期化開始...');
+            console.log('固定ルーム定義:', permanentRooms);
 
-            // 固定ルーム（広場）を作成または確認
-            const plazaRef = ref(database, 'rooms/plaza');
-            const plazaSnapshot = await get(plazaRef);
+            // 固定ルームを全て作成または確認
+            for (const room of permanentRooms) {
+                try {
+                    const roomRef = ref(database, `rooms/${room.id}`);
+                    const roomSnapshot = await get(roomRef);
 
-            if (!plazaSnapshot.exists()) {
-                // 広場が存在しない場合は作成
-                console.log('広場を新規作成します');
-                await set(plazaRef, {
-                    id: 'plaza',
-                    name: '広場',
-                    emoji: '🏠',
-                    maxUsers: 0, // 0 = 無制限
-                    isPermanent: true,
-                    createdAt: Date.now(),
-                    createdBy: 'system'
-                });
+                    if (!roomSnapshot.exists()) {
+                        // ルームが存在しない場合は作成
+                        console.log(`✨ ${room.name}(${room.category})を新規作成します...`);
+                        const roomData = {
+                            id: room.id,
+                            name: room.name,
+                            emoji: room.emoji,
+                            category: room.category,
+                            description: room.description,
+                            maxUsers: room.maxUsers,
+                            currentUsers: 0,
+                            isPermanent: true,
+                            createdAt: Date.now(),
+                            createdBy: 'system'
+                        };
+                        console.log('作成データ:', roomData);
+                        await set(roomRef, roomData);
+                        console.log(`✅ ${room.name}の作成完了`);
+                    } else {
+                        console.log(`📋 ${room.name}(${room.category})は既に存在します`);
+                    }
+                } catch (roomError) {
+                    console.error(`❌ ${room.name}の作成エラー:`, roomError);
+                }
             }
 
             // 最初に一度ルーム一覧を取得
+            console.log('📥 ルーム一覧を取得中...');
             const roomsSnapshot = await get(roomsRef);
             const rooms = roomsSnapshot.val();
 
             if (rooms) {
-                console.log('ルーム一覧を取得しました:', Object.keys(rooms));
+                console.log('✅ ルーム一覧を取得しました:', Object.keys(rooms));
+                console.log('ルーム詳細:', rooms);
                 roomsCache = rooms;
-                updateRoomTabs(rooms);
+                // ルームカードを表示
+                updateRoomCards(rooms);
             } else {
-                console.error('ルーム一覧の取得に失敗しました');
+                console.error('❌ ルーム一覧の取得に失敗しました（データがnull）');
             }
 
-            // ルーム一覧をリアルタイムで監視（2回目以降の更新用）
+            // ルーム一覧をリアルタイムで監視
+            console.log('👀 ルーム一覧のリアルタイム監視を開始');
             onValue(roomsRef, (snapshot) => {
                 const updatedRooms = snapshot.val();
                 if (updatedRooms) {
+                    console.log('🔄 ルーム一覧が更新されました');
                     roomsCache = updatedRooms;
-                    updateRoomTabs(updatedRooms);
+                    updateRoomCards(updatedRooms);
+                    updateSidebarRoomList(updatedRooms);
+                    updateMyRoomsList(updatedRooms);
                 }
             });
 
-            // 初期ルーム（広場）に入室
-            console.log('広場に入室します...');
-            await joinRoom('plaza');
-            console.log('ルーム初期化完了');
+            console.log('✅ ルーム初期化完了');
 
         } catch (error) {
-            console.error('ルーム初期化エラー:', error);
-            alert('ルームの初期化に失敗しました。ページを再読み込みしてください。');
+            console.error('❌ ルーム初期化エラー:', error);
+            console.error('エラー詳細:', error.message, error.stack);
+            alert('ルームの初期化に失敗しました。ページを再読み込みしてください。\nエラー: ' + error.message);
         }
     }
 
-    // ルームタブの表示を更新
-    function updateRoomTabs(rooms) {
-        // 古いリスナーを全て削除
-        Object.keys(roomUserListeners).forEach(roomId => {
-            if (roomUserListeners[roomId]) {
-                roomUserListeners[roomId](); // off関数を実行
+    // ルームタブの表示を更新（削除：ルームタブバーを削除したため）
+    // function updateRoomTabs(rooms) { ... }
+
+    // ルームカードの表示を更新
+    function updateRoomCards(rooms) {
+        roomCardsContainer.innerHTML = ''; // 既存のカードをクリア
+
+        // ルームを配列に変換
+        let roomArray = Object.values(rooms);
+        console.log('全ルーム数:', roomArray.length, 'カテゴリ:', selectedCategory);
+        console.log('ルーム一覧:', roomArray.map(r => `${r.name}(${r.category})`));
+
+        // カテゴリでフィルタリング
+        roomArray = roomArray.filter(r => {
+            const match = r.category === selectedCategory;
+            console.log(`${r.name}: category=${r.category}, selected=${selectedCategory}, match=${match}`);
+            return match; // 選択されたカテゴリのルームのみ表示
+        });
+
+        console.log('フィルタ後のルーム数:', roomArray.length);
+
+        // 人気スコア順にソート（固定ルームは常に上位）
+        roomArray.sort((a, b) => {
+            // 固定ルームは最初（isPermanentがtrueのもの）
+            if (a.isPermanent && !b.isPermanent) return -1;
+            if (!a.isPermanent && b.isPermanent) return 1;
+
+            // 両方とも固定ルームの場合、作成日時順（古い順）
+            if (a.isPermanent && b.isPermanent) {
+                return a.createdAt - b.createdAt;
+            }
+
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
+            const now = Date.now();
+            const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
+            const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
+
+            let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
+            let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
+
+            // 満員のルームはスコアを半減
+            if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
+                scoreA = scoreA * 0.5;
+            }
+            if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) {
+                scoreB = scoreB * 0.5;
+            }
+
+            return scoreB - scoreA;
+        });
+
+        // 各ルームのカードを作成
+        roomArray.forEach(room => {
+            const card = createRoomCard(room);
+            roomCardsContainer.appendChild(card);
+        });
+
+        console.log(`${roomArray.length}個のルームカードを表示しました`);
+    }
+
+    // ルームカードを作成
+    function createRoomCard(room) {
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.dataset.roomId = room.id;
+
+        // ユーザー数を取得
+        const currentUsers = room.currentUsers || 0;
+        const maxUsers = room.maxUsers;
+        const isFull = maxUsers > 0 && currentUsers >= maxUsers;
+
+        if (isFull) {
+            card.classList.add('full');
+        }
+
+        card.innerHTML = `
+            <div class="room-card-header">
+                <div class="room-card-emoji">${room.emoji}</div>
+                <div class="room-card-title">
+                    <div class="room-card-name">${room.name}</div>
+                    ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
+                </div>
+            </div>
+            <div class="room-card-footer">
+                <div class="room-card-users">
+                    👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}
+                </div>
+                <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
+            </div>
+        `;
+
+        // クリックイベント
+        card.addEventListener('click', async () => {
+            if (!isFull || room.id === currentRoomId) {
+                // ルームに入室してチャット画面に遷移
+                showChatView(room.id, room.name, room.emoji);
+                await joinRoom(room.id);
+            } else {
+                alert('このルームは満員です');
             }
         });
-        roomUserListeners = {}; // リセット
 
-        roomTabs.innerHTML = ''; // 既存のタブをクリア
+        return card;
+    }
 
-        // ルームを配列に変換して並び替え
-        const roomArray = Object.values(rooms);
+    // サイドバーのルーム一覧を更新
+    function updateSidebarRoomList(rooms) {
+        const roomListContainer = document.getElementById('roomListContainer');
+        if (!roomListContainer) return;
 
-        // 固定ルーム（広場）を最初に、その後は作成日時順
+        // ルームを配列に変換
+        let roomArray = Object.values(rooms);
+
+        // カテゴリでフィルタリング
+        roomArray = roomArray.filter(r => {
+            return r.category === selectedCategory; // 選択されたカテゴリのルームのみ表示
+        });
+
+        // 固定ルームを最初に、その後は人気スコア順
         roomArray.sort((a, b) => {
-            if (a.isPermanent) return -1;
-            if (b.isPermanent) return 1;
-            return b.createdAt - a.createdAt;
+            // 固定ルームは最初（isPermanentがtrueのもの）
+            if (a.isPermanent && !b.isPermanent) return -1;
+            if (!a.isPermanent && b.isPermanent) return 1;
+
+            // 両方とも固定ルームの場合、作成日時順（古い順）
+            if (a.isPermanent && b.isPermanent) {
+                return a.createdAt - b.createdAt;
+            }
+
+            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
+            const now = Date.now();
+            const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
+            const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
+
+            let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
+            let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
+
+            // 満員のルームはスコアを半減（参加できないため）
+            if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
+                scoreA = scoreA * 0.5;
+            }
+            if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) {
+                scoreB = scoreB * 0.5;
+            }
+
+            return scoreB - scoreA;
         });
 
-        // 各ルームのタブを作成
+        // コンテナをクリア
+        roomListContainer.innerHTML = '';
+
+        // 各ルームの情報を表示
         roomArray.forEach(room => {
-            const tab = createRoomTab(room);
-            roomTabs.appendChild(tab);
+            const roomItem = document.createElement('div');
+            roomItem.className = 'sidebar-room-item';
+            if (room.id === currentRoomId) {
+                roomItem.classList.add('current');
+            }
+            // 満員の場合は特別なクラスを追加
+            if (room.maxUsers > 0 && (room.currentUsers || 0) >= room.maxUsers) {
+                roomItem.classList.add('full');
+            }
+
+            roomItem.innerHTML = `
+                <div class="sidebar-room-info">
+                    <span class="sidebar-room-icon">${room.emoji || '💬'}</span>
+                    <div class="sidebar-room-details">
+                        <div class="sidebar-room-name">${room.name}</div>
+                        <div class="sidebar-room-meta">
+                            <span class="sidebar-room-users">👤 ${room.currentUsers || 0}/${room.maxUsers || 30}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // クリックでルームに移動
+            roomItem.addEventListener('click', () => {
+                joinRoom(room.id);
+                // メニューを閉じる
+                document.getElementById('sidebarMenu').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            roomListContainer.appendChild(roomItem);
         });
+    }
+
+    // サイドバーの「自分のルーム」を更新
+    function updateMyRoomsList(rooms) {
+        const myRoomsContainer = document.getElementById('myRoomsContainer');
+        if (!myRoomsContainer) return;
+
+        // 自分が作成したルームを抽出
+        const myRooms = Object.values(rooms).filter(room => room.createdBy === userId && !room.isPermanent);
+
+        // コンテナをクリア
+        myRoomsContainer.innerHTML = '';
+
+        if (myRooms.length === 0) {
+            myRoomsContainer.innerHTML = '<div class="my-rooms-empty">作成したルームはありません</div>';
+            return;
+        }
+
+        // 自分のルームを表示
+        myRooms.forEach(room => {
+            const roomItem = document.createElement('div');
+            roomItem.className = 'my-room-item';
+
+            // 期限までの残り日数を計算
+            const now = Date.now();
+            const expiresAt = room.expiresAt || (room.createdAt + (7 * 24 * 60 * 60 * 1000));
+            const daysLeft = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
+
+            roomItem.innerHTML = `
+                <div class="my-room-info">
+                    <span class="my-room-icon">${room.emoji || '💬'}</span>
+                    <div class="my-room-details">
+                        <div class="my-room-name">${room.name}</div>
+                        <div class="my-room-expires">期限: あと${daysLeft}日</div>
+                    </div>
+                    <button class="delete-room-btn" data-room-id="${room.id}" title="削除">
+                        🗑️
+                    </button>
+                </div>
+            `;
+
+            // 削除ボタンのイベント
+            const deleteBtn = roomItem.querySelector('.delete-room-btn');
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`ルーム「${room.name}」を削除しますか？\nこの操作は取り消せません。`)) {
+                    await deleteRoom(room.id);
+                }
+            });
+
+            // ルーム名クリックで移動
+            roomItem.querySelector('.my-room-info').addEventListener('click', () => {
+                joinRoom(room.id);
+                // メニューを閉じる
+                document.getElementById('sidebarMenu').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            myRoomsContainer.appendChild(roomItem);
+        });
+    }
+
+    // ルーム削除関数
+    async function deleteRoom(roomId) {
+        try {
+            await remove(ref(database, `rooms/${roomId}`));
+            await remove(ref(database, `roomUsers/${roomId}`));
+            await remove(ref(database, `roomMessages/${roomId}`));
+            console.log(`ルーム ${roomId} を削除しました`);
+
+            // 削除したルームにいた場合は広場に移動
+            if (currentRoomId === roomId) {
+                await joinRoom('plaza');
+            }
+        } catch (error) {
+            console.error('ルーム削除エラー:', error);
+            alert('ルームの削除に失敗しました');
+        }
     }
 
     // ルームタブを作成
@@ -197,6 +567,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.add('active');
         }
 
+        // 最近コメントしたルームの場合はrecentクラスを追加
+        const recentRooms = getRecentlyCommentedRooms();
+        if (recentRooms.includes(room.id)) {
+            tab.classList.add('recent');
+        }
+
         // 人数を取得（リアルタイムで更新）
         const userCountSpan = document.createElement('span');
         userCountSpan.className = 'room-count';
@@ -206,6 +582,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const unsubscribe = onValue(roomUserRef, (snapshot) => {
             const users = snapshot.val();
             const count = users ? Object.keys(users).length : 0;
+
+            // 「家」（固定ルーム）以外はFirebaseのルームデータにcurrentUsersを保存（並び順用）
+            if (!room.isPermanent) {
+                const roomRef = ref(database, `rooms/${room.id}/currentUsers`);
+                set(roomRef, count);
+            }
 
             if (room.maxUsers === 0) {
                 // 無制限の場合
@@ -237,12 +619,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // クリックイベント
         tab.addEventListener('click', () => {
+            // スクロール中のタップは無視（誤タップ防止）
+            if (isScrolling) {
+                console.log('スクロール中のため、タップを無視しました');
+                return;
+            }
+
             if (!tab.classList.contains('full') || room.id === currentRoomId) {
+                // ルームに入室（joinRoom内でスクロールとフラグ制御が処理される）
                 joinRoom(room.id);
             }
         });
 
         return tab;
+    }
+
+    // タブを中央にスクロールする関数
+    function scrollTabToCenter(tab) {
+        const tabLeft = tab.offsetLeft;
+        const tabWidth = tab.offsetWidth;
+        const containerWidth = roomTabs.offsetWidth;
+        const scrollPosition = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+
+        roomTabs.scrollTo({
+            left: scrollPosition,
+            behavior: 'smooth'
+        });
     }
 
     // ルームに入室
@@ -291,7 +693,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // ユーザー情報を登録
             const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
             await set(userRef, {
-                username: username,
+                userId: userId,  // セキュリティルールでチェック用
+                userNumber: parseInt(userNumber),  // 数値型に変換
+                displayNumber: displayNumber,
                 joinedAt: Date.now(),
                 lastActive: Date.now()
             });
@@ -316,7 +720,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // 選択されたルームタブをスクロールして見やすい位置に
+            // スクロールによる自動切り替えを防ぐため、フラグを立てる
+            isAutoSwitching = true;
             scrollToActiveRoomTab(roomId);
+            // スクロール完了後にフラグをリセット（smoothスクロールの完了を待つ）
+            setTimeout(() => {
+                isAutoSwitching = false;
+            }, 500);
 
             // フェードインアニメーション開始
             messagesArea.classList.remove('fade-out');
@@ -348,37 +758,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeTab = document.querySelector(`.room-tab[data-room-id="${roomId}"]`);
         if (!activeTab) return;
 
-        const roomTabsElement = document.getElementById('roomTabs');
-        if (!roomTabsElement) return;
+        // タブを中央にスクロール
+        scrollTabToCenter(activeTab);
 
-        // タブの位置を取得
-        const tabRect = activeTab.getBoundingClientRect();
-        const tabsRect = roomTabsElement.getBoundingClientRect();
-
-        // 現在のスクロール位置
-        const currentScroll = roomTabsElement.scrollLeft;
-
-        // タブをタブコンテナの左端に配置するために必要なスクロール量を計算
-        const targetScroll = currentScroll + (tabRect.left - tabsRect.left) - 10; // 10pxの余白
-
-        // スムーズにスクロール
-        roomTabsElement.scrollTo({
-            left: targetScroll,
-            behavior: 'smooth'
-        });
-
-        console.log(`ルームタブをスクロール: ${roomId}`);
+        console.log(`ルームタブを中央にスクロール: ${roomId}`);
     }
 
     // ルームのメッセージを読み込み
     function loadRoomMessages(roomId) {
+        // 最新50件のみを読み込むクエリ（パフォーマンス改善）
         const roomMessagesRef = ref(database, `roomMessages/${roomId}`);
+        const messagesQuery = query(
+            roomMessagesRef,
+            orderByChild('timestamp'),
+            limitToLast(50)
+        );
 
         // 一度だけ実行してウェルカムメッセージを消す
         let isFirstMessage = true;
 
-        // メッセージの追加を監視
-        const unsubscribeAdded = onChildAdded(roomMessagesRef, (snapshot) => {
+        // メッセージの追加を監視（最新50件のみ）
+        const unsubscribeAdded = onChildAdded(messagesQuery, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
 
@@ -396,8 +796,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // メッセージの変更を監視（編集）
-        const unsubscribeChanged = onChildChanged(roomMessagesRef, (snapshot) => {
+        // メッセージの変更を監視（編集、最新50件のみ）
+        const unsubscribeChanged = onChildChanged(messagesQuery, (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
             const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
@@ -432,8 +832,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // メッセージの削除を監視
-        const unsubscribeRemoved = onChildRemoved(roomMessagesRef, (snapshot) => {
+        // メッセージの削除を監視（最新50件のみ）
+        const unsubscribeRemoved = onChildRemoved(messagesQuery, (snapshot) => {
             const messageId = snapshot.key;
             const existingMessageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
 
@@ -458,6 +858,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 送信ボタンをクリックした時
     sendButton.addEventListener('click', sendMessage);
 
+    // PWA対策：入力欄をタップしたときに確実にフォーカス
+    messageInput.addEventListener('touchstart', function(e) {
+        // 入力欄を確実にフォーカス
+        this.focus();
+    }, { passive: true });
+
+    // クリックイベントでもフォーカス（デスクトップ対応）
+    messageInput.addEventListener('click', function() {
+        this.focus();
+    });
+
     // Enterキーを押した時
     messageInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -470,10 +881,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // テキストエリアの自動リサイズ
     // ========================================
 
-    // 入力内容に応じて高さを調整する関数
     function autoResizeTextarea() {
         messageInput.style.height = 'auto'; // 一旦リセット
-        const newHeight = Math.min(messageInput.scrollHeight, 120); // 最大高さを120pxに制限
+        const newHeight = Math.min(messageInput.scrollHeight, 150); // 最大高さを150pxに制限
         messageInput.style.height = newHeight + 'px';
     }
 
@@ -481,65 +891,36 @@ document.addEventListener('DOMContentLoaded', function() {
     messageInput.addEventListener('input', autoResizeTextarea);
 
     // ========================================
-    // 画像送信の処理
+    // 入力のサニタイズ（XSS対策）
     // ========================================
+    function sanitizeInput(text) {
+        // 基本的なHTMLタグを無害化
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
-    // 画像ボタンをクリックした時
-    imageButton.addEventListener('click', () => {
-        imageInput.click(); // ファイル選択ダイアログを開く
-    });
-
-    // 画像が選択された時
-    imageInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // ファイルサイズチェック（5MB以下）
-        if (file.size > 5 * 1024 * 1024) {
-            alert('画像サイズは5MB以下にしてください');
-            imageInput.value = '';
-            return;
+    // ========================================
+    // メッセージのバリデーション
+    // ========================================
+    function validateMessage(text) {
+        // 空文字チェック
+        if (!text || text.trim() === '') {
+            return { valid: false, error: 'メッセージを入力してください' };
         }
 
-        // 画像タイプチェック
-        if (!file.type.startsWith('image/')) {
-            alert('画像ファイルを選択してください');
-            imageInput.value = '';
-            return;
+        // 長さチェック（1-200文字）
+        if (text.length > 200) {
+            return { valid: false, error: 'メッセージは200文字以内で入力してください' };
         }
 
-        try {
-            // アップロード中の表示
-            sendButton.disabled = true;
-            sendButton.textContent = 'アップロード中...';
-
-            // Firebase Storageにアップロード
-            const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${file.name.split('.').pop()}`;
-            const imageRef = storageRef(storage, `chat-images/${fileName}`);
-
-            await uploadBytes(imageRef, file);
-            const imageUrl = await getDownloadURL(imageRef);
-
-            // メッセージとして保存
-            const messageData = {
-                username: username,
-                imageUrl: imageUrl,
-                timestamp: serverTimestamp()
-            };
-
-            await push(messagesRef, messageData);
-
-            console.log('画像を送信しました');
-            imageInput.value = ''; // 入力をクリア
-
-        } catch (error) {
-            console.error('画像アップロードエラー:', error);
-            alert('画像の送信に失敗しました');
-        } finally {
-            sendButton.disabled = false;
-            sendButton.textContent = '送信';
+        // 禁止文字チェック（制御文字など）
+        if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(text)) {
+            return { valid: false, error: '不正な文字が含まれています' };
         }
-    });
+
+        return { valid: true };
+    }
 
     // ========================================
     // メッセージを送信する関数
@@ -548,8 +929,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 入力されたメッセージを取得（前後の空白を削除）
         const messageText = messageInput.value.trim();
 
-        // 空のメッセージは送信しない
-        if (messageText === '') {
+        // バリデーション
+        const validation = validateMessage(messageText);
+        if (!validation.valid) {
+            alert(validation.error);
             return;
         }
 
@@ -560,10 +943,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // サニタイズ（XSS対策）
+        const sanitizedText = sanitizeInput(messageText);
+
         // Firebaseに送信するデータ
         const messageData = {
-            username: username,          // 送信者の名前
-            text: messageText,            // メッセージ本文
+            userId: userId,               // 送信者の固有ID（識別用）
+            userNumber: parseInt(userNumber), // 送信者の番号（表示用、数値型に変換）
+            displayNumber: displayNumber, // 表示用番号（No.XX）
+            text: sanitizedText,          // サニタイズ済みメッセージ本文
             timestamp: serverTimestamp() // サーバーの時刻（自動で設定）
         };
 
@@ -574,11 +962,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('メッセージを送信しました');
                 messageInput.value = ''; // 入力欄をクリア
                 messageInput.style.height = 'auto'; // 高さをリセット
+
+                // コメント履歴を記録
+                if (currentRoomId) {
+                    saveRecentlyCommentedRoom(currentRoomId);
+                }
             })
             .catch((error) => {
                 // 送信失敗
                 console.error('送信エラー:', error);
-                alert('メッセージの送信に失敗しました。Firebaseの設定を確認してください。');
+                alert('メッセージの送信に失敗しました。もう一度お試しください。');
             });
     }
 
@@ -666,9 +1059,9 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = 'message';
         messageDiv.dataset.messageId = messageId; // メッセージIDを保存
 
-        // 自分のメッセージかどうかをチェック
-        const isOwnMessage = message.username === username;
-        console.log(`メッセージ表示: username="${message.username}", 自分="${username}", isOwnMessage=${isOwnMessage}`);
+        // 自分のメッセージかどうかをチェック（固有IDで判定）
+        const isOwnMessage = message.userId === userId;
+        console.log(`メッセージ表示: userId="${message.userId}", 自分="${userId}", isOwnMessage=${isOwnMessage}`);
         if (isOwnMessage) {
             messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
         }
@@ -696,19 +1089,13 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // メニューボタン（自分のメッセージのみ）
-        const menuButtonHTML = isOwnMessage && !message.imageUrl ? `
-            <button class="message-menu-btn" data-message-id="${messageId}">⋮</button>
-        ` : '';
-
-        console.log(`メニューボタン生成: isOwnMessage=${isOwnMessage}, hasImage=${!!message.imageUrl}, HTML="${menuButtonHTML}"`);
-
         // メッセージのHTML構造を作成
+        // 表示用番号がない場合は番号から生成
+        const displayName = message.displayNumber || `No.${message.userNumber}`;
         messageDiv.innerHTML = `
             <div class="message-header">
-                <span class="message-username">${escapeHtml(message.username)}</span>
+                <span class="message-username">${escapeHtml(displayName)}</span>
                 <span class="message-time">${timeString}</span>
-                ${menuButtonHTML}
             </div>
             ${contentHTML}
             <div class="message-reactions" data-message-id="${messageId}">
@@ -726,47 +1113,65 @@ document.addEventListener('DOMContentLoaded', function() {
             showReactionPicker(messageId, addReactionBtn);
         });
 
-        // メニューボタンのイベントを設定（自分のメッセージのみ）
-        if (isOwnMessage && !message.imageUrl) {
-            const menuBtn = messageDiv.querySelector('.message-menu-btn');
-            console.log(`メニューボタン検索結果:`, menuBtn);
-            if (menuBtn) {
-                console.log(`メニューボタンにイベントリスナー設定`);
-                menuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    console.log(`メニューボタンクリック！`);
-                    showMessageMenu(messageId, message, menuBtn);
-                });
+        // 長押しでメニュー表示（LINEスタイル）
+        let longPressTimer = null;
+        let touchMoved = false;
 
-                // モバイル対応：タッチでメニューボタンを表示
-                messageDiv.addEventListener('touchstart', () => {
-                    menuBtn.style.opacity = '1';
-                }, { passive: true });
-
-                // タッチ終了後、少し遅延させて非表示に戻す
-                messageDiv.addEventListener('touchend', () => {
-                    setTimeout(() => {
-                        if (!currentMessageMenu) {
-                            menuBtn.style.opacity = '';
-                        }
-                    }, 3000); // 3秒後に非表示
-                }, { passive: true });
-            } else {
-                console.warn(`メニューボタンが見つかりません`);
+        messageDiv.addEventListener('touchstart', (e) => {
+            // リアクションボタンや他のボタンをタップした場合は長押しメニューを表示しない
+            if (e.target.closest('.add-reaction-btn') ||
+                e.target.closest('.reaction-item') ||
+                e.target.closest('.message-link')) {
+                return;
             }
-        }
+
+            touchMoved = false;
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    // 長押し検出
+                    const touch = e.touches[0];
+                    showLongPressMenu(messageId, message, isOwnMessage, touch.clientX, touch.clientY);
+                }
+            }, 500); // 500ms長押しで反応
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchmove', () => {
+            touchMoved = true;
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        messageDiv.addEventListener('touchcancel', () => {
+            clearTimeout(longPressTimer);
+        }, { passive: true });
 
         // 自動的に一番下までスクロール（新しいメッセージが見えるように）
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
-    // 時刻をフォーマットする関数
+    // 時刻を相対時間でフォーマットする関数（何分前、何時間前、何日前）
     function formatTime(timestamp) {
         if (!timestamp) return '送信中...';
-        const date = new Date(timestamp);
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        return `${hours}:${minutes}`;
+
+        const now = Date.now();
+        const diff = now - timestamp;
+
+        const minutes = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (minutes < 1) {
+            return 'たった今';
+        } else if (minutes < 60) {
+            return `${minutes}分前`;
+        } else if (hours < 24) {
+            return `${hours}時間前`;
+        } else {
+            return `${days}日前`;
+        }
     }
 
     // ========================================
@@ -956,46 +1361,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentMessageMenu = null;
 
-    // メッセージメニューを表示
-    function showMessageMenu(messageId, message, button) {
+    // 長押しメニューを表示（削除のみ）
+    function showLongPressMenu(messageId, message, isOwnMessage, x, y) {
+        // 自分のメッセージでない場合は何もしない
+        if (!isOwnMessage || message.imageUrl) {
+            return;
+        }
+
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
             currentMessageMenu.remove();
             currentMessageMenu = null;
-            return;
         }
 
         // メニューを作成
         const menu = document.createElement('div');
-        menu.className = 'message-menu active';
+        menu.className = 'long-press-menu active';
 
+        // 削除オプションのみ
         menu.innerHTML = `
-            <div class="message-menu-item" data-action="edit">
-                <span class="menu-icon">✏️</span>
-                <span class="menu-text">編集</span>
-            </div>
             <div class="message-menu-item delete" data-action="delete">
                 <span class="menu-icon">🗑️</span>
                 <span class="menu-text">削除</span>
             </div>
         `;
 
-        // ボタンの位置を取得してメニューを配置
-        const buttonRect = button.getBoundingClientRect();
-        menu.style.left = `${buttonRect.left}px`;
-        menu.style.top = `${buttonRect.bottom + 5}px`;
-
-        // bodyに追加
+        // bodyに一旦追加してサイズを取得
         document.body.appendChild(menu);
         currentMessageMenu = menu;
+
+        // メニューの位置を調整
+        const menuRect = menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let left = x - menuRect.width / 2;
+        let top = y - menuRect.height - 10;
+
+        // 画面からはみ出ないように調整
+        if (left < 10) left = 10;
+        if (left + menuRect.width > viewportWidth - 10) {
+            left = viewportWidth - menuRect.width - 10;
+        }
+        if (top < 10) top = y + 20; // 上にはみ出る場合は下に表示
+        if (top + menuRect.height > viewportHeight - 10) {
+            top = viewportHeight - menuRect.height - 10;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
 
         // メニュー項目のクリックイベント
         menu.querySelectorAll('.message-menu-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const action = e.currentTarget.dataset.action;
-                if (action === 'edit') {
-                    editMessage(messageId, message);
-                } else if (action === 'delete') {
+                if (action === 'delete') {
                     deleteMessage(messageId);
                 }
                 menu.remove();
@@ -1003,17 +1423,75 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // メニュー外をクリックしたら閉じる
+        // メニュー外をタップしたら閉じる
         setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (currentMessageMenu && !currentMessageMenu.contains(e.target) && e.target !== button) {
+            const closeMenuHandler = (e) => {
+                if (currentMessageMenu && !currentMessageMenu.contains(e.target)) {
                     currentMessageMenu.remove();
                     currentMessageMenu = null;
-                    document.removeEventListener('click', closeMenu);
+                    document.removeEventListener('click', closeMenuHandler);
+                    document.removeEventListener('touchstart', closeMenuHandler);
                 }
-            });
+            };
+            document.addEventListener('click', closeMenuHandler);
+            document.addEventListener('touchstart', closeMenuHandler);
         }, 100);
     }
+
+    // メッセージメニューを表示（メニューボタンクリック用 - 削除のみ）
+    // ※メニューボタン（⋮）を削除したため、この関数は使用されません
+    // function showMessageMenu(messageId, message, button, isOwnMessage) {
+    //     // 既存のメニューを閉じる
+    //     if (currentMessageMenu) {
+    //         currentMessageMenu.remove();
+    //         currentMessageMenu = null;
+    //         return;
+    //     }
+
+    //     // メニューを作成
+    //     const menu = document.createElement('div');
+    //     menu.className = 'message-menu active';
+
+    //     // 削除のみ
+    //     menu.innerHTML = `
+    //         <div class="message-menu-item delete" data-action="delete">
+    //             <span class="menu-icon">🗑️</span>
+    //             <span class="menu-text">削除</span>
+    //         </div>
+    //     `;
+
+    //     // ボタンの位置を取得してメニューを配置
+    //     const buttonRect = button.getBoundingClientRect();
+    //     menu.style.left = `${buttonRect.left}px`;
+    //     menu.style.top = `${buttonRect.bottom + 5}px`;
+
+    //     // bodyに追加
+    //     document.body.appendChild(menu);
+    //     currentMessageMenu = menu;
+
+    //     // メニュー項目のクリックイベント
+    //     menu.querySelectorAll('.message-menu-item').forEach(item => {
+    //         item.addEventListener('click', (e) => {
+    //             const action = e.currentTarget.dataset.action;
+    //             if (action === 'delete') {
+    //                 deleteMessage(messageId);
+    //             }
+    //             menu.remove();
+    //             currentMessageMenu = null;
+    //         });
+    //     });
+
+    //     // メニュー外をクリックしたら閉じる
+    //     setTimeout(() => {
+    //         document.addEventListener('click', function closeMenu(e) {
+    //             if (currentMessageMenu && !currentMessageMenu.contains(e.target) && e.target !== button) {
+    //                 currentMessageMenu.remove();
+    //                 currentMessageMenu = null;
+    //                 document.removeEventListener('click', closeMenu);
+    //             }
+    //         });
+    //     }, 100);
+    // }
 
     // メッセージを削除する
     async function deleteMessage(messageId) {
@@ -1033,81 +1511,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // メッセージを編集する
-    function editMessage(messageId, message) {
-        const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
-        if (!messageDiv) return;
+    // メッセージを編集する（機能を無効化）
+    // function editMessage(messageId, message) {
+    //     const messageDiv = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+    //     if (!messageDiv) return;
 
-        const messageContent = messageDiv.querySelector('.message-content');
-        if (!messageContent) return;
+    //     const messageContent = messageDiv.querySelector('.message-content');
+    //     if (!messageContent) return;
 
-        // 編集用のテキストエリアを作成
-        const currentText = message.text;
-        const editContainer = document.createElement('div');
-        editContainer.className = 'message-edit-container';
-        editContainer.innerHTML = `
-            <textarea class="message-edit-textarea" maxlength="200" placeholder="メッセージを編集...">${currentText}</textarea>
-            <div class="message-edit-actions">
-                <button class="btn-cancel-edit" title="キャンセル">✕</button>
-                <button class="btn-save-edit" title="保存">✓</button>
-            </div>
-        `;
+    //     // 編集用のテキストエリアを作成
+    //     const currentText = message.text;
+    //     const editContainer = document.createElement('div');
+    //     editContainer.className = 'message-edit-container';
+    //     editContainer.innerHTML = `
+    //         <textarea class="message-edit-textarea" maxlength="200" placeholder="メッセージを編集...">${currentText}</textarea>
+    //         <div class="message-edit-actions">
+    //             <button class="btn-cancel-edit" title="キャンセル">✕</button>
+    //             <button class="btn-save-edit" title="保存">✓</button>
+    //         </div>
+    //     `;
 
-        // 元の内容を保存
-        const originalHTML = messageContent.innerHTML;
+    //     // 元の内容を保存
+    //     const originalHTML = messageContent.innerHTML;
 
-        // 編集UIに切り替え
-        messageContent.innerHTML = '';
-        messageContent.appendChild(editContainer);
+    //     // 編集UIに切り替え
+    //     messageContent.innerHTML = '';
+    //     messageContent.appendChild(editContainer);
 
-        const textarea = editContainer.querySelector('.message-edit-textarea');
-        textarea.focus();
-        textarea.setSelectionRange(textarea.value.length, textarea.value.length); // カーソルを最後に
+    //     const textarea = editContainer.querySelector('.message-edit-textarea');
+    //     textarea.focus();
+    //     textarea.setSelectionRange(textarea.value.length, textarea.value.length); // カーソルを最後に
 
-        // 保存ボタン
-        editContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
-            const newText = textarea.value.trim();
-            if (!newText) {
-                alert('メッセージを入力してください');
-                return;
-            }
+    //     // 保存ボタン
+    //     editContainer.querySelector('.btn-save-edit').addEventListener('click', async () => {
+    //         const newText = textarea.value.trim();
+    //         if (!newText) {
+    //             alert('メッセージを入力してください');
+    //             return;
+    //         }
 
-            if (newText === currentText) {
-                // 変更がない場合は元に戻す
-                messageContent.innerHTML = originalHTML;
-                return;
-            }
+    //         if (newText === currentText) {
+    //             // 変更がない場合は元に戻す
+    //             messageContent.innerHTML = originalHTML;
+    //             return;
+    //         }
 
-            try {
-                const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
-                await update(messageRef, {
-                    text: newText
-                    // editedフラグは立てない
-                });
+    //         try {
+    //             const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
+    //             await update(messageRef, {
+    //                 text: newText
+    //                 // editedフラグは立てない
+    //             });
 
-                console.log('メッセージを編集しました');
-            } catch (error) {
-                console.error('メッセージ編集エラー:', error);
-                alert('メッセージの編集に失敗しました');
-                messageContent.innerHTML = originalHTML;
-            }
-        });
+    //             console.log('メッセージを編集しました');
+    //         } catch (error) {
+    //             console.error('メッセージ編集エラー:', error);
+    //             alert('メッセージの編集に失敗しました');
+    //             messageContent.innerHTML = originalHTML;
+    //         }
+    //     });
 
-        // キャンセルボタン
-        editContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
-            messageContent.innerHTML = originalHTML;
-        });
+    //     // キャンセルボタン
+    //     editContainer.querySelector('.btn-cancel-edit').addEventListener('click', () => {
+    //         messageContent.innerHTML = originalHTML;
+    //     });
 
-        // Enterキーで保存（Shift+Enterで改行）
-        textarea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                editContainer.querySelector('.btn-save-edit').click();
-            } else if (e.key === 'Escape') {
-                editContainer.querySelector('.btn-cancel-edit').click();
-            }
-        });
-    }
+    //     // Enterキーで保存（Shift+Enterで改行）
+    //     textarea.addEventListener('keydown', (e) => {
+    //         if (e.key === 'Enter' && !e.shiftKey) {
+    //             e.preventDefault();
+    //             editContainer.querySelector('.btn-save-edit').click();
+    //         } else if (e.key === 'Escape') {
+    //             editContainer.querySelector('.btn-cancel-edit').click();
+    //         }
+    //     });
+    // }
 
     // ========================================
     // ルーム内のオンライン人数の管理
@@ -1180,24 +1658,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ========================================
+    // ルーム作成のバリデーション
+    // ========================================
+    function validateRoomData(roomName, description, emoji, maxUsers) {
+        // ルーム名のバリデーション
+        if (!roomName || roomName.trim() === '') {
+            return { valid: false, error: 'ルーム名を入力してください' };
+        }
+        if (roomName.length < 1) {
+            return { valid: false, error: 'ルーム名は1文字以上で入力してください' };
+        }
+        if (roomName.length > 15) {
+            return { valid: false, error: 'ルーム名は15文字以内で入力してください' };
+        }
+
+        // 説明のバリデーション
+        if (description && description.length > 50) {
+            return { valid: false, error: '説明は50文字以内で入力してください' };
+        }
+
+        // 絵文字のバリデーション
+        if (!emoji || emoji.length === 0) {
+            return { valid: false, error: '絵文字を選択してください' };
+        }
+
+        // 最大人数のバリデーション
+        const validMaxUsers = [10, 20, 30, 50];
+        if (!validMaxUsers.includes(maxUsers)) {
+            return { valid: false, error: '無効な最大人数です' };
+        }
+
+        // 禁止文字チェック（制御文字など）
+        if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(roomName) ||
+            /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(description)) {
+            return { valid: false, error: '不正な文字が含まれています' };
+        }
+
+        return { valid: true };
+    }
+
     // ルーム作成確定ボタン
     confirmCreateRoom.addEventListener('click', async () => {
         const roomName = roomNameInput.value.trim();
-
-        // バリデーション
-        if (!roomName || roomName.length < 2) {
-            alert('ルーム名は2文字以上で入力してください');
-            return;
-        }
-
-        if (roomName.length > 15) {
-            alert('ルーム名は15文字以内で入力してください');
-            return;
-        }
+        const description = roomDescriptionInput.value.trim();
 
         // 選択されたmaxUsersを取得
         const maxUsersRadio = document.querySelector('input[name="maxUsers"]:checked');
         const maxUsers = parseInt(maxUsersRadio.value);
+
+        // 選択されたカテゴリを取得
+        const categoryRadio = document.querySelector('input[name="category"]:checked');
+        const roomCategory = categoryRadio.value;
+
+        // バリデーション
+        const validation = validateRoomData(roomName, description, selectedEmoji, maxUsers);
+        if (!validation.valid) {
+            alert(validation.error);
+            return;
+        }
 
         try {
             // 既存のルーム数をチェック（広場を除く）
@@ -1205,32 +1724,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const rooms = roomsSnapshot.val() || {};
             const customRooms = Object.values(rooms).filter(room => !room.isPermanent);
 
-            if (customRooms.length >= 8) {
-                alert('カスタムルームは最大8個までです');
+            if (customRooms.length >= 100) {
+                alert('カスタムルームは最大100個までです');
                 return;
             }
 
-            // ユーザーが既にルームを作成していないかチェック
-            const userCreatedRoom = customRooms.find(room => room.createdBy === userId);
-            if (userCreatedRoom) {
-                alert('既にルームを作成しています。作成できるルームは1つまでです。');
+            // ユーザーが既にルームを作成していないかチェック（2つまで）
+            const userCreatedRooms = customRooms.filter(room => room.createdBy === userId);
+            if (userCreatedRooms.length >= 2) {
+                alert('既にルームを2つ作成しています。作成できるルームは1人2つまでです。');
                 return;
             }
 
             // ルームIDを生成
             const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+            // サニタイズ（XSS対策）
+            const sanitizedRoomName = sanitizeInput(roomName);
+            const sanitizedDescription = sanitizeInput(description);
+
             // ルームデータを作成
             const roomData = {
                 id: roomId,
-                name: roomName,
+                name: sanitizedRoomName,
                 emoji: selectedEmoji,
+                category: roomCategory, // カテゴリを追加
                 maxUsers: maxUsers,
-                description: roomDescriptionInput.value.trim() || '',
+                description: sanitizedDescription || '',
                 isPermanent: false,
                 createdAt: Date.now(),
                 createdBy: userId,
-                creatorName: username
+                creatorNumber: displayNumber,
+                expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7日後
+                currentUsers: 0 // 初期ユーザー数
             };
 
             // Firebaseに保存
@@ -1280,16 +1806,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 削除条件1: 24時間以上誰もいない
                 const isEmptyForOneDay = userCount === 0 && (now - room.createdAt) > oneDayInMs;
 
-                // 削除条件2: 作成から7日間経過
-                const isOlderThanSevenDays = (now - room.createdAt) > sevenDaysInMs;
+                // 削除条件2: 作成から7日間経過（expiresAtがある場合はそれを優先）
+                const isExpired = room.expiresAt ? now > room.expiresAt : (now - room.createdAt) > sevenDaysInMs;
 
-                if (isEmptyForOneDay || isOlderThanSevenDays) {
+                if (isEmptyForOneDay || isExpired) {
                     // ルームを削除
                     await remove(ref(database, `rooms/${roomId}`));
                     await remove(ref(database, `roomUsers/${roomId}`));
                     await remove(ref(database, `roomMessages/${roomId}`));
 
-                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isOlderThanSevenDays ? '7日間経過' : '24時間以上空室'}）`);
+                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isExpired ? '期限切れ' : '24時間以上空室'}）`);
                 }
             }
         } catch (error) {
@@ -1387,25 +1913,82 @@ document.addEventListener('DOMContentLoaded', function() {
     // オーバーレイクリック
     sidebarOverlay.addEventListener('click', closeSidebar);
 
-    // 名前変更メニュークリック
-    editNameMenu.addEventListener('click', function() {
+    // 番号変更メニュークリック
+    editNumberMenu.addEventListener('click', function() {
         closeSidebar();
-        // 既存の名前変更処理を呼び出す
-        const newName = prompt('新しい名前を入力してください:', username);
-        if (newName && newName.trim()) {
-            const trimmedName = newName.trim();
-            if (trimmedName.length > 20) {
-                alert('名前は20文字以内にしてください');
-                return;
-            }
-            // localStorageに保存
-            localStorage.setItem('netcity_username', trimmedName);
-            // 画面に反映
-            usernameDisplay.textContent = trimmedName;
-            // 表示を更新
-            alert(`名前を「${trimmedName}」に変更しました！`);
-        }
+        handleNumberChange();
     });
+
+    // キャッシュクリアボタン
+    const clearCacheMenu = document.getElementById('clearCacheMenu');
+    clearCacheMenu.addEventListener('click', function() {
+        closeSidebar();
+        handleClearCache();
+    });
+
+    // キャッシュクリア処理
+    function handleClearCache() {
+        if (!confirm('キャッシュをクリアしてページを再読み込みしますか？\n最新の状態に更新されます。')) {
+            return;
+        }
+
+        // Service Workerにキャッシュクリアを指示
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+
+            // Service Workerからの応答を待つ
+            navigator.serviceWorker.addEventListener('message', function handler(event) {
+                if (event.data && event.data.type === 'CACHE_CLEARED') {
+                    console.log('キャッシュがクリアされました');
+                    navigator.serviceWorker.removeEventListener('message', handler);
+
+                    // ページを強制リロード
+                    window.location.reload(true);
+                }
+            });
+
+            // タイムアウト処理（3秒後に強制リロード）
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 3000);
+        } else {
+            // Service Workerがない場合は通常のリロード
+            window.location.reload(true);
+        }
+    }
+
+    // 番号変更処理（1日1回まで）
+    function handleNumberChange() {
+        // 最終変更日を確認
+        const lastChangeDate = localStorage.getItem('netcity_numberChangeDate');
+        const today = new Date().toDateString();
+
+        if (lastChangeDate === today) {
+            alert('番号の変更は1日1回までです。明日また変更できます。');
+            return;
+        }
+
+        // 番号変更の確認
+        if (!confirm('番号を変更しますか？\n（1日1回まで変更可能）')) {
+            return;
+        }
+
+        // 新しい番号を生成（1-999）
+        const newNumber = Math.floor(Math.random() * 999) + 1;
+        const newDisplayNumber = `No.${newNumber}`;
+
+        // localStorageに保存
+        localStorage.setItem('netcity_userNumber', newNumber.toString());
+        localStorage.setItem('netcity_numberChangeDate', today);
+
+        // 画面に反映
+        usernameDisplay.textContent = newDisplayNumber;
+
+        // グローバル変数を更新（注意：const で宣言されているため、この方法では動作しません）
+        // 代わりに、ページをリロードして新しい番号を反映させます
+        alert(`番号を ${newDisplayNumber} に変更しました！\nページを再読み込みします。`);
+        window.location.reload();
+    }
 
     // ========================================
     // テーマ切り替え
@@ -1440,6 +2023,105 @@ document.addEventListener('DOMContentLoaded', function() {
     neonModeBtn.addEventListener('click', function() {
         applyTheme('neon');
     });
+
+    // ========================================
+    // ルームタブの横スクロール干渉防止（ヤフーニュースアプリ風）
+    // ========================================
+
+    let tabTouchStartX = 0;
+    let tabTouchStartY = 0;
+    let isTabScrollingHorizontally = false;
+
+    roomTabs.addEventListener('touchstart', (e) => {
+        tabTouchStartX = e.touches[0].clientX;
+        tabTouchStartY = e.touches[0].clientY;
+        isTabScrollingHorizontally = false;
+    }, { passive: false });
+
+    roomTabs.addEventListener('touchmove', (e) => {
+        if (!tabTouchStartX || !tabTouchStartY) {
+            return;
+        }
+
+        const touchCurrentX = e.touches[0].clientX;
+        const touchCurrentY = e.touches[0].clientY;
+
+        const diffX = Math.abs(touchCurrentX - tabTouchStartX);
+        const diffY = Math.abs(touchCurrentY - tabTouchStartY);
+
+        // 横方向の動きが縦方向より大きい場合は横スクロール
+        if (!isTabScrollingHorizontally && diffX > diffY && diffX > 10) {
+            isTabScrollingHorizontally = true;
+        }
+
+        // 横スクロール中は縦スクロールを防止
+        if (isTabScrollingHorizontally) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    roomTabs.addEventListener('touchend', () => {
+        tabTouchStartX = 0;
+        tabTouchStartY = 0;
+        isTabScrollingHorizontally = false;
+    }, { passive: true });
+
+    // ========================================
+    // スクロール連動でルーム自動切り替え（ヤフーニュース風）
+    // ========================================
+
+    let scrollTimeout = null;
+    let isAutoSwitching = false; // 自動切り替え中フラグ
+
+    // スクロール連動機能を一時的に無効化
+    // roomTabs.addEventListener('scroll', () => {
+    //     // デバウンス処理（スクロール終了後に実行）
+    //     clearTimeout(scrollTimeout);
+
+    //     scrollTimeout = setTimeout(() => {
+    //         if (isAutoSwitching) return; // 自動切り替え中はスキップ
+
+    //         const scrollLeft = roomTabs.scrollLeft;
+    //         const containerWidth = roomTabs.offsetWidth;
+    //         const centerPosition = scrollLeft + containerWidth / 2;
+
+    //         // すべてのタブを取得
+    //         const tabs = Array.from(roomTabs.querySelectorAll('.room-tab'));
+
+    //         // 中央に最も近いタブを検出
+    //         let closestTab = null;
+    //         let minDistance = Infinity;
+
+    //         tabs.forEach(tab => {
+    //             const tabLeft = tab.offsetLeft;
+    //             const tabWidth = tab.offsetWidth;
+    //             const tabCenter = tabLeft + tabWidth / 2;
+    //             const distance = Math.abs(centerPosition - tabCenter);
+
+    //             if (distance < minDistance) {
+    //                 minDistance = distance;
+    //                 closestTab = tab;
+    //             }
+    //         });
+
+    //         // 中央のタブのルームIDを取得
+    //         if (closestTab) {
+    //             const roomId = closestTab.dataset.roomId;
+
+    //             // 現在のルームと異なる場合のみ切り替え
+    //             if (roomId && roomId !== currentRoomId) {
+    //                 console.log(`スクロール連動: ルーム ${roomId} に自動切り替え`);
+    //                 isAutoSwitching = true;
+    //                 joinRoom(roomId).finally(() => {
+    //                     // 切り替え完了後、フラグをリセット
+    //                     setTimeout(() => {
+    //                         isAutoSwitching = false;
+    //                     }, 300);
+    //                 });
+    //             }
+    //         }
+    //     }, 150); // 150ms後に実行
+    // }, { passive: true });
 
     // ========================================
     // 初期化

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 
     <!-- SEO対策: 基本のmetaタグ -->
     <title>NET CITY β - チャット中 | リアルタイムチャット</title>
@@ -89,9 +89,13 @@
             <button class="close-menu" id="closeMenu">✕</button>
         </div>
         <div class="sidebar-content">
-            <div class="menu-item" id="editNameMenu">
-                <span class="menu-icon">✏️</span>
-                <span class="menu-text">名前を変更</span>
+            <div class="menu-item" id="editNumberMenu">
+                <span class="menu-icon">🔢</span>
+                <span class="menu-text">番号を変更</span>
+            </div>
+            <div class="menu-item" id="clearCacheMenu">
+                <span class="menu-icon">🗑️</span>
+                <span class="menu-text">キャッシュをクリア</span>
             </div>
             <div class="menu-section">
                 <h3>テーマ</h3>
@@ -106,6 +110,20 @@
                     <span class="checkmark">✓</span>
                 </div>
             </div>
+            <div class="menu-section">
+                <h3>自分のルーム</h3>
+                <div class="my-rooms-container" id="myRoomsContainer">
+                    <!-- 自分のルームがここに動的に追加される -->
+                    <div class="my-rooms-empty">作成したルームはありません</div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <h3>ルーム一覧</h3>
+                <div class="room-list-container" id="roomListContainer">
+                    <!-- ルーム一覧がここに動的に追加される -->
+                    <div class="room-list-loading">読み込み中...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -114,42 +132,68 @@
 
     <!-- チャットエリア -->
     <div class="chat-container">
-        <!-- ルーム選択バー -->
-        <div class="room-bar" id="roomBar">
-            <div class="room-tabs" id="roomTabs">
-                <!-- ルームタブがここに動的に追加される -->
+        <!-- カテゴリタブバー（Yahoo!ニュース風） -->
+        <div class="category-bar">
+            <div class="category-tabs" id="categoryTabs">
+                <button class="category-tab active" data-category="chat">💬 雑談</button>
+                <button class="category-tab" data-category="consultation">🤝 相談</button>
+                <button class="category-tab" data-category="love">💕 恋愛</button>
+                <button class="category-tab" data-category="news">📰 時事</button>
+                <button class="category-tab" data-category="life">🌱 人生</button>
             </div>
-            <button class="create-room-btn" id="createRoomBtn" title="新しいルームを作成">
+        </div>
+
+        <!-- ルーム一覧ビュー（メイン画面） -->
+        <div class="room-list-view" id="roomListView">
+            <div class="room-cards-container" id="roomCardsContainer">
+                <!-- ルームカードがここに動的に追加される -->
+                <div class="welcome-message">
+                    <p>NET CITY βへようこそ！</p>
+                    <p>カテゴリからルームを選んでチャットを始めよう</p>
+                </div>
+            </div>
+
+            <!-- ルーム作成ボタン（下部中央） -->
+            <button class="floating-create-btn" id="createRoomBtn" title="新しいルームを作成">
                 ➕
             </button>
         </div>
 
-        <!-- メッセージ表示エリア -->
-        <div class="messages-area" id="messagesArea">
-            <!-- ここにメッセージが表示される -->
-            <div class="welcome-message">
-                <p>NET CITY βへようこそ！</p>
-                <p>みんなとチャットを楽しもう</p>
+        <!-- チャットビュー（ルーム選択時に表示） -->
+        <div class="chat-view" id="chatView" style="display: none;">
+            <!-- チャットヘッダー -->
+            <div class="chat-header">
+                <button class="back-button" id="backToRoomList">
+                    ← 戻る
+                </button>
+                <div class="chat-room-info">
+                    <span class="chat-room-emoji" id="chatRoomEmoji">🏠</span>
+                    <span class="chat-room-name" id="chatRoomName">広場</span>
+                </div>
+                <div class="chat-room-users">
+                    <span class="user-count" id="chatUserCount">0人</span>
+                </div>
             </div>
-        </div>
 
-        <!-- メッセージ入力エリア -->
-        <div class="input-area">
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <button id="imageButton" class="image-button" title="画像を送信">
-                📷
-            </button>
-            <textarea
-                id="messageInput"
-                class="message-input"
-                placeholder="メッセージを入力..."
-                maxlength="200"
-                autocomplete="off"
-                rows="1"
-            ></textarea>
-            <button id="sendButton" class="send-button">
-                <span>送信</span>
-            </button>
+            <!-- メッセージ表示エリア -->
+            <div class="messages-area" id="messagesArea">
+                <!-- ここにメッセージが表示される -->
+            </div>
+
+            <!-- メッセージ入力エリア -->
+            <div class="input-area">
+                <textarea
+                    id="messageInput"
+                    class="message-input"
+                    placeholder="メッセージを入力..."
+                    maxlength="200"
+                    autocomplete="off"
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button">
+                    <span>送信</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -192,6 +236,16 @@
                 <input type="text" id="roomName" maxlength="15" placeholder="例：深夜の雑談" autocomplete="off">
             </div>
             <div class="form-group">
+                <label>カテゴリ</label>
+                <div class="category-selector">
+                    <label><input type="radio" name="category" value="chat" checked> 💬 雑談</label>
+                    <label><input type="radio" name="category" value="consultation"> 🤝 相談</label>
+                    <label><input type="radio" name="category" value="love"> 💕 恋愛</label>
+                    <label><input type="radio" name="category" value="news"> 📰 時事</label>
+                    <label><input type="radio" name="category" value="life"> 🌱 人生</label>
+                </div>
+            </div>
+            <div class="form-group">
                 <label>絵文字アイコン</label>
                 <div class="emoji-selector" id="emojiSelector">
                     <button class="emoji-option" data-emoji="💬">💬</button>
@@ -229,6 +283,7 @@
     <!-- チャット機能のJavaScriptを読み込み -->
     <script type="module" src="js/city.js"></script>
 
+    
     <!-- Service Worker 登録 -->
     <script>
         // Service Worker がサポートされているかチェック

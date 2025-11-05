@@ -148,6 +148,58 @@ body {
 }
 
 /* ========================================
+   カテゴリバー（Yahoo!ニュース風）
+   ======================================== */
+
+.category-bar {
+    background: #ffffff;
+    border-bottom: 2px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.category-tabs {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0;
+    /* スクロールバーを非表示 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.category-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.category-tab {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #666666;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.category-tab:hover {
+    background: #f5f5f5;
+    color: #333333;
+}
+
+.category-tab.active {
+    color: #2196f3;
+    border-bottom-color: #2196f3;
+    font-weight: 600;
+}
+
+/* ========================================
    ルーム選択バー
    ======================================== */
 
@@ -272,26 +324,152 @@ body {
     background: #f44336;
 }
 
-.create-room-btn {
-    flex-shrink: 0;
-    width: 34px;
-    height: 34px;
-    background: #ffffff;
-    border: 1px dashed #2196f3;
+/* ========================================
+   浮遊ルーム作成ボタン（下部中央）
+   ======================================== */
+
+.floating-create-btn {
+    position: fixed;
+    bottom: 80px; /* 入力エリアの上 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    border: none;
     border-radius: 50%;
-    color: #2196f3;
-    font-size: 1.1rem;
+    color: #ffffff;
+    font-size: 1.8rem;
     cursor: pointer;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    z-index: 50;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.create-room-btn:hover {
+.floating-create-btn:hover {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+}
+
+.floating-create-btn:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+/* ========================================
+   ルーム一覧ビュー
+   ======================================== */
+
+.room-list-view {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+.room-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding-bottom: 100px; /* フローティングボタンのスペース */
+}
+
+.room-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15);
+    border-color: #2196f3;
+}
+
+.room-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.room-card-emoji {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.room-card-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.room-card-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212121;
+}
+
+.room-card-description {
+    font-size: 0.85rem;
+    color: #757575;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.room-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.room-card-users {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+.room-card-badge {
+    padding: 4px 10px;
     background: #e3f2fd;
-    border-color: #1976d2;
-    transform: scale(1.05);
+    color: #1976d2;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.room-card.full {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.room-card.full .room-card-badge {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ========================================
+   チャットビュー
+   ======================================== */
+
+.chat-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* ========================================
@@ -304,8 +482,53 @@ body {
     border-bottom: 1px solid #cccccc;
     display: flex;
     align-items: center;
+    gap: 15px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.back-button {
+    background: transparent;
+    border: none;
+    color: #2196f3;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background: #e3f2fd;
+}
+
+.chat-room-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
     gap: 10px;
-    transition: opacity 0.3s ease, transform 0.3s ease; /* トランジション効果 */
+}
+
+.chat-room-emoji {
+    font-size: 1.5rem;
+}
+
+.chat-room-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212121;
+}
+
+.chat-room-users {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-count {
+    font-size: 0.9rem;
+    color: #666666;
+    font-weight: 500;
 }
 
 /* オンラインインジケーター（緑の点） */
@@ -874,6 +1097,43 @@ body {
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
+.category-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-selector label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: #333333;
+    padding: 8px 12px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 20px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.category-selector label:hover {
+    border-color: #2196f3;
+    background: #f0f8ff;
+}
+
+.category-selector input[type="radio"]:checked + label,
+.category-selector label:has(input[type="radio"]:checked) {
+    border-color: #2196f3;
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 600;
+}
+
+.category-selector input[type="radio"] {
+    accent-color: #2196f3;
+    cursor: pointer;
+}
+
 .max-users-selector {
     display: flex;
     gap: 15px;
@@ -1341,10 +1601,9 @@ body.neon-mode .room-count {
     color: #80d4ff;
 }
 
-body.neon-mode .create-room-btn {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px dashed rgba(0, 255, 255, 0.3);
-    color: #00ffff;
+body.neon-mode .floating-create-btn {
+    background: linear-gradient(135deg, #00ffff, #8b5cf6);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.5);
 }
 
 body.neon-mode .chat-header {

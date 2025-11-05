@@ -3,10 +3,9 @@
     "rooms": {
       "$roomId": {
         ".read": true,
-        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val()",
-        "currentUsers": {
-          ".write": true,
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val() || data.child('createdBy').val() === 'system'",
+        "id": {
+          ".validate": "newData.isString()"
         },
         "name": {
           ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 15"
@@ -17,11 +16,23 @@
         "maxUsers": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
         },
+        "currentUsers": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
         "description": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
         },
+        "category": {
+          ".validate": "!newData.exists() || (newData.isString() && (newData.val() === 'chat' || newData.val() === 'consultation' || newData.val() === 'love' || newData.val() === 'hobby' || newData.val() === 'news' || newData.val() === 'life'))"
+        },
         "isPermanent": {
           ".validate": "!newData.exists() || newData.isBoolean()"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "createdBy": {
+          ".validate": "newData.isString()"
         },
         "$other": {
           ".validate": true
