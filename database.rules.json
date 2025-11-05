@@ -3,7 +3,7 @@
     "rooms": {
       "$roomId": {
         ".read": true,
-        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val() || data.child('createdBy').val() === 'system'",
+        ".write": "!data.exists() || !newData.exists() || data.child('createdBy').val() === newData.child('createdBy').val() || newData.child('createdBy').val() === 'system'",
         "id": {
           ".validate": "newData.isString()"
         },
