@@ -3,7 +3,7 @@
 // オフライン対応とキャッシュ管理
 // ========================================
 
-const CACHE_NAME = 'net-city-v4';
+const CACHE_NAME = 'net-city-v1';
 const urlsToCache = [
   './',
   './index.html',
@@ -56,9 +56,15 @@ self.addEventListener('activate', (event) => {
 });
 
 // ========================================
-// フェッチ時: ネットワーク優先で取得（キャッシュはバックアップ）
+// フェッチ時: キャッシュ優先で取得
 // ========================================
 self.addEventListener('fetch', (event) => {
+  // サポートされていないスキーム（chrome-extension など）は無視
+  const url = new URL(event.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
   // Firebase へのリクエストはキャッシュしない
   if (event.request.url.includes('firebaseio.com') ||
       event.request.url.includes('googleapis.com') ||
@@ -67,59 +73,39 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    // まずネットワークから取得を試みる
-    fetch(event.request)
+    caches.match(event.request)
       .then((response) => {
-        // レスポンスが有効でないならそのまま返す
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+        // キャッシュにあればそれを返す
+        if (response) {
+          console.log('[Service Worker] キャッシュから取得:', event.request.url);
           return response;
         }
 
+        // なければネットワークから取得
         console.log('[Service Worker] ネットワークから取得:', event.request.url);
+        return fetch(event.request).then((response) => {
+          // レスポンスが有効でないならそのまま返す
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
 
-        // レスポンスをクローンしてキャッシュに保存
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+          // レスポンスをクローンしてキャッシュに保存
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+          return response;
         });
-
-        return response;
-      })
-      .catch(() => {
-        // ネットワークが使えない場合はキャッシュから取得
-        console.log('[Service Worker] オフライン - キャッシュから取得:', event.request.url);
-        return caches.match(event.request);
       })
   );
 });
 
 // ========================================
-// メッセージ受信（キャッシュクリアなど）
+// メッセージ受信（将来の拡張用）
 // ========================================
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
-  }
-
-  // キャッシュクリア命令
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            console.log('[Service Worker] キャッシュを削除:', cacheName);
-            return caches.delete(cacheName);
-          })
-        );
-      }).then(() => {
-        console.log('[Service Worker] すべてのキャッシュを削除しました');
-        // クライアントに完了を通知
-        self.clients.matchAll().then(clients => {
-          clients.forEach(client => {
-            client.postMessage({ type: 'CACHE_CLEARED' });
-          });
-        });
-      })
-    );
   }
 });

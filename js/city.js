@@ -10,7 +10,7 @@ import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestam
 // ========================================
 
 // ページが読み込まれたら実行
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
 
     // ========================================
     // ユーザー番号の取得とチェック
@@ -79,6 +79,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     // Firebase Databaseの参照を取得
     // ========================================
+
+    // Firebaseの初期化を待機
+    function waitForFirebase() {
+        return new Promise((resolve) => {
+            if (window.firebaseDatabase) {
+                resolve();
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (window.firebaseDatabase) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50); // 50msごとにチェック
+            }
+        });
+    }
+
+    // Firebase初期化を待ってから実行
+    await waitForFirebase();
+    console.log('✅ Firebase初期化完了を確認');
+    console.log('🔍 roomCardsContainer:', roomCardsContainer);
 
     const database = window.firebaseDatabase; // city.htmlで初期化したデータベース
     const storage = window.firebaseStorage; // city.htmlで初期化したストレージ
@@ -223,6 +244,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('固定ルーム定義:', permanentRooms);
 
             // 固定ルームを全て作成または確認
+            let createdCount = 0;
+            let existingCount = 0;
+            let errorCount = 0;
+
             for (const room of permanentRooms) {
                 try {
                     const roomRef = ref(database, `rooms/${room.id}`);
@@ -246,12 +271,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log('作成データ:', roomData);
                         await set(roomRef, roomData);
                         console.log(`✅ ${room.name}の作成完了`);
+                        createdCount++;
                     } else {
                         console.log(`📋 ${room.name}(${room.category})は既に存在します`);
+                        existingCount++;
                     }
                 } catch (roomError) {
                     console.error(`❌ ${room.name}の作成エラー:`, roomError);
+                    console.error('エラー詳細:', roomError.message, roomError.stack);
+                    errorCount++;
                 }
+            }
+
+            console.log(`📊 固定ルーム処理結果: 新規作成=${createdCount}, 既存=${existingCount}, エラー=${errorCount}`);
+
+            // エラーが発生した場合はユーザーに通知
+            if (errorCount > 0) {
+                console.error(`⚠️ ${errorCount}個の固定ルームの作成に失敗しました。ネットワーク接続を確認してください。`);
             }
 
             // 最初に一度ルーム一覧を取得
@@ -266,7 +302,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // ルームカードを表示
                 updateRoomCards(rooms);
             } else {
-                console.error('❌ ルーム一覧の取得に失敗しました（データがnull）');
+                console.warn('⚠️ ルームが1つもありません（固定ルームの作成を待っています）');
+                // 空の状態で表示を更新（ウェルカムメッセージが表示される）
+                roomsCache = {};
+                updateRoomCards({});
             }
 
             // ルーム一覧をリアルタイムで監視
@@ -296,6 +335,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ルームカードの表示を更新
     function updateRoomCards(rooms) {
+        console.log('🎯 updateRoomCards呼び出し, rooms:', rooms);
+        console.log('🎯 roomCardsContainer exists:', !!roomCardsContainer);
+
+        if (!roomCardsContainer) {
+            console.error('❌ roomCardsContainerが見つかりません！');
+            return;
+        }
+
         roomCardsContainer.innerHTML = ''; // 既存のカードをクリア
 
         // ルームを配列に変換
@@ -343,12 +390,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 各ルームのカードを作成
-        roomArray.forEach(room => {
-            const card = createRoomCard(room);
-            roomCardsContainer.appendChild(card);
-        });
-
-        console.log(`${roomArray.length}個のルームカードを表示しました`);
+        if (roomArray.length > 0) {
+            console.log(`🎨 ${roomArray.length}個のカードを作成開始`);
+            roomArray.forEach((room, index) => {
+                console.log(`  📌 カード${index + 1}: ${room.name} (${room.id})`);
+                const card = createRoomCard(room);
+                roomCardsContainer.appendChild(card);
+            });
+            console.log(`✅ ${roomArray.length}個のルームカードを表示しました`);
+            console.log('🔍 roomCardsContainer.children.length:', roomCardsContainer.children.length);
+        } else {
+            // ルームがない場合はメッセージを表示
+            console.log('⚠️ ルームが0個のため、空メッセージを表示');
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'welcome-message';
+            emptyMessage.innerHTML = `
+                <p>このカテゴリには現在ルームがありません</p>
+                <p>「➕」ボタンから新しいルームを作成してみよう！</p>
+            `;
+            roomCardsContainer.appendChild(emptyMessage);
+            console.log('🔍 空メッセージ追加後 children.length:', roomCardsContainer.children.length);
+        }
     }
 
     // ルームカードを作成
@@ -443,39 +505,44 @@ document.addEventListener('DOMContentLoaded', function() {
         roomListContainer.innerHTML = '';
 
         // 各ルームの情報を表示
-        roomArray.forEach(room => {
-            const roomItem = document.createElement('div');
-            roomItem.className = 'sidebar-room-item';
-            if (room.id === currentRoomId) {
-                roomItem.classList.add('current');
-            }
-            // 満員の場合は特別なクラスを追加
-            if (room.maxUsers > 0 && (room.currentUsers || 0) >= room.maxUsers) {
-                roomItem.classList.add('full');
-            }
+        if (roomArray.length > 0) {
+            roomArray.forEach(room => {
+                const roomItem = document.createElement('div');
+                roomItem.className = 'sidebar-room-item';
+                if (room.id === currentRoomId) {
+                    roomItem.classList.add('current');
+                }
+                // 満員の場合は特別なクラスを追加
+                if (room.maxUsers > 0 && (room.currentUsers || 0) >= room.maxUsers) {
+                    roomItem.classList.add('full');
+                }
 
-            roomItem.innerHTML = `
-                <div class="sidebar-room-info">
-                    <span class="sidebar-room-icon">${room.emoji || '💬'}</span>
-                    <div class="sidebar-room-details">
-                        <div class="sidebar-room-name">${room.name}</div>
-                        <div class="sidebar-room-meta">
-                            <span class="sidebar-room-users">👤 ${room.currentUsers || 0}/${room.maxUsers || 30}</span>
+                roomItem.innerHTML = `
+                    <div class="sidebar-room-info">
+                        <span class="sidebar-room-icon">${room.emoji || '💬'}</span>
+                        <div class="sidebar-room-details">
+                            <div class="sidebar-room-name">${room.name}</div>
+                            <div class="sidebar-room-meta">
+                                <span class="sidebar-room-users">👤 ${room.currentUsers || 0}/${room.maxUsers || 30}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            // クリックでルームに移動
-            roomItem.addEventListener('click', () => {
-                joinRoom(room.id);
-                // メニューを閉じる
-                document.getElementById('sidebarMenu').classList.remove('active');
-                document.getElementById('sidebarOverlay').classList.remove('active');
+                // クリックでルームに移動
+                roomItem.addEventListener('click', () => {
+                    joinRoom(room.id);
+                    // メニューを閉じる
+                    document.getElementById('sidebarMenu').classList.remove('active');
+                    document.getElementById('sidebarOverlay').classList.remove('active');
+                });
+
+                roomListContainer.appendChild(roomItem);
             });
-
-            roomListContainer.appendChild(roomItem);
-        });
+        } else {
+            // ルームがない場合
+            roomListContainer.innerHTML = '<div class="room-list-loading">ルームがありません</div>';
+        }
     }
 
     // サイドバーの「自分のルーム」を更新
@@ -2025,46 +2092,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ========================================
-    // ルームタブの横スクロール干渉防止（ヤフーニュースアプリ風）
+    // ルームタブの横スクロール干渉防止（削除済み：カテゴリタブに統合）
     // ========================================
-
-    let tabTouchStartX = 0;
-    let tabTouchStartY = 0;
-    let isTabScrollingHorizontally = false;
-
-    roomTabs.addEventListener('touchstart', (e) => {
-        tabTouchStartX = e.touches[0].clientX;
-        tabTouchStartY = e.touches[0].clientY;
-        isTabScrollingHorizontally = false;
-    }, { passive: false });
-
-    roomTabs.addEventListener('touchmove', (e) => {
-        if (!tabTouchStartX || !tabTouchStartY) {
-            return;
-        }
-
-        const touchCurrentX = e.touches[0].clientX;
-        const touchCurrentY = e.touches[0].clientY;
-
-        const diffX = Math.abs(touchCurrentX - tabTouchStartX);
-        const diffY = Math.abs(touchCurrentY - tabTouchStartY);
-
-        // 横方向の動きが縦方向より大きい場合は横スクロール
-        if (!isTabScrollingHorizontally && diffX > diffY && diffX > 10) {
-            isTabScrollingHorizontally = true;
-        }
-
-        // 横スクロール中は縦スクロールを防止
-        if (isTabScrollingHorizontally) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    roomTabs.addEventListener('touchend', () => {
-        tabTouchStartX = 0;
-        tabTouchStartY = 0;
-        isTabScrollingHorizontally = false;
-    }, { passive: true });
 
     // ========================================
     // スクロール連動でルーム自動切り替え（ヤフーニュース風）

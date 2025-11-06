@@ -2,45 +2,67 @@
   "name": "NET CITY β - リアルタイムチャット",
   "short_name": "NET CITY",
   "description": "みんながつながる仮想の街。リアルタイムでチャットを楽しもう！",
-  "start_url": "/net-city-beta/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#0a0e27",
   "theme_color": "#00ffff",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./icons/icon-48.webp",
+      "type": "image/webp",
+      "sizes": "48x48",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-192.webp",
+      "src": "./icons/icon-72.webp",
+      "type": "image/webp",
+      "sizes": "72x72",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-96.webp",
+      "type": "image/webp",
+      "sizes": "96x96",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-128.webp",
+      "type": "image/webp",
+      "sizes": "128x128",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-192.webp",
+      "type": "image/webp",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.webp",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "./icons/icon-256.webp",
+      "type": "image/webp",
+      "sizes": "256x256",
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.webp",
+      "src": "./icons/icon-512.webp",
+      "type": "image/webp",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["social", "entertainment"],
+  "categories": [
+    "social",
+    "entertainment"
+  ],
   "screenshots": [],
   "shortcuts": [
     {
       "name": "チャットに入る",
       "short_name": "チャット",
       "description": "すぐにチャットを開始",
-      "url": "/net-city-beta/city.html"
+      "url": "./city.html"
     }
   ]
 }
