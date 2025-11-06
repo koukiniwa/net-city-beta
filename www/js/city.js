@@ -142,6 +142,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     function showRoomListView() {
         roomListView.style.display = 'block';
         chatView.style.display = 'none';
+
+        // カテゴリーバーを表示
+        document.querySelector('.category-bar').style.display = 'block';
+
         console.log('ルーム一覧ビューを表示');
     }
 
@@ -151,6 +155,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         chatView.style.display = 'flex';
         chatRoomName.textContent = roomName;
         chatRoomEmoji.textContent = roomEmoji;
+
+        // カテゴリーバーを非表示
+        document.querySelector('.category-bar').style.display = 'none';
+
         console.log('チャットビューを表示:', roomName);
     }
 
@@ -168,6 +176,36 @@ document.addEventListener('DOMContentLoaded', async function() {
     // カテゴリ機能
     // ========================================
 
+    // アクティブタブのインジケーター（下線）を更新
+    function updateCategoryIndicator() {
+        const activeTab = document.querySelector('.category-tab.active');
+        const tabsContainer = document.querySelector('.category-tabs');
+
+        if (activeTab && tabsContainer) {
+            const tabRect = activeTab.getBoundingClientRect();
+            const containerRect = tabsContainer.getBoundingClientRect();
+            const left = activeTab.offsetLeft;
+            const width = activeTab.offsetWidth;
+
+            // CSS変数で位置とサイズを設定
+            tabsContainer.style.setProperty('--indicator-left', `${left}px`);
+            tabsContainer.style.setProperty('--indicator-width', `${width}px`);
+
+            // ::after擬似要素のスタイルを更新
+            const styleEl = document.getElementById('category-indicator-style') || document.createElement('style');
+            styleEl.id = 'category-indicator-style';
+            styleEl.textContent = `
+                .category-tabs::after {
+                    left: ${left}px !important;
+                    width: ${width}px !important;
+                }
+            `;
+            if (!document.getElementById('category-indicator-style')) {
+                document.head.appendChild(styleEl);
+            }
+        }
+    }
+
     // カテゴリタブのクリックイベント
     categoryTabs.addEventListener('click', (e) => {
         if (e.target.classList.contains('category-tab')) {
@@ -179,6 +217,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             // クリックされたタブにactiveクラスを追加
             e.target.classList.add('active');
 
+            // インジケーターを更新
+            updateCategoryIndicator();
+
             // 選択されたカテゴリを更新
             selectedCategory = e.target.dataset.category;
             console.log('カテゴリ切り替え:', selectedCategory);
@@ -189,6 +230,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             updateSidebarRoomList(roomsCache);
         }
     });
+
+    // 初期表示時にインジケーターを設定
+    setTimeout(updateCategoryIndicator, 100);
 
     // ========================================
     // ルーム機能

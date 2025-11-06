@@ -248,8 +248,9 @@ body {
 
 .category-bar {
     background: var(--category-bg);
-    border-bottom: 2px solid #3a4052;
+    border-bottom: 1px solid var(--card-border);
     overflow: hidden;
+    position: relative;
 }
 
 .category-tabs {
@@ -258,6 +259,7 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     padding: 0;
+    position: relative;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -268,12 +270,23 @@ body {
     display: none;
 }
 
+/* アクティブタブのインジケーター（下線） */
+.category-tabs::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--accent-primary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: left, width;
+}
+
 .category-tab {
     flex-shrink: 0;
     padding: 14px 20px;
     background: transparent;
     border: none;
-    border-bottom: 3px solid transparent;
     color: var(--category-text);
     font-size: 0.95rem;
     font-weight: 500;
@@ -289,14 +302,12 @@ body {
     user-select: none;
 }
 
-.category-tab:hover {
+.category-tab:active {
     background: var(--category-hover-bg);
-    color: var(--category-hover-text);
 }
 
 .category-tab.active {
-    color: var(--category-active-text);
-    border-bottom-color: var(--category-active-border);
+    color: var(--accent-primary);
     font-weight: 600;
 }
 
@@ -437,32 +448,27 @@ body {
 
 .floating-create-btn {
     position: fixed;
-    bottom: 80px; /* 入力エリアの上 */
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 20px;
+    right: 20px;
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #2196f3, #1976d2);
+    background: var(--accent-primary);
     border: none;
     border-radius: 50%;
-    color: #ffffff;
-    font-size: 1.8rem;
+    color: white;
+    font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 50;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-create-btn:hover {
-    transform: translateX(-50%) scale(1.1);
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+    transition: all 0.2s ease;
 }
 
 .floating-create-btn:active {
-    transform: translateX(-50%) scale(0.95);
+    transform: scale(0.95);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ========================================
