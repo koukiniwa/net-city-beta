@@ -224,15 +224,72 @@ document.addEventListener('DOMContentLoaded', async function() {
             selectedCategory = e.target.dataset.category;
             console.log('カテゴリ切り替え:', selectedCategory);
 
-            // ルームカードを更新
-            updateRoomCards(roomsCache);
-            // サイドバーのルーム一覧を更新（カテゴリでフィルタリング）
-            updateSidebarRoomList(roomsCache);
+            // そのカテゴリーのセクションまでスクロール
+            isScrolling = true;
+            const targetHeader = document.querySelector(`.category-section-header[data-category="${selectedCategory}"]`);
+            if (targetHeader) {
+                roomListView.scrollTo({
+                    top: targetHeader.offsetTop - 10,
+                    behavior: 'smooth'
+                });
+            }
+
+            setTimeout(() => {
+                isScrolling = false;
+            }, 500);
         }
     });
 
     // 初期表示時にインジケーターを設定
     setTimeout(updateCategoryIndicator, 100);
+
+    // スクロール連動でカテゴリータブを自動切り替え（Yahoo!ニュース風）
+    let isScrolling = false;
+    let scrollTimeout;
+
+    roomListView.addEventListener('scroll', () => {
+        if (isScrolling) return;
+
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            // 現在表示中のカテゴリーヘッダーを検出
+            const headers = document.querySelectorAll('.category-section-header');
+            const scrollTop = roomListView.scrollTop;
+
+            let activeCategory = 'chat'; // デフォルト
+
+            headers.forEach(header => {
+                const rect = header.getBoundingClientRect();
+                const containerRect = roomListView.getBoundingClientRect();
+
+                // ヘッダーが画面上部付近にある場合
+                if (rect.top <= containerRect.top + 100) {
+                    activeCategory = header.dataset.category;
+                }
+            });
+
+            // カテゴリータブを更新
+            if (selectedCategory !== activeCategory) {
+                isScrolling = true;
+                selectedCategory = activeCategory;
+
+                // タブを切り替え
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.category === activeCategory) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                // インジケーターを更新
+                updateCategoryIndicator();
+
+                setTimeout(() => {
+                    isScrolling = false;
+                }, 100);
+            }
+        }, 50);
+    }, { passive: true });
 
     // ========================================
     // ルーム機能
@@ -395,70 +452,63 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // ルームを配列に変換
         let roomArray = Object.values(rooms);
-        console.log('全ルーム数:', roomArray.length, 'カテゴリ:', selectedCategory);
-        console.log('ルーム一覧:', roomArray.map(r => `${r.name}(${r.category})`));
+        console.log('全ルーム数:', roomArray.length);
 
-        // カテゴリでフィルタリング
-        roomArray = roomArray.filter(r => {
-            const match = r.category === selectedCategory;
-            console.log(`${r.name}: category=${r.category}, selected=${selectedCategory}, match=${match}`);
-            return match; // 選択されたカテゴリのルームのみ表示
+        // カテゴリー別にグループ化
+        const categories = ['chat', 'consultation', 'love', 'news', 'life', 'hobby'];
+        const roomsByCategory = {};
+        categories.forEach(cat => {
+            roomsByCategory[cat] = roomArray.filter(r => r.category === cat);
         });
 
-        console.log('フィルタ後のルーム数:', roomArray.length);
+        // カテゴリー順にルームを表示（Yahoo!ニュース風）
+        const categoryNames = {
+            'chat': '💬 雑談',
+            'consultation': '🤝 相談',
+            'love': '💕 恋愛',
+            'news': '📰 時事',
+            'life': '🌱 人生',
+            'hobby': '🎨 趣味'
+        };
 
-        // 人気スコア順にソート（固定ルームは常に上位）
-        roomArray.sort((a, b) => {
-            // 固定ルームは最初（isPermanentがtrueのもの）
-            if (a.isPermanent && !b.isPermanent) return -1;
-            if (!a.isPermanent && b.isPermanent) return 1;
+        categories.forEach(cat => {
+            const rooms = roomsByCategory[cat];
+            if (rooms && rooms.length > 0) {
+                // カテゴリーヘッダーを作成
+                const header = document.createElement('div');
+                header.className = 'category-section-header';
+                header.dataset.category = cat;
+                header.textContent = categoryNames[cat];
+                roomCardsContainer.appendChild(header);
 
-            // 両方とも固定ルームの場合、作成日時順（古い順）
-            if (a.isPermanent && b.isPermanent) {
-                return a.createdAt - b.createdAt;
+                // 各ルームのソート
+                rooms.sort((a, b) => {
+                    if (a.isPermanent && !b.isPermanent) return -1;
+                    if (!a.isPermanent && b.isPermanent) return 1;
+                    if (a.isPermanent && b.isPermanent) {
+                        return a.createdAt - b.createdAt;
+                    }
+
+                    const now = Date.now();
+                    const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
+                    const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
+
+                    let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
+                    let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
+
+                    if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) scoreA *= 0.5;
+                    if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) scoreB *= 0.5;
+
+                    return scoreB - scoreA;
+                });
+
+                // ルームカードを追加
+                rooms.forEach(room => {
+                    const card = createRoomCard(room);
+                    roomCardsContainer.appendChild(card);
+                });
             }
-
-            // 人気スコア = (ユーザー数 × 100) + (7 - 経過日数) × 20
-            const now = Date.now();
-            const daysOldA = (now - a.createdAt) / (24 * 60 * 60 * 1000);
-            const daysOldB = (now - b.createdAt) / (24 * 60 * 60 * 1000);
-
-            let scoreA = (a.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldA) * 20;
-            let scoreB = (b.currentUsers || 0) * 100 + Math.max(0, 7 - daysOldB) * 20;
-
-            // 満員のルームはスコアを半減
-            if (a.maxUsers > 0 && (a.currentUsers || 0) >= a.maxUsers) {
-                scoreA = scoreA * 0.5;
-            }
-            if (b.maxUsers > 0 && (b.currentUsers || 0) >= b.maxUsers) {
-                scoreB = scoreB * 0.5;
-            }
-
-            return scoreB - scoreA;
         });
-
-        // 各ルームのカードを作成
-        if (roomArray.length > 0) {
-            console.log(`🎨 ${roomArray.length}個のカードを作成開始`);
-            roomArray.forEach((room, index) => {
-                console.log(`  📌 カード${index + 1}: ${room.name} (${room.id})`);
-                const card = createRoomCard(room);
-                roomCardsContainer.appendChild(card);
-            });
-            console.log(`✅ ${roomArray.length}個のルームカードを表示しました`);
-            console.log('🔍 roomCardsContainer.children.length:', roomCardsContainer.children.length);
-        } else {
-            // ルームがない場合はメッセージを表示
-            console.log('⚠️ ルームが0個のため、空メッセージを表示');
-            const emptyMessage = document.createElement('div');
-            emptyMessage.className = 'welcome-message';
-            emptyMessage.innerHTML = `
-                <p>このカテゴリには現在ルームがありません</p>
-                <p>「➕」ボタンから新しいルームを作成してみよう！</p>
-            `;
-            roomCardsContainer.appendChild(emptyMessage);
-            console.log('🔍 空メッセージ追加後 children.length:', roomCardsContainer.children.length);
-        }
     }
 
     // ルームカードを作成
@@ -466,6 +516,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const card = document.createElement('div');
         card.className = 'room-card';
         card.dataset.roomId = room.id;
+        card.dataset.category = room.category; // カテゴリー情報を追加
 
         // ユーザー数を取得
         const currentUsers = room.currentUsers || 0;
