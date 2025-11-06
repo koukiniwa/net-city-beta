@@ -2092,46 +2092,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     // ========================================
-    // ルームタブの横スクロール干渉防止（ヤフーニュースアプリ風）
+    // ルームタブの横スクロール干渉防止（削除済み：カテゴリタブに統合）
     // ========================================
-
-    let tabTouchStartX = 0;
-    let tabTouchStartY = 0;
-    let isTabScrollingHorizontally = false;
-
-    roomTabs.addEventListener('touchstart', (e) => {
-        tabTouchStartX = e.touches[0].clientX;
-        tabTouchStartY = e.touches[0].clientY;
-        isTabScrollingHorizontally = false;
-    }, { passive: false });
-
-    roomTabs.addEventListener('touchmove', (e) => {
-        if (!tabTouchStartX || !tabTouchStartY) {
-            return;
-        }
-
-        const touchCurrentX = e.touches[0].clientX;
-        const touchCurrentY = e.touches[0].clientY;
-
-        const diffX = Math.abs(touchCurrentX - tabTouchStartX);
-        const diffY = Math.abs(touchCurrentY - tabTouchStartY);
-
-        // 横方向の動きが縦方向より大きい場合は横スクロール
-        if (!isTabScrollingHorizontally && diffX > diffY && diffX > 10) {
-            isTabScrollingHorizontally = true;
-        }
-
-        // 横スクロール中は縦スクロールを防止
-        if (isTabScrollingHorizontally) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    roomTabs.addEventListener('touchend', () => {
-        tabTouchStartX = 0;
-        tabTouchStartY = 0;
-        isTabScrollingHorizontally = false;
-    }, { passive: true });
 
     // ========================================
     // スクロール連動でルーム自動切り替え（ヤフーニュース風）
