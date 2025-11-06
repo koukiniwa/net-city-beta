@@ -776,7 +776,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             // 前のルームから退出
             if (currentRoomId) {
                 console.log(`前のルーム ${currentRoomId} から退出`);
-                await leaveRoom(currentRoomId);
+                try {
+                    await leaveRoom(currentRoomId);
+                    console.log('✅ 前のルームから退出完了');
+                } catch (err) {
+                    console.warn('⚠️ 前のルーム退出時にエラー:', err);
+                }
             }
 
             // 古いリスナーを削除（メモリリーク対策）
@@ -790,6 +795,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             // 新しいルームに入室
+            console.log('📝 新しいルームに入室開始:', roomId);
             currentRoomId = roomId;
             messagesRef = ref(database, `roomMessages/${roomId}`);
             currentRoomUsersRef = ref(database, `roomUsers/${roomId}`);
@@ -798,6 +804,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             messagesArea.innerHTML = '<div class="welcome-message"><p>ルームに入室しました</p></div>';
 
             // ユーザー情報を登録
+            console.log('👤 ユーザー情報を登録中...', { userId, userNumber, displayNumber });
             const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
             await set(userRef, {
                 userId: userId,  // セキュリティルールでチェック用
@@ -806,7 +813,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 joinedAt: Date.now(),
                 lastActive: Date.now()
             });
-            console.log('ユーザー情報を登録しました');
+            console.log('✅ ユーザー情報を登録完了');
 
             // ページ閉じたら自動削除
             onDisconnect(userRef).remove();
@@ -845,7 +852,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         } catch (error) {
             console.error('ルーム入室エラー:', error);
-            alert('ルームへの入室に失敗しました');
+            console.error('エラー詳細:', {
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+            });
+            // エラーメッセージを詳細に表示（デバッグ用）
+            alert(`ルームへの入室に失敗しました\n\nエラー: ${error.message || error.code || '不明なエラー'}`);
             // エラー時もフェードインして画面を戻す
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
