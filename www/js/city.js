@@ -2217,9 +2217,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     let chatIsSwiping = false;
     let chatSwipeProgress = 0;
 
-    const chatView = document.getElementById('chatView');
-    const messagesArea = document.getElementById('messagesArea');
-
     chatView.addEventListener('touchstart', (e) => {
         // メッセージエリアの一番上でのみスワイプを有効化
         if (messagesArea.scrollTop <= 0) {
