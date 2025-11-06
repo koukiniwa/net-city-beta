@@ -17,13 +17,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ========================================
 
     // localStorageから番号を取得
-    const userNumber = localStorage.getItem('netcity_userNumber');
+    let userNumber = localStorage.getItem('netcity_userNumber');
 
-    // 番号が保存されていない場合は、入場画面に戻す
+    // 番号が保存されていない場合は、自動的に生成
     if (!userNumber) {
-        alert('先に番号を取得してください');
-        window.location.href = 'index.html';
-        return; // ここで処理を終了
+        console.log('番号が未設定のため、自動生成します');
+        userNumber = Math.floor(Math.random() * 999) + 1;
+        localStorage.setItem('netcity_userNumber', userNumber.toString());
+        console.log('生成された番号:', userNumber);
     }
 
     // 表示用の番号（No.XX形式）
