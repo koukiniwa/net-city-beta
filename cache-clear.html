@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>キャッシュクリア確認</title>
+</head>
+<body>
+    <h1>キャッシュクリアツール</h1>
+    <p>このページで以下のボタンを押してください：</p>
+    <button onclick="clearAll()">すべてのキャッシュをクリア</button>
+    <div id="result"></div>
+    
+    <script>
+        async function clearAll() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<p>クリア中...</p>';
+            
+            // Service Worker削除
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+                result.innerHTML += '<p>✅ Service Worker削除完了</p>';
+            }
+            
+            // キャッシュストレージ削除
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                result.innerHTML += '<p>✅ キャッシュストレージ削除完了</p>';
+            }
+            
+            // localStorage削除
+            localStorage.clear();
+            result.innerHTML += '<p>✅ localStorage削除完了</p>';
+            
+            // sessionStorage削除
+            sessionStorage.clear();
+            result.innerHTML += '<p>✅ sessionStorage削除完了</p>';
+            
+            result.innerHTML += '<p><strong>完了！ブラウザを再起動してください。</strong></p>';
+        }
+    </script>
+</body>
+</html>
