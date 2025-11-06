@@ -2068,16 +2068,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 初期テーマを適用
     function applyTheme(theme) {
-        if (theme === 'neon') {
-            document.body.classList.add('neon-mode');
+        if (theme === 'dark') {
+            document.body.classList.add('dark-mode');
             lightModeBtn.classList.remove('active');
             neonModeBtn.classList.add('active');
         } else {
-            document.body.classList.remove('neon-mode');
+            document.body.classList.remove('dark-mode');
             lightModeBtn.classList.add('active');
             neonModeBtn.classList.remove('active');
         }
         localStorage.setItem('netcity_theme', theme);
+        console.log('✅ テーマ適用:', theme);
     }
 
     // ページ読み込み時にテーマを適用
@@ -2088,9 +2089,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         applyTheme('light');
     });
 
-    // ネオンモードボタンクリック
+    // ダークモードボタンクリック（旧ネオンモード）
     neonModeBtn.addEventListener('click', function() {
-        applyTheme('neon');
+        applyTheme('dark');
     });
 
     // ========================================
