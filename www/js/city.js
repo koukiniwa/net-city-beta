@@ -244,7 +244,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     setTimeout(updateCategoryIndicator, 100);
 
     // スクロール連動でカテゴリータブを自動切り替え（Yahoo!ニュース風）
-    let isScrolling = false;
     let scrollTimeout;
 
     roomListView.addEventListener('scroll', () => {
