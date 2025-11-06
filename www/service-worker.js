@@ -59,6 +59,12 @@ self.addEventListener('activate', (event) => {
 // フェッチ時: キャッシュ優先で取得
 // ========================================
 self.addEventListener('fetch', (event) => {
+  // サポートされていないスキーム（chrome-extension など）は無視
+  const url = new URL(event.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
   // Firebase へのリクエストはキャッシュしない
   if (event.request.url.includes('firebaseio.com') ||
       event.request.url.includes('googleapis.com') ||
