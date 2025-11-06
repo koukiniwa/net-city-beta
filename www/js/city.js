@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Firebase初期化を待ってから実行
     await waitForFirebase();
     console.log('✅ Firebase初期化完了を確認');
+    console.log('🔍 roomCardsContainer:', roomCardsContainer);
 
     const database = window.firebaseDatabase; // city.htmlで初期化したデータベース
     const storage = window.firebaseStorage; // city.htmlで初期化したストレージ
@@ -334,6 +335,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // ルームカードの表示を更新
     function updateRoomCards(rooms) {
+        console.log('🎯 updateRoomCards呼び出し, rooms:', rooms);
+        console.log('🎯 roomCardsContainer exists:', !!roomCardsContainer);
+
+        if (!roomCardsContainer) {
+            console.error('❌ roomCardsContainerが見つかりません！');
+            return;
+        }
+
         roomCardsContainer.innerHTML = ''; // 既存のカードをクリア
 
         // ルームを配列に変換
@@ -382,13 +391,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // 各ルームのカードを作成
         if (roomArray.length > 0) {
-            roomArray.forEach(room => {
+            console.log(`🎨 ${roomArray.length}個のカードを作成開始`);
+            roomArray.forEach((room, index) => {
+                console.log(`  📌 カード${index + 1}: ${room.name} (${room.id})`);
                 const card = createRoomCard(room);
                 roomCardsContainer.appendChild(card);
             });
-            console.log(`${roomArray.length}個のルームカードを表示しました`);
+            console.log(`✅ ${roomArray.length}個のルームカードを表示しました`);
+            console.log('🔍 roomCardsContainer.children.length:', roomCardsContainer.children.length);
         } else {
             // ルームがない場合はメッセージを表示
+            console.log('⚠️ ルームが0個のため、空メッセージを表示');
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'welcome-message';
             emptyMessage.innerHTML = `
@@ -396,7 +409,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <p>「➕」ボタンから新しいルームを作成してみよう！</p>
             `;
             roomCardsContainer.appendChild(emptyMessage);
-            console.log('ルームが0個のため、空メッセージを表示');
+            console.log('🔍 空メッセージ追加後 children.length:', roomCardsContainer.children.length);
         }
     }
 
