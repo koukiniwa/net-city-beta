@@ -490,7 +490,10 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 2px solid #3a4052;
+    border: 2px solid var(--card-border);
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
 }
 
 .room-card:hover {
@@ -503,12 +506,18 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
+    flex: 1;
 }
 
 .room-card-emoji {
-    font-size: 2rem;
+    font-size: 2.5rem;
     line-height: 1;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .room-card-title {
@@ -522,27 +531,6 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.room-card-badge-inline {
-    display: inline-block;
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #5a7a9f, #4a6a8f);
-    color: #e0e0e0;
-    font-weight: 600;
-    margin-left: 6px;
-}
-
-.room-card-users-inline {
-    font-size: 0.85rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-left: 6px;
 }
 
 .room-card-description {
@@ -559,7 +547,7 @@ body {
     justify-content: space-between;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--card-border);
 }
 
 .room-card-users {
@@ -567,26 +555,27 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 0.9rem;
-    color: #666666;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .room-card-badge {
-    padding: 4px 10px;
-    background: #e3f2fd;
-    color: #1976d2;
+    padding: 6px 12px;
+    background: var(--accent-primary);
+    color: white;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
 }
 
 .room-card.full {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
 .room-card.full .room-card-badge {
-    background: #ffebee;
-    color: #c62828;
+    background: #ef5350;
+    color: white;
 }
 
 /* ========================================
@@ -598,6 +587,8 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: transform 0.3s ease;
+    will-change: transform;
 }
 
 /* ========================================

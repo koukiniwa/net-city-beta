@@ -436,13 +436,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             <div class="room-card-header">
                 <div class="room-card-emoji">${room.emoji}</div>
                 <div class="room-card-title">
-                    <div class="room-card-name">
-                        ${room.name}
-                        <span class="room-card-badge-inline">${isFull ? '満員' : '参加可能'}</span>
-                        <span class="room-card-users-inline">👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}</span>
-                    </div>
+                    <div class="room-card-name">${room.name}</div>
                     ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
                 </div>
+            </div>
+            <div class="room-card-footer">
+                <div class="room-card-users">👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}</div>
+                <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
             </div>
         `;
 
@@ -2154,6 +2154,127 @@ document.addEventListener('DOMContentLoaded', async function() {
     //         }
     //     }, 150); // 150ms後に実行
     // }, { passive: true });
+
+    // ========================================
+    // スワイプ機能（Yahoo!ニュース風）
+    // ========================================
+
+    // カテゴリータブのスワイプ操作
+    let categoryStartX = 0;
+    let categoryStartY = 0;
+    let categoryIsSwiping = false;
+
+    roomCardsContainer.addEventListener('touchstart', (e) => {
+        categoryStartX = e.touches[0].clientX;
+        categoryStartY = e.touches[0].clientY;
+        categoryIsSwiping = false;
+    }, { passive: true });
+
+    roomCardsContainer.addEventListener('touchmove', (e) => {
+        if (!categoryStartX) return;
+
+        const diffX = Math.abs(e.touches[0].clientX - categoryStartX);
+        const diffY = Math.abs(e.touches[0].clientY - categoryStartY);
+
+        // 横スワイプの方が大きければスワイプモード
+        if (diffX > diffY && diffX > 30) {
+            categoryIsSwiping = true;
+        }
+    }, { passive: true });
+
+    roomCardsContainer.addEventListener('touchend', (e) => {
+        if (!categoryIsSwiping || !categoryStartX) {
+            categoryStartX = 0;
+            categoryStartY = 0;
+            return;
+        }
+
+        const diffX = e.changedTouches[0].clientX - categoryStartX;
+        const threshold = 50; // スワイプの閾値
+
+        if (Math.abs(diffX) > threshold) {
+            const currentTab = document.querySelector('.category-tab.active');
+            const tabs = Array.from(document.querySelectorAll('.category-tab'));
+            const currentIndex = tabs.indexOf(currentTab);
+
+            if (diffX < 0 && currentIndex < tabs.length - 1) {
+                // 左スワイプ → 次のカテゴリ
+                tabs[currentIndex + 1].click();
+            } else if (diffX > 0 && currentIndex > 0) {
+                // 右スワイプ → 前のカテゴリ
+                tabs[currentIndex - 1].click();
+            }
+        }
+
+        categoryStartX = 0;
+        categoryStartY = 0;
+        categoryIsSwiping = false;
+    }, { passive: true });
+
+    // チャットビューからホームへのスワイプ操作
+    let chatStartX = 0;
+    let chatStartY = 0;
+    let chatIsSwiping = false;
+    let chatSwipeProgress = 0;
+
+    const chatView = document.getElementById('chatView');
+    const messagesArea = document.getElementById('messagesArea');
+
+    chatView.addEventListener('touchstart', (e) => {
+        // メッセージエリアの一番上でのみスワイプを有効化
+        if (messagesArea.scrollTop <= 0) {
+            chatStartX = e.touches[0].clientX;
+            chatStartY = e.touches[0].clientY;
+            chatIsSwiping = false;
+            chatSwipeProgress = 0;
+        }
+    }, { passive: true });
+
+    chatView.addEventListener('touchmove', (e) => {
+        if (!chatStartX || messagesArea.scrollTop > 0) return;
+
+        const diffX = e.touches[0].clientX - chatStartX;
+        const diffY = Math.abs(e.touches[0].clientY - chatStartY);
+
+        // 右スワイプで戻る（横スワイプが縦より大きい）
+        if (diffX > 0 && diffX > diffY && diffX > 20) {
+            chatIsSwiping = true;
+            chatSwipeProgress = Math.min(diffX / 200, 1); // 200pxで完了
+
+            // スワイプのビジュアルフィードバック
+            chatView.style.transform = `translateX(${diffX * 0.3}px)`;
+            chatView.style.transition = 'none';
+        }
+    }, { passive: true });
+
+    chatView.addEventListener('touchend', (e) => {
+        if (!chatIsSwiping || !chatStartX) {
+            chatStartX = 0;
+            chatStartY = 0;
+            chatView.style.transform = '';
+            chatView.style.transition = '';
+            return;
+        }
+
+        const diffX = e.changedTouches[0].clientX - chatStartX;
+        const threshold = 80; // スワイプの閾値
+
+        // リセット
+        chatView.style.transition = 'transform 0.3s ease';
+        chatView.style.transform = '';
+
+        if (diffX > threshold) {
+            // 戻るボタンをクリック
+            setTimeout(() => {
+                document.getElementById('backToRoomList').click();
+            }, 100);
+        }
+
+        chatStartX = 0;
+        chatStartY = 0;
+        chatIsSwiping = false;
+        chatSwipeProgress = 0;
+    }, { passive: true });
 
     // ========================================
     // 初期化
