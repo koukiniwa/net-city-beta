@@ -472,55 +472,40 @@ body {
 .room-list-view {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 0;
     background: var(--bg-primary);
 }
 
 .room-cards-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    padding-bottom: 100px; /* フローティングボタンのスペース */
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 100px;
 }
 
 .room-card {
-    background: var(--category-bg);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: var(--card-bg);
+    border-radius: 0;
+    padding: 16px 20px;
+    box-shadow: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid var(--card-border);
-    min-height: 140px;
-    display: flex;
-    flex-direction: column;
+    transition: background-color 0.15s ease;
+    border: none;
+    border-bottom: 1px solid var(--card-border);
 }
 
-.room-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(107, 139, 181, 0.25);
-    border-color: var(--card-hover-border);
+.room-card:active {
+    background-color: var(--category-hover-bg);
 }
 
-.room-card-header {
+.room-card-content {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex: 1;
+    justify-content: space-between;
+    gap: 16px;
 }
 
-.room-card-emoji {
-    font-size: 2.5rem;
-    line-height: 1;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.room-card-title {
+.room-card-main {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -528,54 +513,42 @@ body {
 }
 
 .room-card-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.5;
 }
 
 .room-card-description {
     font-size: 0.85rem;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
+    line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.room-card-footer {
+.room-card-side {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--card-border);
+    flex-shrink: 0;
 }
 
 .room-card-users {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.room-card-badge {
-    padding: 6px 12px;
-    background: var(--accent-primary);
-    color: white;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    font-weight: 400;
 }
 
 .room-card.full {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-.room-card.full .room-card-badge {
-    background: #ef5350;
-    color: white;
+.room-card.full .room-card-users::after {
+    content: ' 満員';
+    color: #ef5350;
+    font-weight: 600;
 }
 
 /* ========================================

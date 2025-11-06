@@ -433,16 +433,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         card.innerHTML = `
-            <div class="room-card-header">
-                <div class="room-card-emoji">${room.emoji}</div>
-                <div class="room-card-title">
+            <div class="room-card-content">
+                <div class="room-card-main">
                     <div class="room-card-name">${room.name}</div>
                     ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
                 </div>
-            </div>
-            <div class="room-card-footer">
-                <div class="room-card-users">👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}</div>
-                <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
+                <div class="room-card-side">
+                    <div class="room-card-users">${currentUsers}人</div>
+                </div>
             </div>
         `;
 
