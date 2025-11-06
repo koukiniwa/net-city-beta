@@ -221,9 +221,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 固定ルームの定義
     const permanentRooms = [
-        // 雑談カテゴリ
-        { id: 'plaza', name: '広場', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
+        // 雑談カテゴリ（順番を入れ替え、広場をフリートークに変更）
         { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
+        { id: 'plaza', name: 'フリートーク', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
         // 相談カテゴリ
         { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
         { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },
@@ -232,9 +232,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         { id: 'heartbreak_cafe', name: '失恋カフェ', emoji: '💔', category: 'love', description: '失恋の傷を癒す場所', maxUsers: 50 },
         // 時事カテゴリ
         { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
-        // 人生カテゴリ
-        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'life', description: '音楽やアニメについて語ろう', maxUsers: 50 },
-        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'life', description: 'ゲーム好き集まれ！', maxUsers: 50 }
+        // 趣味カテゴリ（人生から変更）
+        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'hobby', description: '音楽やアニメについて語ろう', maxUsers: 50 },
+        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'hobby', description: 'ゲーム好き集まれ！', maxUsers: 50 }
     ];
 
     // ルームの初期化
@@ -432,14 +432,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             <div class="room-card-header">
                 <div class="room-card-emoji">${room.emoji}</div>
                 <div class="room-card-title">
-                    <div class="room-card-name">${room.name}</div>
+                    <div class="room-card-name">
+                        ${room.name}
+                        <span class="room-card-users-inline">👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}</span>
+                    </div>
                     ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
                 </div>
             </div>
             <div class="room-card-footer">
-                <div class="room-card-users">
-                    👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}
-                </div>
                 <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
             </div>
         `;
