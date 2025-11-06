@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 固定ルームの定義
     const permanentRooms = [
-        // 雑談カテゴリ（順番を入れ替え、広場をフリートークに変更）
+        // 雑談カテゴリ
         { id: 'plaza', name: 'フリートーク', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
         { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
         // 相談カテゴリ
@@ -232,7 +232,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         { id: 'heartbreak_cafe', name: '失恋カフェ', emoji: '💔', category: 'love', description: '失恋の傷を癒す場所', maxUsers: 50 },
         // 時事カテゴリ
         { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
-        // 趣味カテゴリ（人生から変更）
+        { id: 'sports_news', name: 'スポーツニュース', emoji: '⚽', category: 'news', description: 'スポーツの話題で盛り上がろう', maxUsers: 50 },
+        // 人生カテゴリ
+        { id: 'life_talk', name: '人生トーク', emoji: '🌱', category: 'life', description: '人生について語り合おう', maxUsers: 50 },
+        { id: 'self_reflection', name: '自分を見つめる', emoji: '🪞', category: 'life', description: '自分自身と向き合う場所', maxUsers: 50 },
+        // 趣味カテゴリ
         { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'hobby', description: '音楽やアニメについて語ろう', maxUsers: 50 },
         { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'hobby', description: 'ゲーム好き集まれ！', maxUsers: 50 }
     ];
@@ -434,13 +438,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="room-card-title">
                     <div class="room-card-name">
                         ${room.name}
+                        <span class="room-card-badge-inline">${isFull ? '満員' : '参加可能'}</span>
                         <span class="room-card-users-inline">👥 ${maxUsers === 0 ? currentUsers + '人' : currentUsers + '/' + maxUsers + '人'}</span>
                     </div>
                     ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
                 </div>
-            </div>
-            <div class="room-card-footer">
-                <div class="room-card-badge">${isFull ? '満員' : '参加可能'}</div>
             </div>
         `;
 

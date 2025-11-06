@@ -439,10 +439,22 @@ body {
     gap: 8px;
 }
 
+.room-card-badge-inline {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #00d4ff, #00a8e8);
+    color: white;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
 .room-card-users-inline {
     font-size: 0.85rem;
     font-weight: 400;
     color: #666;
+    margin-left: 6px;
 }
 
 .room-card-description {
