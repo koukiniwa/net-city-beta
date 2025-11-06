@@ -6,109 +6,68 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // ========================================
-    // 既に名前が保存されている場合は自動的にチャット画面へ
+    // 番号システム: 1-999のランダム番号を割り当て
     // ========================================
-    const savedUsername = localStorage.getItem('netcity_username');
-    if (savedUsername) {
-        console.log(`既存のユーザー「${savedUsername}」として自動入場します`);
+
+    // 既に番号が保存されている場合は自動的にチャット画面へ
+    const savedUserNumber = localStorage.getItem('netcity_userNumber');
+    if (savedUserNumber) {
+        console.log(`既存のユーザー番号「${savedUserNumber}」として自動入場します`);
         window.location.href = 'city.html';
         return; // ここで処理を終了
     }
 
-    // HTML要素を取得（IDで指定）
-    const usernameInput = document.getElementById('username'); // 名前入力欄
+    // HTML要素を取得
+    const numberDisplay = document.getElementById('userNumber'); // 番号表示
     const enterButton = document.getElementById('enterButton'); // 入場ボタン
-    const errorMessage = document.getElementById('errorMessage'); // エラーメッセージ
 
     // ========================================
-    // Enterキーで入場できるようにする
+    // 1-999のランダムな番号を生成
     // ========================================
-    usernameInput.addEventListener('keypress', function(event) {
-        // Enterキーが押されたかチェック（キーコード13）
-        if (event.key === 'Enter') {
-            handleEnter(); // 入場処理を実行
-        }
-    });
+    function generateRandomNumber() {
+        return Math.floor(Math.random() * 999) + 1; // 1から999のランダムな整数
+    }
+
+    // 初回起動時に番号を割り当て
+    const userNumber = generateRandomNumber();
+    console.log(`新しい番号を割り当てました: ${userNumber}`);
+
+    // 番号を画面に表示
+    if (numberDisplay) {
+        numberDisplay.textContent = userNumber;
+    }
 
     // ========================================
-    // ボタンをクリックした時の処理
+    // 入場ボタンをクリックした時の処理
     // ========================================
     enterButton.addEventListener('click', function() {
-        handleEnter(); // 入場処理を実行
+        handleEnter();
     });
 
     // ========================================
     // 入場処理の関数
     // ========================================
     function handleEnter() {
-        // 入力された名前を取得（前後の空白を削除）
-        const username = usernameInput.value.trim();
+        // localStorageに番号を保存（ブラウザに記憶）
+        localStorage.setItem('netcity_userNumber', userNumber);
 
-        // ========================================
-        // バリデーション（入力チェック）
-        // ========================================
+        // 番号変更日を初期化（今日の日付を保存）
+        const today = new Date().toDateString();
+        localStorage.setItem('netcity_numberChangeDate', today);
 
-        // 名前が空の場合
-        if (username === '') {
-            showError('名前を入力してください'); // エラーを表示
-            return; // ここで処理を終了
-        }
-
-        // 名前が2文字未満の場合
-        if (username.length < 2) {
-            showError('名前は2文字以上で入力してください');
-            return;
-        }
-
-        // 名前が20文字より長い場合
-        if (username.length > 20) {
-            showError('名前は20文字以内で入力してください');
-            return;
-        }
-
-        // ========================================
-        // 入力がOKなら、名前を保存して街へ移動
-        // ========================================
-
-        // localStorageに名前を保存（ブラウザに記憶）
-        // これで別のページ（city.html）でも名前が使える
-        localStorage.setItem('netcity_username', username);
+        console.log(`番号 ${userNumber} で入場します`);
 
         // city.htmlへ移動
         window.location.href = 'city.html';
     }
 
     // ========================================
-    // エラーメッセージを表示する関数
+    // エンターキーでも入場できるようにする
     // ========================================
-    function showError(message) {
-        errorMessage.textContent = message; // エラー文を表示
-
-        // 入力欄を赤く光らせる
-        usernameInput.style.borderColor = '#ff3366';
-        usernameInput.style.boxShadow = '0 0 15px rgba(255, 51, 102, 0.5)';
-
-        // 3秒後にエラーを消す
-        setTimeout(function() {
-            errorMessage.textContent = ''; // エラー文を消す
-            usernameInput.style.borderColor = 'rgba(0, 255, 255, 0.3)'; // 元の色に戻す
-            usernameInput.style.boxShadow = 'none'; // 影を消す
-        }, 3000); // 3000ミリ秒 = 3秒
-    }
-
-    // ========================================
-    // 入力中にエラーをクリアする
-    // ========================================
-    usernameInput.addEventListener('input', function() {
-        // 何か入力されたらエラーメッセージを消す
-        errorMessage.textContent = '';
-        usernameInput.style.borderColor = 'rgba(0, 255, 255, 0.3)';
-        usernameInput.style.boxShadow = 'none';
+    document.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            handleEnter();
+        }
     });
-
-    // ========================================
-    // ページを開いた時、入力欄にフォーカス
-    // ========================================
-    usernameInput.focus(); // カーソルを入力欄に自動で移動
 
 });

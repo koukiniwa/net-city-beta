@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 
     <!-- SEO対策: 基本のmetaタグ -->
     <title>NET CITY β - リアルタイムチャット | みんながつながる仮想の街</title>
@@ -15,6 +15,7 @@
     <meta property="og:description" content="みんながつながる仮想の街。リアルタイムでチャットを楽しもう！">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://koukiniwa.github.io/net-city-beta/">
+    <meta property="og:image" content="https://koukiniwa.github.io/net-city-beta/ogp-image.svg">
     <meta property="og:site_name" content="NET CITY β">
     <meta property="og:locale" content="ja_JP">
 
@@ -22,6 +23,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="NET CITY β - リアルタイムチャット">
     <meta name="twitter:description" content="みんながつながる仮想の街。リアルタイムでチャットを楽しもう！">
+    <meta name="twitter:image" content="https://koukiniwa.github.io/net-city-beta/ogp-image.svg">
 
     <!-- 検索エンジン向け -->
     <meta name="robots" content="index, follow">
@@ -36,8 +38,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NET CITY">
     <link rel="manifest" href="manifest.json">
+
+    <!-- ファビコン設定（複数サイズ） -->
     <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.webp">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.webp">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.webp">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
     <link rel="stylesheet" href="css/index.css">
@@ -56,16 +63,14 @@
 
         <!-- 入場フォーム -->
         <div class="entry-form">
-            <label for="username">あなたの名前</label>
-            <input
-                type="text"
-                id="username"
-                placeholder="名前を入力してください"
-                maxlength="20"
-                autocomplete="off"
-            >
-            <!-- エラーメッセージ表示エリア -->
-            <p class="error-message" id="errorMessage"></p>
+            <label for="userNumber">あなたの番号</label>
+            <div class="number-display-area">
+                <div class="number-badge">
+                    <span class="number-prefix">No.</span>
+                    <span class="number-value" id="userNumber">--</span>
+                </div>
+                <p class="number-info">この番号で街を歩きます</p>
+            </div>
 
             <!-- 入場ボタン -->
             <button id="enterButton" class="enter-button">
@@ -83,15 +88,12 @@
     <!-- JavaScriptを読み込み -->
     <script src="js/index.js"></script>
 
-    <!-- Capacitor Core -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@capacitor/core@latest/dist/capacitor.js"></script>
-
     <!-- Service Worker 登録 -->
     <script>
         // Service Worker がサポートされているかチェック
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
+                navigator.serviceWorker.register('./service-worker.js')
                     .then((registration) => {
                         console.log('✅ Service Worker 登録成功:', registration.scope);
                     })

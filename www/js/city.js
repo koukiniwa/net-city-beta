@@ -222,8 +222,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 固定ルームの定義
     const permanentRooms = [
         // 雑談カテゴリ（順番を入れ替え、広場をフリートークに変更）
-        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
         { id: 'plaza', name: 'フリートーク', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
+        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
         // 相談カテゴリ
         { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
         { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },

@@ -131,36 +131,61 @@ body {
     letter-spacing: 2px;
 }
 
-/* 入力欄 */
-.entry-form input {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1rem;
-    background: rgba(0, 0, 0, 0.5); /* 半透明の黒 */
-    border: 2px solid rgba(0, 255, 255, 0.3); /* ネオンブルーの枠 */
-    border-radius: 10px;
-    color: #ffffff; /* 白い文字 */
-    outline: none; /* クリック時の枠を消す */
-    transition: all 0.3s ease; /* スムーズな変化 */
+/* 番号表示エリア */
+.number-display-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 }
 
-/* 入力欄にフォーカスした時 */
-.entry-form input:focus {
-    border-color: #00ffff; /* 枠の色を明るく */
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* 光るエフェクト */
+/* 番号バッジ */
+.number-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid #00ffff;
+    border-radius: 15px;
+    padding: 20px 40px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    animation: badgeGlow 2s ease-in-out infinite;
 }
 
-/* プレースホルダー（入力前の薄い文字）の色 */
-.entry-form input::placeholder {
-    color: #666666;
+@keyframes badgeGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+    }
 }
 
-/* エラーメッセージ */
-.error-message {
-    color: #ff3366; /* 赤色 */
-    font-size: 0.9rem;
-    margin-top: 10px;
-    min-height: 20px; /* 高さを確保（表示されない時も） */
+/* 番号プレフィックス（No.） */
+.number-prefix {
+    font-size: 1.5rem;
+    color: #00ffff;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* 番号の値 */
+.number-value {
+    font-size: 3rem;
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* 番号の説明文 */
+.number-info {
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #888888;
+    text-align: center;
 }
 
 /* ========================================
