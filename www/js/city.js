@@ -225,19 +225,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             selectedCategory = e.target.dataset.category;
             console.log('カテゴリ切り替え:', selectedCategory);
 
-            // そのカテゴリーのセクションまでスクロール
-            isScrolling = true;
-            const targetHeader = document.querySelector(`.category-section-header[data-category="${selectedCategory}"]`);
-            if (targetHeader) {
-                roomListView.scrollTo({
-                    top: targetHeader.offsetTop - 10,
-                    behavior: 'smooth'
-                });
-            }
+            // ルームカードを更新（フィルタリングを適用）
+            updateRoomCards(roomsCache);
 
-            setTimeout(() => {
-                isScrolling = false;
-            }, 500);
+            // スクロール位置をトップに戻す
+            roomListView.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
     });
 
