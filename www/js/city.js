@@ -2195,10 +2195,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // スクロール連動でルーム自動切り替え（ヤフーニュース風）
     // ========================================
 
-    let scrollTimeout = null;
-    let isAutoSwitching = false; // 自動切り替え中フラグ
-
     // スクロール連動機能を一時的に無効化
+    // let scrollTimeout = null;
+    // let isAutoSwitching = false; // 自動切り替え中フラグ
+
     // roomTabs.addEventListener('scroll', () => {
     //     // デバウンス処理（スクロール終了後に実行）
     //     clearTimeout(scrollTimeout);
