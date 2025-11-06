@@ -489,18 +489,6 @@ body {
     padding-bottom: 100px;
 }
 
-.category-section-header {
-    padding: 16px 20px 12px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    background: var(--bg-primary);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    border-bottom: 1px solid var(--card-border);
-}
-
 .room-card {
     background: var(--card-bg);
     border-radius: 0;
