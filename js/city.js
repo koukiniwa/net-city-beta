@@ -2345,6 +2345,168 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, { passive: true });
 
     // ========================================
+    // 話題提案機能
+    // ========================================
+
+    const topicButton = document.getElementById('topicButton');
+    let topicModal = null; // モーダル要素（動的生成）
+
+    // 話題ボタンクリック
+    if (topicButton) {
+        topicButton.addEventListener('click', async () => {
+            await showTopicModal();
+        });
+    }
+
+    /**
+     * 話題モーダルを表示
+     */
+    async function showTopicModal() {
+        // モーダルが既に存在する場合は削除
+        if (topicModal) {
+            topicModal.remove();
+        }
+
+        // モーダルを作成
+        topicModal = document.createElement('div');
+        topicModal.className = 'topic-modal';
+        topicModal.innerHTML = `
+            <div class="topic-modal-content">
+                <div class="topic-modal-header">
+                    <div class="topic-modal-title">💬 話題を選択</div>
+                    <button class="topic-close-btn" id="topicCloseBtn">✕</button>
+                </div>
+                <div class="topic-loading">
+                    <div class="topic-loading-spinner"></div>
+                    <p>話題を準備中...</p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(topicModal);
+
+        // アニメーション用に少し遅延してactiveクラスを追加
+        setTimeout(() => {
+            topicModal.classList.add('active');
+        }, 10);
+
+        // 閉じるボタン
+        const closeBtn = topicModal.querySelector('#topicCloseBtn');
+        closeBtn.addEventListener('click', closeTopicModal);
+
+        // モーダル外クリックで閉じる
+        topicModal.addEventListener('click', (e) => {
+            if (e.target === topicModal) {
+                closeTopicModal();
+            }
+        });
+
+        // 話題を取得して表示
+        try {
+            let topics = [];
+
+            // 時事カテゴリの場合はニュースを取得（50%の確率）
+            if (currentRoom && currentRoom.category === 'news' && Math.random() > 0.5) {
+                console.log('📰 ニュース話題を取得中...');
+                const newsTopics = await getNewsTopics();
+                topics = newsTopics.slice(0, 3);
+            } else {
+                // 通常の話題を取得
+                const category = currentRoom ? currentRoom.category : 'chat';
+                topics = getRandomTopics(category);
+            }
+
+            // 話題オプションを表示
+            const content = topicModal.querySelector('.topic-modal-content');
+            const loadingDiv = content.querySelector('.topic-loading');
+            loadingDiv.remove();
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'topic-options';
+
+            topics.forEach((topic, index) => {
+                const option = document.createElement('div');
+                option.className = 'topic-option';
+
+                // ニュースの場合はバッジを追加
+                const isNews = topic.startsWith('📰');
+
+                option.innerHTML = `
+                    <div class="topic-option-number">${index + 1}️⃣</div>
+                    <div class="topic-option-text">${topic.replace('📰 ', '')}</div>
+                    ${isNews ? '<span class="topic-news-badge">NEWS</span>' : ''}
+                `;
+
+                option.addEventListener('click', () => {
+                    postTopicToChat(topic.replace('📰 ', ''));
+                    closeTopicModal();
+                });
+
+                optionsDiv.appendChild(option);
+            });
+
+            content.appendChild(optionsDiv);
+
+        } catch (error) {
+            console.error('話題取得エラー:', error);
+            const content = topicModal.querySelector('.topic-modal-content');
+            content.innerHTML = `
+                <div class="topic-modal-header">
+                    <div class="topic-modal-title">💬 話題を選択</div>
+                    <button class="topic-close-btn" id="topicCloseBtn2">✕</button>
+                </div>
+                <div class="topic-loading">
+                    <p>⚠️ 話題の取得に失敗しました</p>
+                    <p style="font-size: 0.9rem; margin-top: 10px;">もう一度お試しください</p>
+                </div>
+            `;
+            const closeBtn2 = content.querySelector('#topicCloseBtn2');
+            closeBtn2.addEventListener('click', closeTopicModal);
+        }
+    }
+
+    /**
+     * 話題モーダルを閉じる
+     */
+    function closeTopicModal() {
+        if (topicModal) {
+            topicModal.classList.remove('active');
+            setTimeout(() => {
+                if (topicModal) {
+                    topicModal.remove();
+                    topicModal = null;
+                }
+            }, 300);
+        }
+    }
+
+    /**
+     * 話題をチャットに投稿
+     * @param {string} topic - 話題テキスト
+     */
+    function postTopicToChat(topic) {
+        if (!currentRoomId || !database) {
+            console.error('ルームが選択されていません');
+            return;
+        }
+
+        const messagesRef = ref(database, `rooms/${currentRoomId}/messages`);
+
+        push(messagesRef, {
+            userId: 'SYSTEM',
+            userNumber: 0,
+            displayNumber: '💬',
+            message: `【話題】${topic}`,
+            timestamp: Date.now(),
+            isTopic: true
+        }).then(() => {
+            console.log('✅ 話題を投稿しました:', topic);
+        }).catch((error) => {
+            console.error('❌ 話題投稿エラー:', error);
+        });
+    }
+
+    // ========================================
     // 初期化
     // ========================================
 

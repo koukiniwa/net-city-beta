@@ -137,6 +137,9 @@
                 <div class="chat-room-users">
                     <span class="user-count" id="chatUserCount">0人</span>
                 </div>
+                <button class="topic-button" id="topicButton" aria-label="話題を提案" title="話題を提案">
+                    💬
+                </button>
             </div>
 
             <!-- メッセージ表示エリア -->
@@ -230,8 +233,11 @@
         </div>
     </div>
 
+    <!-- 話題データベースを読み込み -->
+    <script src="js/topics.js?v=1"></script>
+
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="js/city.js?v=13"></script>
+    <script type="module" src="js/city.js?v=14"></script>
 
     <!-- Service Worker 登録 -->
     <script>
