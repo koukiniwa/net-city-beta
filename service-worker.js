@@ -3,7 +3,7 @@
 // オフライン対応とキャッシュ管理
 // ========================================
 
-const CACHE_NAME = 'net-city-v1';
+const CACHE_NAME = 'net-city-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -70,6 +70,14 @@ self.addEventListener('fetch', (event) => {
       event.request.url.includes('googleapis.com') ||
       event.request.url.includes('gstatic.com')) {
     return; // Firebaseは常にネットワークから取得
+  }
+
+  // バージョンパラメータ付きのリクエスト（?v=XXX）は常にネットワークから取得
+  if (event.request.url.includes('?v=')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
   }
 
   event.respondWith(

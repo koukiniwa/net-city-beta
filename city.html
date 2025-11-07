@@ -234,15 +234,15 @@
     </div>
 
     <!-- 話題データベースを読み込み -->
-    <script src="js/topics.js?v=1"></script>
+    <script src="js/topics.js?v=100"></script>
 
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="js/city.js?v=14"></script>
+    <script type="module" src="js/city.js?v=100"></script>
 
-    <!-- Service Worker 登録 -->
+    <!-- Service Worker 登録（一時的に無効化） -->
     <script>
         // Service Worker がサポートされているかチェック
-        if ('serviceWorker' in navigator) {
+        if (false && 'serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then((registration) => {

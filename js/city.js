@@ -2404,16 +2404,27 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 話題を取得して表示
         try {
             let topics = [];
+            let category = 'chat'; // デフォルトカテゴリ
 
-            // 時事カテゴリの場合はニュースを取得（50%の確率）
-            if (currentRoom && currentRoom.category === 'news' && Math.random() > 0.5) {
-                console.log('📰 ニュース話題を取得中...');
-                const newsTopics = await getNewsTopics();
-                topics = newsTopics.slice(0, 3);
-            } else {
-                // 通常の話題を取得
-                const category = currentRoom ? currentRoom.category : 'chat';
-                topics = getRandomTopics(category);
+            // 現在のルーム情報を取得
+            if (currentRoomId) {
+                const roomSnapshot = await get(ref(database, `rooms/${currentRoomId}`));
+                if (roomSnapshot.exists()) {
+                    const currentRoom = roomSnapshot.val();
+                    category = currentRoom.category || 'chat';
+
+                    // 時事カテゴリの場合はニュースを取得（50%の確率）
+                    if (category === 'news' && Math.random() > 0.5) {
+                        console.log('📰 ニュース話題を取得中...');
+                        const newsTopics = await window.getNewsTopics();
+                        topics = newsTopics.slice(0, 3);
+                    }
+                }
+            }
+
+            // ニュースが取得されなかった場合は通常の話題を取得
+            if (topics.length === 0) {
+                topics = window.getRandomTopics(category);
             }
 
             // 話題オプションを表示

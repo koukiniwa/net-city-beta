@@ -7,7 +7,17 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "scripts/**",
+      "android/**",
+      "ios/**",
+      "resources/**",
+      "*.md",
+      "*.log",
+      "package.json",
+      "package-lock.json",
+      "capacitor.config.ts",
+      "assets.config.json"
     ],
     "headers": [
       {
