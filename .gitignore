@@ -39,3 +39,9 @@ ios/App/build/
 
 # Capacitor
 .capacitor/
+www/
+
+# Backup files
+*.bak
+*コピー*
+* - コピー*

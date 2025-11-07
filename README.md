@@ -45,21 +45,29 @@ NET CITY βは、ブラウザで動くリアルタイムチャットアプリケ
 
 ```
 net-city-beta/
-├── www/                      # Webアプリ（アプリ版のソース）
-│   ├── index.html           # 入場画面
-│   ├── city.html            # チャット画面
-│   ├── css/                 # スタイルシート
-│   ├── js/                  # JavaScript
-│   ├── privacy.html         # プライバシーポリシー
-│   └── manifest.json        # PWAマニフェスト
+├── index.html                # 入場画面
+├── city.html                 # チャット画面
+├── css/                      # スタイルシート
+├── js/                       # JavaScript
+├── icons/                    # アプリアイコン
+├── privacy.html              # プライバシーポリシー
+├── manifest.json             # PWAマニフェスト
+├── service-worker.js         # Service Worker
+├── docs/                     # ドキュメント
+│   ├── development/         # 開発ガイド
+│   ├── deployment/          # デプロイガイド
+│   ├── marketing/           # マーケティングガイド
+│   └── specifications/      # 仕様書
+├── scripts/                  # ビルドスクリプト
+├── tools/                    # 管理ツール
 ├── android/                  # Androidネイティブプロジェクト
 ├── ios/                      # iOSネイティブプロジェクト
+├── www/                      # Capacitorビルド出力（自動生成）
 ├── resources/                # アイコン・スプラッシュ画像
-├── capacitor.config.json     # Capacitor設定
+├── capacitor.config.ts       # Capacitor設定
 ├── package.json              # npm設定
-├── APP_STORE_PUBLISHING.md   # App Store公開ガイド
-├── APP_STORE_CHECKLIST.md    # 公開チェックリスト
-└── README.md                 # このファイル
+├── README.md                 # このファイル
+└── SECURITY.md               # セキュリティポリシー
 ```
 
 ## 🔧 開発環境のセットアップ
@@ -72,7 +80,7 @@ git clone https://github.com/koukiniwa/net-city-beta.git
 # フォルダに移動
 cd net-city-beta
 
-# www/index.htmlをブラウザで開く
+# index.htmlをブラウザで開く
 # （Live Serverなどの拡張機能を使うと便利です）
 ```
 
@@ -94,9 +102,9 @@ npm run open:android
 ```
 
 詳細は以下のドキュメントを参照:
-- [アプリビルドガイド](./CAPACITOR_BUILD.md)
-- [App Store公開ガイド](./APP_STORE_PUBLISHING.md)
-- [公開チェックリスト](./APP_STORE_CHECKLIST.md)
+- [アプリビルドガイド](./docs/development/CAPACITOR_BUILD.md)
+- [App Store公開ガイド](./docs/deployment/APP_STORE_PUBLISHING.md)
+- [公開チェックリスト](./docs/deployment/APP_STORE_CHECKLIST.md)
 
 ## 🎨 機能
 
