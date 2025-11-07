@@ -4,9 +4,10 @@
   "description": "**みんながつながる仮想の街 - リアルタイムチャットアプリ**",
   "main": "service-worker.js",
   "scripts": {
-    "sync": "npx cap sync",
-    "sync:android": "npx cap sync android",
-    "sync:ios": "npx cap sync ios",
+    "build:www": "bash scripts/build-www.sh",
+    "sync": "npm run build:www && npx cap sync",
+    "sync:android": "npm run build:www && npx cap sync android",
+    "sync:ios": "npm run build:www && npx cap sync ios",
     "open:android": "npx cap open android",
     "open:ios": "npx cap open ios",
     "build": "npm run sync",
@@ -15,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://koukiniwa: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@github.com/koukiniwa/net-city-beta.git"
+    "url": "git+https://github.com/koukiniwa/net-city-beta.git"
   },
   "keywords": [],
   "author": "",

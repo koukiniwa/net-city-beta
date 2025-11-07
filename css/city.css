@@ -133,16 +133,6 @@ body {
     transition: background 0.3s ease;
 }
 
-/* 街のスカイラインは非表示（シンプルデザインのため） */
-.city-skyline {
-    display: none;
-}
-
-/* 建物は非表示 */
-.building {
-    display: none;
-}
-
 /* ========================================
    ヘッダー（上部のバー）
    ======================================== */
@@ -193,19 +183,19 @@ body {
 .hamburger-menu span {
     width: 24px;
     height: 3px;
-    background: var(--text-secondary);
+    background: #1976d2; /* 送信ボタンと同じ青 */
     border-radius: 2px;
     transition: all 0.3s ease;
 }
 
 .hamburger-menu:hover span {
-    background: var(--accent-light);
+    background: #1565c0; /* ホバー時は少し濃い青 */
 }
 
 .city-title {
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--text-secondary); /* 落ち着いた青 */
+    color: #1976d2; /* 送信ボタンと同じ青 */
     letter-spacing: 2px;
 }
 
@@ -728,6 +718,24 @@ body {
     color: #757575;
     padding: 40px 20px;
     line-height: 1.8;
+}
+
+/* エラーメッセージ */
+.error-message {
+    text-align: center;
+    color: #ff5252;
+    background-color: rgba(255, 82, 82, 0.1);
+    border: 1px solid rgba(255, 82, 82, 0.3);
+    border-radius: 10px;
+    padding: 40px 20px;
+    margin: 40px 20px;
+    line-height: 1.8;
+}
+
+.error-message p:first-child {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 /* ========================================
@@ -1742,6 +1750,12 @@ body.neon-mode .online-count {
 /* ネオンモード：メッセージ */
 body.neon-mode .welcome-message {
     color: #666666;
+}
+
+body.neon-mode .error-message {
+    color: #ff6b6b;
+    background-color: rgba(255, 82, 82, 0.15);
+    border-color: rgba(255, 82, 82, 0.4);
 }
 
 body.neon-mode .message-username {

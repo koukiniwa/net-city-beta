@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
     let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
     let isScrolling = false; // スクロール中フラグ（グローバルで管理）
+    let isAutoSwitching = false; // 自動切り替え中フラグ（ルームタブのスクロール制御用）
 
     // ユニークなユーザーIDを生成（タイムスタンプ + ランダム値）
     // localStorageから取得、なければ新規生成して保存
@@ -805,10 +806,23 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // ユーザー情報を登録
             console.log('👤 ユーザー情報を登録中...', { userId, userNumber, displayNumber });
+
+            // データベースが初期化されているか確認
+            if (!database) {
+                throw new Error('Firebaseデータベースが初期化されていません');
+            }
+
             const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
+
+            // ユーザー番号のバリデーション
+            const parsedUserNumber = parseInt(userNumber);
+            if (isNaN(parsedUserNumber)) {
+                throw new Error('無効なユーザー番号です');
+            }
+
             await set(userRef, {
                 userId: userId,  // セキュリティルールでチェック用
-                userNumber: parseInt(userNumber),  // 数値型に変換
+                userNumber: parsedUserNumber,  // 数値型に変換
                 displayNumber: displayNumber,
                 joinedAt: Date.now(),
                 lastActive: Date.now()
@@ -851,19 +865,41 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log(`ルーム「${roomId}」に入室しました`);
 
         } catch (error) {
-            console.error('ルーム入室エラー:', error);
+            console.error('❌ ルーム入室エラー:', error);
             console.error('エラー詳細:', {
                 message: error.message,
                 code: error.code,
-                stack: error.stack
+                name: error.name,
+                stack: error.stack,
+                roomId: roomId,
+                userId: userId,
+                userNumber: userNumber
             });
-            // エラーメッセージを詳細に表示（デバッグ用）
-            alert(`ルームへの入室に失敗しました\n\nエラー: ${error.message || error.code || '不明なエラー'}`);
+
             // エラー時もフェードインして画面を戻す
             messagesArea.classList.remove('fade-out');
             messagesArea.classList.add('fade-in');
             inputArea.classList.remove('fade-out');
             inputArea.classList.add('fade-in');
+
+            // 特定のエラーの場合は詳細メッセージを表示
+            let errorText = 'ルームへの入室中に問題が発生しました';
+            if (error.message.includes('Firebaseデータベース')) {
+                errorText = 'データベース接続に問題があります';
+            } else if (error.message.includes('無効なユーザー番号')) {
+                errorText = 'ユーザー番号に問題があります';
+            } else if (error.code === 'PERMISSION_DENIED') {
+                errorText = 'このルームへのアクセス権限がありません';
+            }
+
+            // ユーザーフレンドリーなエラーメッセージを表示
+            messagesArea.innerHTML = `
+                <div class="error-message">
+                    <p>⚠️ ${errorText}</p>
+                    <p>もう一度お試しください</p>
+                    <p class="error-debug" style="font-size: 0.8rem; color: #999; margin-top: 10px;">エラーコード: ${error.code || error.name || '不明'}</p>
+                </div>
+            `;
         }
     }
 
@@ -1736,28 +1772,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ルーム作成モーダルの処理
     // ========================================
 
-    // 絵文字選択の処理
-    emojiSelector.addEventListener('click', (e) => {
-        if (e.target.classList.contains('emoji-option')) {
-            // 既存の選択を解除
-            document.querySelectorAll('.emoji-option').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            // 新しい選択を設定
-            e.target.classList.add('selected');
-            selectedEmoji = e.target.dataset.emoji;
-        }
-    });
+    // 絵文字選択の処理を削除（絵文字は固定で💬を使用）
+    // emojiSelector要素が存在しない場合のエラーを防ぐ
+    if (emojiSelector) {
+        console.log('絵文字セレクターは使用しません（固定: 💬）');
+    }
 
     // ルーム作成ボタンをクリック
     createRoomBtn.addEventListener('click', () => {
-        // デフォルト絵文字を選択状態にする
-        document.querySelectorAll('.emoji-option').forEach(btn => {
-            btn.classList.remove('selected');
-            if (btn.dataset.emoji === '💬') {
-                btn.classList.add('selected');
-            }
-        });
+        // デフォルト絵文字を固定
         selectedEmoji = '💬';
         // モーダルを表示
         createRoomModal.style.display = 'flex';
@@ -1798,10 +1821,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             return { valid: false, error: '説明は50文字以内で入力してください' };
         }
 
-        // 絵文字のバリデーション
-        if (!emoji || emoji.length === 0) {
-            return { valid: false, error: '絵文字を選択してください' };
-        }
+        // 絵文字は固定値 '💬' を使用（バリデーション不要）
 
         // 最大人数のバリデーション
         const validMaxUsers = [10, 20, 30, 50];
