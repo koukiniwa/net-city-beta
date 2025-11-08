@@ -2354,6 +2354,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 話題ボタンクリック
     if (topicButton) {
         topicButton.addEventListener('click', async () => {
+            console.log('🔍 Topic button clicked');
+            console.log('🔍 Current room ID:', currentRoomId);
             await showTopicModal();
         });
     }
@@ -2362,6 +2364,15 @@ document.addEventListener('DOMContentLoaded', async function() {
      * 話題モーダルを表示
      */
     async function showTopicModal() {
+        console.log('🔍 showTopicModal called');
+        console.log('🔍 currentRoomId in showTopicModal:', currentRoomId);
+
+        // ルームに入っていない場合はエラー表示
+        if (!currentRoomId) {
+            alert('⚠️ ルームを選択してから話題を提案してください');
+            return;
+        }
+
         // モーダルが既に存在する場合は削除
         if (topicModal) {
             topicModal.remove();
@@ -2449,7 +2460,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 `;
 
                 option.addEventListener('click', () => {
-                    postTopicToChat(topic.replace('📰 ', ''));
+                    console.log('🔍 Topic option clicked:', topic);
+                    const cleanTopic = topic.replace('📰 ', '');
+                    console.log('🔍 Clean topic:', cleanTopic);
+                    postTopicToChat(cleanTopic);
                     closeTopicModal();
                 });
 
@@ -2496,25 +2510,35 @@ document.addEventListener('DOMContentLoaded', async function() {
      * @param {string} topic - 話題テキスト
      */
     function postTopicToChat(topic) {
+        console.log('🔍 postTopicToChat called with topic:', topic);
+        console.log('🔍 currentRoomId:', currentRoomId);
+        console.log('🔍 database:', database);
+
         if (!currentRoomId || !database) {
-            console.error('ルームが選択されていません');
+            console.error('❌ ルームが選択されていません - currentRoomId:', currentRoomId, 'database:', database);
             return;
         }
 
-        const messagesRef = ref(database, `rooms/${currentRoomId}/messages`);
+        const messagesRef = ref(database, `roomMessages/${currentRoomId}`);
+        console.log('🔍 messagesRef created:', messagesRef);
 
-        push(messagesRef, {
+        const messageData = {
             userId: 'SYSTEM',
             userNumber: 0,
             displayNumber: '💬',
-            message: `【話題】${topic}`,
+            text: `【話題】${topic}`,
             timestamp: Date.now(),
             isTopic: true
-        }).then(() => {
-            console.log('✅ 話題を投稿しました:', topic);
-        }).catch((error) => {
-            console.error('❌ 話題投稿エラー:', error);
-        });
+        };
+        console.log('🔍 Message data to push:', messageData);
+
+        push(messagesRef, messageData)
+            .then(() => {
+                console.log('✅ 話題を投稿しました:', topic);
+            }).catch((error) => {
+                console.error('❌ 話題投稿エラー:', error);
+                console.error('❌ Error details:', error.message, error.code);
+            });
     }
 
     // ========================================
