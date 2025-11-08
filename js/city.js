@@ -275,11 +275,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         { id: 'plaza', name: '広場', emoji: '🏠', category: 'main', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
         { id: 'free_talk', name: 'フリートーク', emoji: '💬', category: 'main', description: '気軽におしゃべりできる場所', maxUsers: 50 },
         // 趣味カテゴリ
-        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'hobby', description: '音楽やアニメについて語ろう', maxUsers: 50 },
-        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'hobby', description: 'ゲーム好き集まれ！', maxUsers: 50 },
+        { id: 'hobby_talk', name: '趣味を語ろう', emoji: '🎨', category: 'hobby', description: '趣味について自由に語り合おう', maxUsers: 50 },
         // 相談カテゴリ
-        { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
-        { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },
+        { id: 'consultation_room', name: '相談聞きます', emoji: '🤝', category: 'consultation', description: '悩みや相談、なんでも聞きます', maxUsers: 50 },
         // 夜カテゴリ
         { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'night', description: '夜更かしさん集まれ', maxUsers: 50 },
         { id: 'midnight_cafe', name: '深夜カフェ', emoji: '☕', category: 'night', description: '眠れない夜に', maxUsers: 50 },
