@@ -4,8 +4,8 @@
  */
 
 const topicsDatabase = {
-    // 雑談カテゴリ
-    chat: {
+    // メインカテゴリ
+    main: {
         light: [
             '最近観た映画やドラマで面白かったものは？',
             '好きな食べ物や飲み物を教えて！',
@@ -47,41 +47,27 @@ const topicsDatabase = {
         '成功体験を共有しよう！'
     ],
 
-    // 恋愛カテゴリ
-    love: [
-        '理想のデートプランは？',
-        '恋愛で大切にしていることは？',
-        '忘れられない恋の思い出は？',
-        '告白されたらどう返事する？',
-        '理想の恋人像を教えて！',
-        '初恋はいつ？どんな人？',
-        '恋愛の悩みはある？',
-        'ドキッとする瞬間は？',
-        'プレゼントは何をもらったら嬉しい？',
-        '遠距離恋愛はできる？'
+    // 夜カテゴリ
+    night: [
+        '今日一日どうだった？',
+        '眠れない夜はどう過ごす？',
+        '夜に聴きたい音楽は？',
+        '深夜に食べたくなるものは？',
+        '明日の予定は？',
+        '今日あった良いことは？',
+        '夜更かしする理由は？',
+        '夜に考えてしまうことは？',
+        '深夜のテンションで後悔したことは？',
+        '理想の夜の過ごし方は？'
     ],
 
-    // 時事カテゴリ（ニュース以外の話題）
+    // ニュースカテゴリ（時事）
     news: [
         '最近気になったニュースは？',
         '今の社会で変わってほしいことは？',
         '未来はどうなっていると思う？',
         '今年の重大ニュースは何だと思う？',
         '技術の進歩で期待していることは？'
-    ],
-
-    // 人生カテゴリ
-    life: [
-        '人生で大切にしていることは？',
-        '今の人生に満足してる？',
-        '将来の夢や目標は？',
-        '後悔していることはある？',
-        '人生のモットーは？',
-        '幸せを感じる瞬間は？',
-        '自分を一言で表すと？',
-        '人生で学んだ大切なことは？',
-        '尊敬する人物は誰？',
-        '自分の強みは何だと思う？'
     ],
 
     // 趣味カテゴリ
@@ -190,13 +176,13 @@ function getRandomTopics(category) {
 
     // カテゴリに応じた話題を取得
     let categoryTopics = [];
-    if (category === 'chat') {
-        // 雑談は軽め8割、深め2割
-        const lightTopics = topicsDatabase.chat.light;
-        const deepTopics = topicsDatabase.chat.deep;
+    if (category === 'main') {
+        // メインは軽め8割、深め2割
+        const lightTopics = topicsDatabase.main.light;
+        const deepTopics = topicsDatabase.main.deep;
         categoryTopics = [...lightTopics, ...lightTopics, ...deepTopics]; // 軽め多め
     } else {
-        categoryTopics = topicsDatabase[category] || topicsDatabase.chat.light;
+        categoryTopics = topicsDatabase[category] || topicsDatabase.main.light;
     }
 
     // 季節の話題を追加

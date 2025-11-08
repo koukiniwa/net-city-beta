@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // ルームデータのキャッシュ
     let roomsCache = {};
-    let selectedEmoji = '💬'; // 選択された絵文字（デフォルト）
-    let selectedCategory = 'chat'; // 選択されたカテゴリ（デフォルト：雑談）
+    let selectedEmoji = '🏠'; // 選択された絵文字（デフォルト）
+    let selectedCategory = 'main'; // 選択されたカテゴリ（デフォルト：メイン）
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
     let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
     let isScrolling = false; // スクロール中フラグ（グローバルで管理）
@@ -271,24 +271,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 固定ルームの定義
     const permanentRooms = [
-        // 雑談カテゴリ
-        { id: 'plaza', name: 'フリートーク', emoji: '🏠', category: 'chat', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
-        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'chat', description: '夜更かしさん集まれ', maxUsers: 50 },
+        // メインカテゴリ
+        { id: 'plaza', name: '広場', emoji: '🏠', category: 'main', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
+        { id: 'free_talk', name: 'フリートーク', emoji: '💬', category: 'main', description: '気軽におしゃべりできる場所', maxUsers: 50 },
+        // 趣味カテゴリ
+        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'hobby', description: '音楽やアニメについて語ろう', maxUsers: 50 },
+        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'hobby', description: 'ゲーム好き集まれ！', maxUsers: 50 },
         // 相談カテゴリ
         { id: 'consultation_room', name: '心の相談室', emoji: '💭', category: 'consultation', description: '悩みを相談できる場所', maxUsers: 50 },
         { id: 'complaint_room', name: '愚痴聞きます', emoji: '😤', category: 'consultation', description: '愚痴を吐き出してスッキリ', maxUsers: 50 },
-        // 恋愛カテゴリ
-        { id: 'love_talk', name: '恋バナルーム', emoji: '💕', category: 'love', description: '恋愛トークで盛り上がろう', maxUsers: 50 },
-        { id: 'heartbreak_cafe', name: '失恋カフェ', emoji: '💔', category: 'love', description: '失恋の傷を癒す場所', maxUsers: 50 },
-        // 時事カテゴリ
+        // 夜カテゴリ
+        { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'night', description: '夜更かしさん集まれ', maxUsers: 50 },
+        { id: 'midnight_cafe', name: '深夜カフェ', emoji: '☕', category: 'night', description: '眠れない夜に', maxUsers: 50 },
+        // ニュースカテゴリ
         { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
-        { id: 'sports_news', name: 'スポーツニュース', emoji: '⚽', category: 'news', description: 'スポーツの話題で盛り上がろう', maxUsers: 50 },
-        // 人生カテゴリ
-        { id: 'life_talk', name: '人生トーク', emoji: '🌱', category: 'life', description: '人生について語り合おう', maxUsers: 50 },
-        { id: 'self_reflection', name: '自分を見つめる', emoji: '🪞', category: 'life', description: '自分自身と向き合う場所', maxUsers: 50 },
-        // 趣味カテゴリ
-        { id: 'music_anime', name: '音楽/アニメ', emoji: '🎵', category: 'hobby', description: '音楽やアニメについて語ろう', maxUsers: 50 },
-        { id: 'game_talk', name: 'ゲームトーク', emoji: '🎮', category: 'hobby', description: 'ゲーム好き集まれ！', maxUsers: 50 }
+        { id: 'world_news', name: '世界のニュース', emoji: '🌍', category: 'news', description: '世界の出来事を語ろう', maxUsers: 50 }
     ];
 
     // ルームの初期化
@@ -2410,14 +2407,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 話題を取得して表示
         try {
             let topics = [];
-            let category = 'chat'; // デフォルトカテゴリ
+            let category = 'main'; // デフォルトカテゴリ
 
             // 現在のルーム情報を取得
             if (currentRoomId) {
                 const roomSnapshot = await get(ref(database, `rooms/${currentRoomId}`));
                 if (roomSnapshot.exists()) {
                     const currentRoom = roomSnapshot.val();
-                    category = currentRoom.category || 'chat';
+                    category = currentRoom.category || 'main';
 
                     // 時事カテゴリの場合はニュースを取得（50%の確率）
                     if (category === 'news' && Math.random() > 0.5) {
