@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     ${room.description ? `<div class="room-card-description">${room.description}</div>` : ''}
                 </div>
                 <div class="room-card-side">
-                    <div class="room-card-users">${currentUsers}人</div>
+                    <div class="room-card-users">${currentUsers}/${maxUsers}</div>
                 </div>
             </div>
         `;
