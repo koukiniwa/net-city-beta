@@ -273,14 +273,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     const permanentRooms = [
         // メインカテゴリ
         { id: 'plaza', name: '広場', emoji: '🏠', category: 'main', description: 'みんなで自由に雑談しよう', maxUsers: 50 },
-        { id: 'free_talk', name: 'フリートーク', emoji: '💬', category: 'main', description: '気軽におしゃべりできる場所', maxUsers: 50 },
         // 趣味カテゴリ
         { id: 'hobby_talk', name: '趣味を語ろう', emoji: '🎨', category: 'hobby', description: '趣味について自由に語り合おう', maxUsers: 50 },
         // 相談カテゴリ
         { id: 'consultation_room', name: '相談聞きます', emoji: '🤝', category: 'consultation', description: '悩みや相談、なんでも聞きます', maxUsers: 50 },
         // 夜カテゴリ
         { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'night', description: '夜更かしさん集まれ', maxUsers: 50 },
-        { id: 'midnight_cafe', name: '深夜カフェ', emoji: '☕', category: 'night', description: '眠れない夜に', maxUsers: 50 },
         // ニュースカテゴリ
         { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
         { id: 'world_news', name: '世界のニュース', emoji: '🌍', category: 'news', description: '世界の出来事を語ろう', maxUsers: 50 }

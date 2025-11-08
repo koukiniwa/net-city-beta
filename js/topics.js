@@ -209,30 +209,84 @@ async function getNewsTopics() {
         const RSS_URL = 'https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja';
 
         // RSSをフェッチ（CORS対策でプロキシ使用）
-        const PROXY_URL = 'https://api.allorigins.win/raw?url=';
-        const response = await fetch(PROXY_URL + encodeURIComponent(RSS_URL));
-        const text = await response.text();
+        // 複数のプロキシを試す
+        const PROXY_URLS = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+
+        let response = null;
+        let text = null;
+
+        // プロキシを順番に試す
+        for (const PROXY_URL of PROXY_URLS) {
+            try {
+                console.log(`📡 プロキシ試行: ${PROXY_URL}`);
+
+                // タイムアウト設定（5秒）
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                response = await fetch(PROXY_URL + encodeURIComponent(RSS_URL), {
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    text = await response.text();
+                    console.log(`✅ プロキシ成功: ${PROXY_URL}`);
+                    break;
+                }
+            } catch (proxyError) {
+                console.warn(`⚠️ プロキシ失敗: ${PROXY_URL}`, proxyError);
+                continue;
+            }
+        }
+
+        if (!text) {
+            throw new Error('全てのプロキシで失敗しました');
+        }
 
         // XMLをパース
         const parser = new DOMParser();
         const xml = parser.parseFromString(text, 'text/xml');
 
+        // パースエラーをチェック
+        const parseError = xml.querySelector('parsererror');
+        if (parseError) {
+            console.error('XMLパースエラー:', parseError.textContent);
+            throw new Error('XMLのパースに失敗しました');
+        }
+
         // ニュースアイテムを取得
         const items = xml.querySelectorAll('item');
+        console.log(`📰 取得したニュース数: ${items.length}`);
+
         const news = [];
 
         // 上位5件のニュースを取得
         for (let i = 0; i < Math.min(5, items.length); i++) {
             const title = items[i].querySelector('title')?.textContent;
             if (title) {
-                news.push(`📰 ${title}`);
+                // CDATAセクションやHTMLタグを除去
+                const cleanTitle = title.replace(/<!\[CDATA\[|\]\]>|<[^>]+>/g, '').trim();
+                if (cleanTitle) {
+                    news.push(`📰 ${cleanTitle}`);
+                }
             }
         }
 
-        return news.length > 0 ? news : ['ニュースの取得に失敗しました'];
+        if (news.length > 0) {
+            console.log(`✅ ニュース取得成功: ${news.length}件`);
+            return news;
+        } else {
+            console.warn('⚠️ ニュースが見つかりませんでした');
+            return topicsDatabase.news;
+        }
 
     } catch (error) {
-        console.error('ニュース取得エラー:', error);
+        console.error('❌ ニュース取得エラー:', error);
         // エラー時はデフォルトの話題を返す
         return topicsDatabase.news;
     }
