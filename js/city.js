@@ -284,11 +284,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         { id: 'world_news', name: '世界のニュース', emoji: '🌍', category: 'news', description: '世界の出来事を語ろう', maxUsers: 50 }
     ];
 
+    // 削除すべき古いルームのID
+    const deprecatedRooms = [
+        'free_talk',
+        'midnight_cafe',
+        'complaint_room',
+        'love_talk',
+        'heartbreak_cafe',
+        'music_anime',
+        'game_talk'
+    ];
+
     // ルームの初期化
     async function initializeRooms() {
         try {
             console.log('🚀 ルーム初期化開始...');
             console.log('固定ルーム定義:', permanentRooms);
+
+            // まず古いルームを削除
+            console.log('🗑️ 古いルームを削除中...');
+            let deletedCount = 0;
+            for (const roomId of deprecatedRooms) {
+                try {
+                    const roomRef = ref(database, `rooms/${roomId}`);
+                    const snapshot = await get(roomRef);
+                    if (snapshot.exists()) {
+                        await set(roomRef, null);
+                        console.log(`✅ ${roomId} を削除しました`);
+                        deletedCount++;
+                    }
+                } catch (deleteError) {
+                    console.error(`❌ ${roomId} の削除エラー:`, deleteError);
+                }
+            }
+            console.log(`📊 削除完了: ${deletedCount}件`);
 
             // 固定ルームを全て作成または確認
             let createdCount = 0;

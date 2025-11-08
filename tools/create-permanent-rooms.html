@@ -103,58 +103,43 @@
 
         // 固定ルームの定義
         const permanentRooms = [
-            // 雑談カテゴリ
+            // メインカテゴリ
             {
                 id: 'plaza',
                 name: '広場',
                 emoji: '🏠',
-                category: 'chat',
+                category: 'main',
                 description: 'みんなで自由に雑談しよう',
                 maxUsers: 50
             },
+            // 趣味カテゴリ
             {
-                id: 'night_talk',
-                name: '夜のひとりごと',
-                emoji: '🌙',
-                category: 'chat',
-                description: '夜更かしさん集まれ',
+                id: 'hobby_talk',
+                name: '趣味を語ろう',
+                emoji: '🎨',
+                category: 'hobby',
+                description: '趣味について自由に語り合おう',
                 maxUsers: 50
             },
             // 相談カテゴリ
             {
                 id: 'consultation_room',
-                name: '心の相談室',
-                emoji: '💭',
+                name: '相談聞きます',
+                emoji: '🤝',
                 category: 'consultation',
-                description: '悩みを相談できる場所',
+                description: '悩みや相談、なんでも聞きます',
                 maxUsers: 50
             },
+            // 夜カテゴリ
             {
-                id: 'complaint_room',
-                name: '愚痴聞きます',
-                emoji: '😤',
-                category: 'consultation',
-                description: '愚痴を吐き出してスッキリ',
+                id: 'night_talk',
+                name: '夜のひとりごと',
+                emoji: '🌙',
+                category: 'night',
+                description: '夜更かしさん集まれ',
                 maxUsers: 50
             },
-            // 恋愛カテゴリ
-            {
-                id: 'love_talk',
-                name: '恋バナルーム',
-                emoji: '💕',
-                category: 'love',
-                description: '恋愛トークで盛り上がろう',
-                maxUsers: 50
-            },
-            {
-                id: 'heartbreak_cafe',
-                name: '失恋カフェ',
-                emoji: '💔',
-                category: 'love',
-                description: '失恋の傷を癒す場所',
-                maxUsers: 50
-            },
-            // 時事カテゴリ
+            // ニュースカテゴリ
             {
                 id: 'current_topics',
                 name: '今の話題',
@@ -163,23 +148,25 @@
                 description: '最新ニュースについて語ろう',
                 maxUsers: 50
             },
-            // 人生カテゴリ
             {
-                id: 'music_anime',
-                name: '音楽/アニメ',
-                emoji: '🎵',
-                category: 'life',
-                description: '音楽やアニメについて語ろう',
-                maxUsers: 50
-            },
-            {
-                id: 'game_talk',
-                name: 'ゲームトーク',
-                emoji: '🎮',
-                category: 'life',
-                description: 'ゲーム好き集まれ！',
+                id: 'world_news',
+                name: '世界のニュース',
+                emoji: '🌍',
+                category: 'news',
+                description: '世界の出来事を語ろう',
                 maxUsers: 50
             }
+        ];
+
+        // 削除すべき古いルームのID
+        const deprecatedRooms = [
+            'free_talk',
+            'midnight_cafe',
+            'complaint_room',
+            'love_talk',
+            'heartbreak_cafe',
+            'music_anime',
+            'game_talk'
         ];
 
         async function createPermanentRooms() {
@@ -187,6 +174,22 @@
             addLog('固定ルームの作成を開始します...', 'info');
 
             try {
+                // まず古いルームを削除
+                addLog('--- 古いルームを削除中 ---', 'info');
+                for (const roomId of deprecatedRooms) {
+                    const roomRef = ref(database, `rooms/${roomId}`);
+                    const snapshot = await get(roomRef);
+
+                    if (snapshot.exists()) {
+                        await set(roomRef, null); // 削除
+                        addLog(`✓ ${roomId} を削除しました`, 'success');
+                    } else {
+                        addLog(`${roomId} は存在しません（スキップ）`, 'info');
+                    }
+                }
+
+                // 新しいルームを作成
+                addLog('--- 固定ルームを作成中 ---', 'info');
                 for (const room of permanentRooms) {
                     const roomRef = ref(database, `rooms/${room.id}`);
 
@@ -217,7 +220,7 @@
                     addLog(`✓ ${room.name} を作成しました（カテゴリ: ${room.category}）`, 'success');
                 }
 
-                addLog('===== 全ての固定ルームの作成が完了しました！ =====', 'success');
+                addLog('===== 全ての処理が完了しました！ =====', 'success');
 
             } catch (error) {
                 addLog(`エラーが発生しました: ${error.message}`, 'error');
