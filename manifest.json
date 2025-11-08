@@ -62,7 +62,7 @@
       "name": "チャットに入る",
       "short_name": "チャット",
       "description": "すぐにチャットを開始",
-      "url": "./city.html"
+      "url": "./html/city.html"
     }
   ]
 }

@@ -7,7 +7,7 @@ const CACHE_NAME = 'net-city-v2';
 const urlsToCache = [
   './',
   './index.html',
-  './city.html',
+  './html/city.html',
   './css/index.css',
   './css/city.css',
   './js/index.js',

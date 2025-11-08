@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedUserNumber = localStorage.getItem('netcity_userNumber');
     if (savedUserNumber) {
         console.log(`既存のユーザー番号「${savedUserNumber}」として自動入場します`);
-        window.location.href = 'city.html';
+        window.location.href = 'html/city.html';
         return; // ここで処理を終了
     }
 
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`番号 ${userNumber} で入場します`);
 
         // city.htmlへ移動
-        window.location.href = 'city.html';
+        window.location.href = 'html/city.html';
     }
 
     // ========================================

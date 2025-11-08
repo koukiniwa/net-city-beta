@@ -12,8 +12,7 @@ echo "📦 ファイルをコピー中..."
 
 # HTML ファイル
 cp index.html www/
-cp city.html www/
-cp privacy.html www/
+cp -r html/ www/html/
 
 # CSS ディレクトリ
 cp -r css/ www/css/
