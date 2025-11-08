@@ -219,6 +219,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             // クリックされたタブにactiveクラスを追加
             e.target.classList.add('active');
 
+            // タブを表示エリアにスクロール
+            e.target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+
             // インジケーターを更新
             updateCategoryIndicator();
 
