@@ -348,7 +348,26 @@ document.addEventListener('DOMContentLoaded', async function() {
                         console.log(`✅ ${room.name}の作成完了`);
                         createdCount++;
                     } else {
-                        console.log(`📋 ${room.name}(${room.category})は既に存在します`);
+                        // 既存のルームのカテゴリを更新（古いカテゴリ名の場合に対応）
+                        const existingRoom = roomSnapshot.val();
+                        if (existingRoom.category !== room.category ||
+                            existingRoom.name !== room.name ||
+                            existingRoom.description !== room.description) {
+                            console.log(`🔄 ${room.name}のデータを更新します (${existingRoom.category} → ${room.category})`);
+                            const updatedData = {
+                                ...existingRoom,
+                                name: room.name,
+                                emoji: room.emoji,
+                                category: room.category,
+                                description: room.description,
+                                maxUsers: room.maxUsers,
+                                isPermanent: true
+                            };
+                            await set(roomRef, updatedData);
+                            console.log(`✅ ${room.name}の更新完了`);
+                        } else {
+                            console.log(`📋 ${room.name}(${room.category})は既に存在します`);
+                        }
                         existingCount++;
                     }
                 } catch (roomError) {

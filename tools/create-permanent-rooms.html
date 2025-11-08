@@ -194,7 +194,26 @@
                     const snapshot = await get(roomRef);
 
                     if (snapshot.exists()) {
-                        addLog(`${room.name} は既に存在します（スキップ）`, 'info');
+                        // 既存のルームのカテゴリを更新
+                        const existingRoom = snapshot.val();
+                        if (existingRoom.category !== room.category ||
+                            existingRoom.name !== room.name ||
+                            existingRoom.description !== room.description) {
+                            addLog(`${room.name} のデータを更新します (${existingRoom.category} → ${room.category})`, 'info');
+                            const updatedData = {
+                                ...existingRoom,
+                                name: room.name,
+                                emoji: room.emoji,
+                                category: room.category,
+                                description: room.description,
+                                maxUsers: room.maxUsers,
+                                isPermanent: true
+                            };
+                            await set(roomRef, updatedData);
+                            addLog(`✓ ${room.name} を更新しました`, 'success');
+                        } else {
+                            addLog(`${room.name} は既に最新です（スキップ）`, 'info');
+                        }
                         continue;
                     }
 
