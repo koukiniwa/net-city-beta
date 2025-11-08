@@ -284,37 +284,36 @@ document.addEventListener('DOMContentLoaded', async function() {
         { id: 'world_news', name: '世界のニュース', emoji: '🌍', category: 'news', description: '世界の出来事を語ろう', maxUsers: 50 }
     ];
 
-    // 削除すべき古いルームのID
-    const deprecatedRooms = [
-        'free_talk',
-        'midnight_cafe',
-        'complaint_room',
-        'love_talk',
-        'heartbreak_cafe',
-        'music_anime',
-        'game_talk'
-    ];
+    // 固定ルームのIDリスト
+    const permanentRoomIds = permanentRooms.map(r => r.id);
 
     // ルームの初期化
     async function initializeRooms() {
         try {
             console.log('🚀 ルーム初期化開始...');
             console.log('固定ルーム定義:', permanentRooms);
+            console.log('固定ルームID:', permanentRoomIds);
 
-            // まず古いルームを削除
-            console.log('🗑️ 古いルームを削除中...');
+            // 固定ルーム以外の全ルームを削除
+            console.log('🗑️ 固定ルーム以外を削除中...');
+            const allRoomsRef = ref(database, 'rooms');
+            const allRoomsSnapshot = await get(allRoomsRef);
+
             let deletedCount = 0;
-            for (const roomId of deprecatedRooms) {
-                try {
-                    const roomRef = ref(database, `rooms/${roomId}`);
-                    const snapshot = await get(roomRef);
-                    if (snapshot.exists()) {
-                        await set(roomRef, null);
-                        console.log(`✅ ${roomId} を削除しました`);
-                        deletedCount++;
+            if (allRoomsSnapshot.exists()) {
+                const allRooms = allRoomsSnapshot.val();
+                for (const roomId in allRooms) {
+                    // 固定ルームでない場合は削除
+                    if (!permanentRoomIds.includes(roomId)) {
+                        try {
+                            const roomRef = ref(database, `rooms/${roomId}`);
+                            await set(roomRef, null);
+                            console.log(`✅ ${roomId} (${allRooms[roomId].name || 'unknown'}) を削除しました`);
+                            deletedCount++;
+                        } catch (deleteError) {
+                            console.error(`❌ ${roomId} の削除エラー:`, deleteError);
+                        }
                     }
-                } catch (deleteError) {
-                    console.error(`❌ ${roomId} の削除エラー:`, deleteError);
                 }
             }
             console.log(`📊 削除完了: ${deletedCount}件`);

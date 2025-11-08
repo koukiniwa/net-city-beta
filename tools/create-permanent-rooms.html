@@ -158,35 +158,32 @@
             }
         ];
 
-        // 削除すべき古いルームのID
-        const deprecatedRooms = [
-            'free_talk',
-            'midnight_cafe',
-            'complaint_room',
-            'love_talk',
-            'heartbreak_cafe',
-            'music_anime',
-            'game_talk'
-        ];
+        // 固定ルームのIDリスト
+        const permanentRoomIds = permanentRooms.map(r => r.id);
 
         async function createPermanentRooms() {
             createBtn.disabled = true;
             addLog('固定ルームの作成を開始します...', 'info');
 
             try {
-                // まず古いルームを削除
-                addLog('--- 古いルームを削除中 ---', 'info');
-                for (const roomId of deprecatedRooms) {
-                    const roomRef = ref(database, `rooms/${roomId}`);
-                    const snapshot = await get(roomRef);
+                // 固定ルーム以外の全ルームを削除
+                addLog('--- 固定ルーム以外を削除中 ---', 'info');
+                const allRoomsRef = ref(database, 'rooms');
+                const allRoomsSnapshot = await get(allRoomsRef);
 
-                    if (snapshot.exists()) {
-                        await set(roomRef, null); // 削除
-                        addLog(`✓ ${roomId} を削除しました`, 'success');
-                    } else {
-                        addLog(`${roomId} は存在しません（スキップ）`, 'info');
+                let deletedCount = 0;
+                if (allRoomsSnapshot.exists()) {
+                    const allRooms = allRoomsSnapshot.val();
+                    for (const roomId in allRooms) {
+                        if (!permanentRoomIds.includes(roomId)) {
+                            const roomRef = ref(database, `rooms/${roomId}`);
+                            await set(roomRef, null);
+                            addLog(`✓ ${roomId} (${allRooms[roomId].name || 'unknown'}) を削除しました`, 'success');
+                            deletedCount++;
+                        }
                     }
                 }
+                addLog(`削除完了: ${deletedCount}件`, 'info');
 
                 // 新しいルームを作成
                 addLog('--- 固定ルームを作成中 ---', 'info');
