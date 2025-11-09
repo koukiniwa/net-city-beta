@@ -488,7 +488,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 各ルームのカードを作成
         if (roomArray.length > 0) {
             console.log(`🎨 ${roomArray.length}個のカードを作成開始`);
+            let hasPermanentRooms = false;
+            let hasCreatedRooms = false;
+            let dividerInserted = false;
+
             roomArray.forEach((room, index) => {
+                // 固定ルームから作成ルームに切り替わるタイミングで区切り線を挿入
+                if (room.isPermanent) {
+                    hasPermanentRooms = true;
+                } else {
+                    hasCreatedRooms = true;
+                    if (hasPermanentRooms && !dividerInserted) {
+                        // 区切り線を挿入
+                        const divider = document.createElement('div');
+                        divider.className = 'room-divider';
+                        roomCardsContainer.appendChild(divider);
+                        dividerInserted = true;
+                    }
+                }
+
                 const card = createRoomCard(room);
                 roomCardsContainer.appendChild(card);
             });
