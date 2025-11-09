@@ -71,7 +71,7 @@ exports.sendMessage = onCall(
                 userId: userId,
                 userNumber: parseInt(userNumber),
                 displayNumber: displayNumber,
-                text: sanitizedText, // メッセージ内容も保存
+                text: text, // メッセージ内容も保存
                 ipAddress: ipAddress,
                 timestamp: admin.firestore.FieldValue.serverTimestamp(),
                 timestampMs: timestamp,
