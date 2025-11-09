@@ -2665,7 +2665,7 @@ body.neon-mode .menu-divider {
     width: 100%;
     height: 2px;
     background: #1976d2;
-    margin: 20px 0;
+    margin: 0;
 }
 
 body.dark-mode .room-divider {
