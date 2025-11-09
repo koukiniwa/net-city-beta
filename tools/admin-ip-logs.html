@@ -236,6 +236,7 @@
                         <th>IPアドレス</th>
                         <th>ユーザー</th>
                         <th>ルームID</th>
+                        <th>メッセージ内容</th>
                         <th>メッセージID</th>
                         <th>投稿日時</th>
                         <th>有効期限</th>
@@ -339,6 +340,7 @@
                         <td><span class="ip-address">${log.ipAddress}</span></td>
                         <td><span class="user-number">${log.displayNumber}</span></td>
                         <td><span class="room-id">${log.roomId}</span></td>
+                        <td style="max-width: 300px; word-wrap: break-word;">${log.text || '（メッセージなし）'}</td>
                         <td style="font-family: monospace; font-size: 12px;">${log.messageId.substring(0, 12)}...</td>
                         <td class="timestamp">${timestamp.toLocaleString('ja-JP')}</td>
                         <td class="timestamp">${expires.toLocaleDateString('ja-JP')}</td>

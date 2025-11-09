@@ -3,8 +3,10 @@
  * IPアドレス記録機能
  */
 
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const {onRequest, onCall} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
+const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
 
 // Firebase Admin SDKの初期化
 admin.initializeApp();
@@ -16,88 +18,94 @@ const database = admin.database();
 
 /**
  * メッセージ投稿API（IPアドレス記録付き）
- *
- * HTTPSトリガー関数
- * フロントエンドから呼び出され、メッセージをRealtime DBに保存し、IPをFirestoreに記録
+ * リージョン: asia-northeast1 (東京)
  */
-exports.sendMessage = functions.https.onCall(async (data, context) => {
-    try {
-        // リクエストの検証
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', 'ユーザー認証が必要です');
+exports.sendMessage = onCall(
+    { region: 'asia-northeast1' },
+    async (request) => {
+        try {
+            // リクエストの検証
+            if (!request.auth) {
+                throw new Error('ユーザー認証が必要です');
+            }
+
+            // データの検証
+            const { roomId, userId, userNumber, displayNumber, text } = request.data;
+
+            if (!roomId || !userId || !text) {
+                throw new Error('必須パラメータが不足しています');
+            }
+
+            // テキストの長さチェック
+            if (text.length > 500) {
+                throw new Error('メッセージは500文字以内で入力してください');
+            }
+
+            // IPアドレスを取得
+            const ipAddress = request.rawRequest.ip ||
+                request.rawRequest.headers['x-forwarded-for'] ||
+                request.rawRequest.connection?.remoteAddress ||
+                'unknown';
+
+            // タイムスタンプ
+            const timestamp = Date.now();
+
+            // Realtime Databaseにメッセージを保存
+            const messageRef = database.ref(`roomMessages/${roomId}`).push();
+            const messageId = messageRef.key;
+
+            const messageData = {
+                userId: userId,
+                userNumber: parseInt(userNumber),
+                displayNumber: displayNumber,
+                text: text,
+                timestamp: timestamp
+            };
+
+            await messageRef.set(messageData);
+
+            // FirestoreにIPログを保存（管理者のみアクセス可能）
+            await firestore.collection('ipLogs').add({
+                messageId: messageId,
+                roomId: roomId,
+                userId: userId,
+                userNumber: parseInt(userNumber),
+                displayNumber: displayNumber,
+                text: sanitizedText, // メッセージ内容も保存
+                ipAddress: ipAddress,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                timestampMs: timestamp,
+                // 1年後に削除（自動削除用）
+                expiresAt: admin.firestore.Timestamp.fromMillis(timestamp + (365 * 24 * 60 * 60 * 1000))
+            });
+
+            logger.info(`メッセージ送信完了: ${messageId}, IP: ${ipAddress}`);
+
+            return {
+                success: true,
+                messageId: messageId,
+                timestamp: timestamp
+            };
+
+        } catch (error) {
+            logger.error('メッセージ送信エラー:', error);
+            throw error;
         }
-
-        // データの検証
-        const { roomId, userId, userNumber, displayNumber, text } = data;
-
-        if (!roomId || !userId || !text) {
-            throw new functions.https.HttpsError('invalid-argument', '必須パラメータが不足しています');
-        }
-
-        // テキストの長さチェック
-        if (text.length > 500) {
-            throw new functions.https.HttpsError('invalid-argument', 'メッセージは500文字以内で入力してください');
-        }
-
-        // IPアドレスを取得
-        const ipAddress = context.rawRequest.ip ||
-                         context.rawRequest.headers['x-forwarded-for'] ||
-                         context.rawRequest.connection.remoteAddress ||
-                         'unknown';
-
-        // タイムスタンプ
-        const timestamp = Date.now();
-
-        // Realtime Databaseにメッセージを保存
-        const messageRef = database.ref(`roomMessages/${roomId}`).push();
-        const messageId = messageRef.key;
-
-        const messageData = {
-            userId: userId,
-            userNumber: parseInt(userNumber),
-            displayNumber: displayNumber,
-            text: text,
-            timestamp: timestamp
-        };
-
-        await messageRef.set(messageData);
-
-        // FirestoreにIPログを保存（管理者のみアクセス可能）
-        await firestore.collection('ipLogs').add({
-            messageId: messageId,
-            roomId: roomId,
-            userId: userId,
-            userNumber: parseInt(userNumber),
-            displayNumber: displayNumber,
-            ipAddress: ipAddress,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            timestampMs: timestamp,
-            // 1年後に削除（自動削除用）
-            expiresAt: admin.firestore.Timestamp.fromMillis(timestamp + (365 * 24 * 60 * 60 * 1000))
-        });
-
-        console.log(`メッセージ送信完了: ${messageId}, IP: ${ipAddress}`);
-
-        return {
-            success: true,
-            messageId: messageId,
-            timestamp: timestamp
-        };
-
-    } catch (error) {
-        console.error('メッセージ送信エラー:', error);
-        throw new functions.https.HttpsError('internal', error.message);
     }
-});
+);
 
 /**
  * 古いIPログを削除する定期実行関数
  * 毎日午前3時（JST）に実行
+ * リージョン: asia-northeast1 (東京)
  */
-exports.cleanupOldIpLogs = functions.pubsub
-    .schedule('0 3 * * *')
-    .timeZone('Asia/Tokyo')
-    .onRun(async (context) => {
+exports.cleanupOldIpLogs = onSchedule(
+    {
+        schedule: '0 3 * * *',
+        timeZone: 'Asia/Tokyo',
+        region: 'asia-northeast1'
+    },
+    async (event) => {
         try {
             const now = admin.firestore.Timestamp.now();
 
@@ -110,7 +118,7 @@ exports.cleanupOldIpLogs = functions.pubsub
             const snapshot = await expiredLogsQuery.get();
 
             if (snapshot.empty) {
-                console.log('削除対象のIPログはありません');
+                logger.info('削除対象のIPログはありません');
                 return null;
             }
 
@@ -121,56 +129,61 @@ exports.cleanupOldIpLogs = functions.pubsub
             });
 
             await batch.commit();
-            console.log(`${snapshot.size}件のIPログを削除しました`);
+            logger.info(`${snapshot.size}件のIPログを削除しました`);
 
             return null;
         } catch (error) {
-            console.error('IPログ削除エラー:', error);
+            logger.error('IPログ削除エラー:', error);
             return null;
         }
-    });
+    }
+);
 
 /**
  * 管理者用：IPログ取得API
  * 管理者のみアクセス可能
+ * リージョン: asia-northeast1 (東京)
  */
-exports.getIpLogs = functions.https.onCall(async (data, context) => {
-    try {
-        // 管理者チェック（カスタムクレームで実装を想定）
-        if (!context.auth || !context.auth.token.admin) {
-            throw new functions.https.HttpsError('permission-denied', '管理者権限が必要です');
-        }
+exports.getIpLogs = onCall(
+    { region: 'asia-northeast1' },
+    async (request) => {
+        try {
+            // 管理者チェック（カスタムクレームで実装を想定）
+            if (!request.auth || !request.auth.token.admin) {
+                throw new Error('管理者権限が必要です');
+            }
 
-        const { roomId, userId, limit = 100 } = data;
+            const { roomId, userId, limit = 100 } = request.data;
 
-        let query = firestore.collection('ipLogs').orderBy('timestampMs', 'desc').limit(limit);
+            let query = firestore.collection('ipLogs').orderBy('timestampMs', 'desc').limit(limit);
 
-        // フィルタリング
-        if (roomId) {
-            query = query.where('roomId', '==', roomId);
-        }
-        if (userId) {
-            query = query.where('userId', '==', userId);
-        }
+            // フィルタリング
+            if (roomId) {
+                query = query.where('roomId', '==', roomId);
+            }
+            if (userId) {
+                query = query.where('userId', '==', userId);
+            }
 
-        const snapshot = await query.get();
-        const logs = [];
+            const snapshot = await query.get();
+            const logs = [];
 
-        snapshot.forEach((doc) => {
-            logs.push({
-                id: doc.id,
-                ...doc.data()
+            snapshot.forEach((doc) => {
+                logs.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
             });
-        });
 
-        return {
-            success: true,
-            logs: logs,
-            count: logs.length
-        };
+            return {
+                success: true,
+                logs: logs,
+                count: logs.length
+            };
 
-    } catch (error) {
-        console.error('IPログ取得エラー:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        } catch (error) {
+            logger.error('IPログ取得エラー:', error);
+            throw error;
+        }
     }
-});
+);
