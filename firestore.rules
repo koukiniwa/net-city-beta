@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // IPログコレクション - 管理者のみアクセス可能
+    match /ipLogs/{logId} {
+      // 読み取り：管理者のみ
+      allow read: if request.auth != null && request.auth.token.admin == true;
+
+      // 書き込み：誰も直接書き込めない（Cloud Functionのみ）
+      allow write: if false;
+    }
+
+    // デフォルト：すべて拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

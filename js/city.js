@@ -4,6 +4,7 @@
 
 // Firebase SDKから必要な機能をインポート
 import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestamp, onValue, onDisconnect, set, remove, query, orderByChild, limitToLast, endAt, get, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
 
 // ========================================
 // 初期化処理
@@ -104,6 +105,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const database = window.firebaseDatabase; // city.htmlで初期化したデータベース
     const storage = window.firebaseStorage; // city.htmlで初期化したストレージ
+    const functions = window.firebaseFunctions; // city.htmlで初期化したFunctions
 
     // ルーム機能用の参照
     const roomsRef = ref(database, 'rooms'); // 全ルーム情報
@@ -1128,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ========================================
     // メッセージを送信する関数
     // ========================================
-    function sendMessage() {
+    async function sendMessage() {
         // 入力されたメッセージを取得（前後の空白を削除）
         const messageText = messageInput.value.trim();
 
@@ -1140,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // ルームに入室していない場合は送信しない
-        if (!messagesRef) {
+        if (!currentRoomId) {
             console.error('ルームに入室していません');
             alert('ルームに入室してからメッセージを送信してください。');
             return;
@@ -1149,33 +1151,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         // サニタイズ（XSS対策）
         const sanitizedText = sanitizeInput(messageText);
 
-        // Firebaseに送信するデータ
-        const messageData = {
-            userId: userId,               // 送信者の固有ID（識別用）
-            userNumber: parseInt(userNumber), // 送信者の番号（表示用、数値型に変換）
-            displayNumber: displayNumber, // 表示用番号（No.XX）
-            text: sanitizedText,          // サニタイズ済みメッセージ本文
-            timestamp: serverTimestamp() // サーバーの時刻（自動で設定）
-        };
-
-        // Firebaseにデータを送信（push = 新しいデータを追加）
-        push(messagesRef, messageData)
-            .then(() => {
-                // 送信成功
-                console.log('メッセージを送信しました');
-                messageInput.value = ''; // 入力欄をクリア
-                messageInput.style.height = 'auto'; // 高さをリセット
-
-                // コメント履歴を記録
-                if (currentRoomId) {
-                    saveRecentlyCommentedRoom(currentRoomId);
-                }
-            })
-            .catch((error) => {
-                // 送信失敗
-                console.error('送信エラー:', error);
-                alert('メッセージの送信に失敗しました。もう一度お試しください。');
+        try {
+            // Cloud Functionを呼び出してメッセージを送信（IPアドレスも記録される）
+            const sendMessageFunc = httpsCallable(functions, 'sendMessage');
+            const result = await sendMessageFunc({
+                roomId: currentRoomId,
+                userId: userId,
+                userNumber: parseInt(userNumber),
+                displayNumber: displayNumber,
+                text: sanitizedText
             });
+
+            console.log('メッセージを送信しました:', result.data);
+            messageInput.value = ''; // 入力欄をクリア
+            messageInput.style.height = 'auto'; // 高さをリセット
+
+            // コメント履歴を記録
+            if (currentRoomId) {
+                saveRecentlyCommentedRoom(currentRoomId);
+            }
+        } catch (error) {
+            console.error('送信エラー:', error);
+            alert('メッセージの送信に失敗しました。もう一度お試しください。');
+        }
     }
 
     // ========================================

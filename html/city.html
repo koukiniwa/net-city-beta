@@ -170,6 +170,8 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
         import { getStorage } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+        import { getFunctions, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
         // Firebaseの設定
         const firebaseConfig = {
@@ -186,11 +188,20 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const storage = getStorage(app);
+        const functions = getFunctions(app, 'asia-northeast1'); // 東京リージョン
+        const auth = getAuth(app);
+
+        // 匿名認証（Cloud Functions呼び出しに必要）
+        signInAnonymously(auth).catch((error) => {
+            console.error('匿名認証エラー:', error);
+        });
 
         // グローバルに公開（city.jsで使う）
         window.firebaseApp = app;
         window.firebaseDatabase = database;
         window.firebaseStorage = storage;
+        window.firebaseFunctions = functions;
+        window.firebaseAuth = auth;
     </script>
 
     <!-- ルーム作成モーダル -->

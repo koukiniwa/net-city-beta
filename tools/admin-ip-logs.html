@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPログ管理画面 - NET CITY β</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls input, .controls select, .controls button {
+            padding: 10px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .controls input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .controls button:hover {
+            background: #5568d3;
+        }
+
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px 30px;
+            background: #e7f3ff;
+            border-bottom: 1px solid #b3d9ff;
+            color: #004085;
+            font-size: 14px;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border-bottom-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border-bottom-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .user-number {
+            background: #e7f3ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .timestamp {
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-data svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .room-id {
+            font-family: 'Courier New', monospace;
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 IPログ管理画面</h1>
+            <p>NET CITY β - 管理者専用ページ</p>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="roomIdFilter" placeholder="ルームIDでフィルター (例: plaza)">
+            <input type="text" id="userIdFilter" placeholder="ユーザーIDでフィルター">
+            <select id="limitSelect">
+                <option value="50">50件</option>
+                <option value="100" selected>100件</option>
+                <option value="200">200件</option>
+                <option value="500">500件</option>
+            </select>
+            <button id="loadLogsBtn">ログを読み込む</button>
+        </div>
+
+        <div id="statusDiv" class="status" style="display: none;"></div>
+
+        <div class="table-container">
+            <div id="loadingDiv" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>読み込み中...</p>
+            </div>
+
+            <div id="noDataDiv" class="no-data" style="display: none;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p>ログがありません</p>
+            </div>
+
+            <table id="logsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>IPアドレス</th>
+                        <th>ユーザー</th>
+                        <th>ルームID</th>
+                        <th>メッセージID</th>
+                        <th>投稿日時</th>
+                        <th>有効期限</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
+
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyBv2rtsWPL8AHqnlXlRKfMkXptAvV7QBWM",
+            authDomain: "net-city-beta.firebaseapp.com",
+            databaseURL: "https://net-city-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "net-city-beta",
+            storageBucket: "net-city-beta.firebasestorage.app",
+            messagingSenderId: "134573205357",
+            appId: "1:134573205357:web:59080845633bf5e39b9c64"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app, 'asia-northeast1');
+
+        const loadLogsBtn = document.getElementById('loadLogsBtn');
+        const statusDiv = document.getElementById('statusDiv');
+        const loadingDiv = document.getElementById('loadingDiv');
+        const noDataDiv = document.getElementById('noDataDiv');
+        const logsTable = document.getElementById('logsTable');
+        const logsTableBody = document.getElementById('logsTableBody');
+
+        // 管理者認証（初回のみ）
+        async function adminLogin() {
+            const email = prompt('管理者メールアドレスを入力してください:');
+            if (!email) return false;
+
+            const password = prompt('パスワードを入力してください:');
+            if (!password) return false;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showStatus('✅ ログインに成功しました', 'success');
+                return true;
+            } catch (error) {
+                showStatus(`❌ ログインエラー: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // ステータス表示
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        // IPログを読み込む
+        async function loadIpLogs() {
+            if (!auth.currentUser) {
+                const loggedIn = await adminLogin();
+                if (!loggedIn) return;
+            }
+
+            loadLogsBtn.disabled = true;
+            loadingDiv.style.display = 'block';
+            noDataDiv.style.display = 'none';
+            logsTable.style.display = 'none';
+
+            try {
+                const roomId = document.getElementById('roomIdFilter').value.trim();
+                const userId = document.getElementById('userIdFilter').value.trim();
+                const limit = parseInt(document.getElementById('limitSelect').value);
+
+                const getIpLogsFunc = httpsCallable(functions, 'getIpLogs');
+                const result = await getIpLogsFunc({ roomId, userId, limit });
+
+                const logs = result.data.logs;
+
+                if (logs.length === 0) {
+                    loadingDiv.style.display = 'none';
+                    noDataDiv.style.display = 'block';
+                    showStatus(`ログが見つかりませんでした（フィルター: ${roomId || 'なし'}）`, 'info');
+                    return;
+                }
+
+                // テーブルを表示
+                logsTableBody.innerHTML = '';
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    const timestamp = log.timestamp ? new Date(log.timestamp.seconds * 1000) : new Date(log.timestampMs);
+                    const expires = log.expiresAt ? new Date(log.expiresAt.seconds * 1000) : new Date(log.timestampMs + 365 * 24 * 60 * 60 * 1000);
+
+                    row.innerHTML = `
+                        <td><span class="ip-address">${log.ipAddress}</span></td>
+                        <td><span class="user-number">${log.displayNumber}</span></td>
+                        <td><span class="room-id">${log.roomId}</span></td>
+                        <td style="font-family: monospace; font-size: 12px;">${log.messageId.substring(0, 12)}...</td>
+                        <td class="timestamp">${timestamp.toLocaleString('ja-JP')}</td>
+                        <td class="timestamp">${expires.toLocaleDateString('ja-JP')}</td>
+                    `;
+                    logsTableBody.appendChild(row);
+                });
+
+                loadingDiv.style.display = 'none';
+                logsTable.style.display = 'table';
+                showStatus(`✅ ${logs.length}件のログを読み込みました`, 'success');
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                showStatus(`❌ エラー: ${error.message}`, 'error');
+                console.error('IPログ取得エラー:', error);
+            } finally {
+                loadLogsBtn.disabled = false;
+            }
+        }
+
+        loadLogsBtn.addEventListener('click', loadIpLogs);
+
+        // 初回表示メッセージ
+        showStatus('「ログを読み込む」ボタンをクリックしてください', 'info');
+    </script>
+</body>
+</html>
