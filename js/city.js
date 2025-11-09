@@ -289,8 +289,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 夜カテゴリ
         { id: 'night_talk', name: '夜のひとりごと', emoji: '🌙', category: 'night', description: '夜更かしさん集まれ', maxUsers: 50 },
         // ニュースカテゴリ
-        { id: 'current_topics', name: '今の話題', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 },
-        { id: 'world_news', name: '世界のニュース', emoji: '🌍', category: 'news', description: '世界の出来事を語ろう', maxUsers: 50 }
+        { id: 'current_topics', name: 'ニュース談義', emoji: '📰', category: 'news', description: '最新ニュースについて語ろう', maxUsers: 50 }
     ];
 
     // 固定ルームのIDリスト
