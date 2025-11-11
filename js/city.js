@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=319');
+    await loadScript('../js/topics.js?v=320');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=319');
+    await loadScript('../js/favorites.js?v=320');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=319');
+    await loadScript('../js/myrooms.js?v=320');
     myroomsLoaded = true;
 }
 
@@ -2790,6 +2790,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('⚡ 固定ルームを即座に表示');
     displayPermanentRoomsImmediately();
 
+    // ルーム表示完了後にスプラッシュを消す
+    requestAnimationFrame(() => {
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            splashScreen.classList.add('fade-out');
+            setTimeout(() => {
+                splashScreen.remove();
+            }, 500);
+        }
+    });
+
     // ルーム機能を初期化（バックグラウンドで実行）
     console.log('🔄 バックグラウンドでFirebase同期開始');
     initializeRooms().catch(err => {
@@ -2823,21 +2834,5 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     });
-
-    // ========================================
-    // スプラッシュスクリーン非表示
-    // ========================================
-
-    // 初期化完了後、スプラッシュスクリーンを非表示
-    setTimeout(() => {
-        const splashScreen = document.getElementById('splashScreen');
-        if (splashScreen) {
-            splashScreen.classList.add('fade-out');
-            // アニメーション完了後に要素を削除
-            setTimeout(() => {
-                splashScreen.remove();
-            }, 500);
-        }
-    }, 300); // 最低0.3秒は表示（早く表示できるようになった）
 
 });
