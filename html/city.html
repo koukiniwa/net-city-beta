@@ -4,7 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>NET CITY β - チャット中</title>
+    <!-- Google Search Console 確認 -->
+    <meta name="google-site-verification" content="R-37DIzIsv_WBHjQmrpy6C9A9uInkC3y-meK7I5-Dmg" />
+
+    <!-- SEO対策 -->
+    <meta name="description" content="NET CITY β - リアルタイムチャットアプリ。カテゴリ別のルームで自由に会話を楽しもう。趣味、相談、ニュース、深夜の雑談など様々なトピックで交流できます。">
+    <meta name="keywords" content="チャット,リアルタイムチャット,匿名チャット,雑談,趣味,相談,ニュース,NET CITY">
+    <meta name="author" content="NET CITY">
+    <meta name="robots" content="index, follow">
+
+    <!-- OGP（Open Graph Protocol）- SNSシェア用 -->
+    <meta property="og:title" content="NET CITY β - リアルタイムチャットアプリ">
+    <meta property="og:description" content="カテゴリ別のルームで自由に会話を楽しもう。趣味、相談、ニュース、深夜の雑談など様々なトピックで交流できます。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://net-city-beta.web.app">
+    <meta property="og:image" content="https://net-city-beta.web.app/icons/icon-512.webp">
+    <meta property="og:site_name" content="NET CITY β">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NET CITY β - リアルタイムチャットアプリ">
+    <meta name="twitter:description" content="カテゴリ別のルームで自由に会話を楽しもう">
+    <meta name="twitter:image" content="https://net-city-beta.web.app/icons/icon-512.webp">
+
+    <!-- キャッシュを完全に無効化 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>NET CITY β - リアルタイムチャットアプリ | カテゴリ別ルームで交流</title>
 
     <!-- PWA対応 -->
     <meta name="theme-color" content="#00ffff">
@@ -21,7 +49,10 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=10">
+    <link rel="stylesheet" href="../css/city.css?v=315">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <!-- 街の背景 -->
@@ -33,12 +64,10 @@
     <!-- ヘッダー（上部のバー） -->
     <header class="header">
         <div class="header-left">
-            <button class="hamburger-menu" id="hamburgerMenu" aria-label="メニューを開く">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="settings-menu" id="hamburgerMenu" aria-label="設定を開く">
+                <i class="fa-solid fa-gear"></i>
             </button>
-            <h1 class="city-title">NET CITY β</h1>
+            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v316</span></h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
@@ -53,24 +82,24 @@
         </div>
         <div class="sidebar-content">
             <div class="menu-item" id="editNumberMenu">
-                <span class="menu-icon">🔢</span>
+                <span class="menu-icon"><i class="fa-solid fa-hashtag"></i></span>
                 <span class="menu-text">番号を変更</span>
             </div>
             <div class="menu-item" id="clearCacheMenu">
-                <span class="menu-icon">🗑️</span>
+                <span class="menu-icon"><i class="fa-solid fa-trash"></i></span>
                 <span class="menu-text">キャッシュをクリア</span>
             </div>
             <div class="menu-section">
                 <h3>テーマ</h3>
                 <div class="menu-item theme-option" id="lightMode">
-                    <span class="menu-icon">☀️</span>
+                    <span class="menu-icon"><i class="fa-solid fa-sun"></i></span>
                     <span class="menu-text">ライトモード</span>
-                    <span class="checkmark">✓</span>
+                    <span class="checkmark"><i class="fa-solid fa-check"></i></span>
                 </div>
                 <div class="menu-item theme-option" id="neonMode">
-                    <span class="menu-icon">🌙</span>
+                    <span class="menu-icon"><i class="fa-solid fa-moon"></i></span>
                     <span class="menu-text">ダークモード</span>
-                    <span class="checkmark">✓</span>
+                    <span class="checkmark"><i class="fa-solid fa-check"></i></span>
                 </div>
             </div>
             <div class="menu-section">
@@ -78,13 +107,6 @@
                 <div class="my-rooms-container" id="myRoomsContainer">
                     <!-- 自分のルームがここに動的に追加される -->
                     <div class="my-rooms-empty">作成したルームはありません</div>
-                </div>
-            </div>
-            <div class="menu-section">
-                <h3>ルーム一覧</h3>
-                <div class="room-list-container" id="roomListContainer">
-                    <!-- ルーム一覧がここに動的に追加される -->
-                    <div class="room-list-loading">読み込み中...</div>
                 </div>
             </div>
         </div>
@@ -98,11 +120,11 @@
         <!-- カテゴリタブバー（Yahoo!ニュース風） -->
         <div class="category-bar">
             <div class="category-tabs" id="categoryTabs">
-                <button class="category-tab active" data-category="main">🏠 メイン</button>
-                <button class="category-tab" data-category="news">📰 ニュース</button>
-                <button class="category-tab" data-category="night">🌙 夜</button>
-                <button class="category-tab" data-category="consultation">🤝 相談</button>
-                <button class="category-tab" data-category="hobby">🎨 趣味</button>
+                <button class="category-tab active" data-category="main"><i class="fa-solid fa-house"></i> メイン</button>
+                <button class="category-tab" data-category="news"><i class="fa-solid fa-newspaper"></i> ニュース</button>
+                <button class="category-tab" data-category="night"><i class="fa-solid fa-moon"></i> 夜</button>
+                <button class="category-tab" data-category="consultation"><i class="fa-solid fa-comments"></i> 相談</button>
+                <button class="category-tab" data-category="hobby"><i class="fa-solid fa-palette"></i> 趣味</button>
             </div>
         </div>
 
@@ -116,18 +138,30 @@
                 </div>
             </div>
 
-            <!-- ルーム作成ボタン（下部中央） -->
-            <button class="floating-create-btn" id="createRoomBtn" aria-label="新しいルームを作成">
-                ➕
-            </button>
         </div>
+
+        <!-- 下部ナビゲーションバー -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item" data-tab="favorites">
+                <span class="nav-icon"><i class="fa-solid fa-star"></i></span>
+                <span class="nav-label">お気に入り</span>
+            </button>
+            <button class="nav-item" data-tab="create" id="createRoomBtn">
+                <span class="nav-icon"><i class="fa-solid fa-plus"></i></span>
+                <span class="nav-label">作成</span>
+            </button>
+            <button class="nav-item" data-tab="myrooms">
+                <span class="nav-icon"><i class="fa-solid fa-bookmark"></i></span>
+                <span class="nav-label">マイルーム</span>
+            </button>
+        </nav>
 
         <!-- チャットビュー（ルーム選択時に表示） -->
         <div class="chat-view" id="chatView" style="display: none;">
             <!-- チャットヘッダー -->
             <div class="chat-header">
                 <button class="back-button" id="backToRoomList" aria-label="ルーム一覧に戻る">
-                    ← 戻る
+                    <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <div class="chat-room-info">
                     <span class="chat-room-emoji" id="chatRoomEmoji">🏠</span>
@@ -137,7 +171,7 @@
                     <span class="user-count" id="chatUserCount">0人</span>
                 </div>
                 <button class="topic-button" id="topicButton" aria-label="話題を提案" title="話題を提案">
-                    💬
+                    <i class="fa-solid fa-lightbulb"></i>
                 </button>
             </div>
 
@@ -157,7 +191,7 @@
                     rows="1"
                 ></textarea>
                 <button id="sendButton" class="send-button">
-                    <span>送信</span>
+                    <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
         </div>
@@ -215,11 +249,11 @@
             <div class="form-group">
                 <label>カテゴリ</label>
                 <div class="category-selector">
-                    <label><input type="radio" name="category" value="main" checked> 🏠 メイン</label>
-                    <label><input type="radio" name="category" value="hobby"> 🎨 趣味</label>
-                    <label><input type="radio" name="category" value="consultation"> 🤝 相談</label>
-                    <label><input type="radio" name="category" value="night"> 🌙 夜</label>
-                    <label><input type="radio" name="category" value="news"> 📰 ニュース</label>
+                    <label><input type="radio" name="category" value="main" checked> <i class="fa-solid fa-house"></i> メイン</label>
+                    <label><input type="radio" name="category" value="hobby"> <i class="fa-solid fa-palette"></i> 趣味</label>
+                    <label><input type="radio" name="category" value="consultation"> <i class="fa-solid fa-comments"></i> 相談</label>
+                    <label><input type="radio" name="category" value="night"> <i class="fa-solid fa-moon"></i> 夜</label>
+                    <label><input type="radio" name="category" value="news"> <i class="fa-solid fa-newspaper"></i> ニュース</label>
                 </div>
             </div>
             <div class="form-group">
@@ -242,24 +276,56 @@
         </div>
     </div>
 
+    <!-- お気に入りモーダル -->
+    <div class="modal" id="favoritesModal">
+        <div class="modal-content">
+            <h2 class="modal-title"><i class="fa-solid fa-star"></i> お気に入りルーム</h2>
+            <div class="favorites-list" id="favoritesList">
+                <!-- お気に入りルームがここに動的に追加される -->
+                <div class="favorites-empty">お気に入りはまだありません</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="closeFavoritesModal">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 話題データベースを読み込み -->
-    <script src="../js/topics.js?v=100"></script>
+    <script src="../js/topics.js?v=315"></script>
 
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="../js/city.js?v=100"></script>
+    <script type="module" src="../js/city.js?v=315"></script>
 
-    <!-- Service Worker 登録（一時的に無効化） -->
+    <!-- お気に入り機能のJavaScriptを読み込み -->
+    <script src="../js/favorites.js?v=315"></script>
+
+    <!-- マイルーム機能のJavaScriptを読み込み -->
+    <script src="../js/myrooms.js?v=315"></script>
+
+    <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
-        // Service Worker がサポートされているかチェック
-        if (false && 'serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker 登録成功:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('❌ Service Worker 登録失敗:', error);
-                    });
+        // 既存のService Workerとキャッシュを削除
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    // 全てのService Workerを削除
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        console.log('🗑️ Service Workerを削除しました');
+                    }
+
+                    // 全てのキャッシュを削除
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        console.log('🗑️ キャッシュを削除:', cacheName);
+                    }
+
+                    console.log('✅ キャッシュクリーンアップ完了');
+                } catch (error) {
+                    console.log('❌ クリーンアップエラー:', error);
+                }
             });
         }
     </script>

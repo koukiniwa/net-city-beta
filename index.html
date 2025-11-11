@@ -4,7 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 
-    <title>NET CITY β</title>
+    <!-- Google Search Console 確認 -->
+    <meta name="google-site-verification" content="R-37DIzIsv_WBHjQmrpy6C9A9uInkC3y-meK7I5-Dmg" />
+
+    <!-- SEO対策 -->
+    <meta name="description" content="NET CITY β - リアルタイムチャットアプリ。カテゴリ別のルームで自由に会話を楽しもう。趣味、相談、ニュース、深夜の雑談など様々なトピックで交流できます。">
+    <meta name="keywords" content="チャット,リアルタイムチャット,匿名チャット,雑談,趣味,相談,ニュース,NET CITY">
+    <meta name="author" content="NET CITY">
+    <meta name="robots" content="index, follow">
+
+    <!-- OGP（Open Graph Protocol）- SNSシェア用 -->
+    <meta property="og:title" content="NET CITY β - リアルタイムチャットアプリ">
+    <meta property="og:description" content="カテゴリ別のルームで自由に会話を楽しもう。趣味、相談、ニュース、深夜の雑談など様々なトピックで交流できます。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://net-city-beta.web.app">
+    <meta property="og:image" content="https://net-city-beta.web.app/icons/icon-512.webp">
+    <meta property="og:site_name" content="NET CITY β">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NET CITY β - リアルタイムチャットアプリ">
+    <meta name="twitter:description" content="カテゴリ別のルームで自由に会話を楽しもう">
+    <meta name="twitter:image" content="https://net-city-beta.web.app/icons/icon-512.webp">
+
+    <!-- キャッシュを完全に無効化 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>NET CITY β - リアルタイムチャットアプリ | カテゴリ別ルームで交流</title>
 
     <!-- PWA対応 -->
     <meta name="theme-color" content="#00ffff">
@@ -62,18 +90,30 @@
     <!-- JavaScriptを読み込み -->
     <script src="js/index.js"></script>
 
-    <!-- Service Worker 登録 -->
+    <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
-        // Service Worker がサポートされているかチェック
+        // 既存のService Workerとキャッシュを削除
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker 登録成功:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('❌ Service Worker 登録失敗:', error);
-                    });
+            window.addEventListener('load', async () => {
+                try {
+                    // 全てのService Workerを削除
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        console.log('🗑️ Service Workerを削除しました');
+                    }
+
+                    // 全てのキャッシュを削除
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        console.log('🗑️ キャッシュを削除:', cacheName);
+                    }
+
+                    console.log('✅ キャッシュクリーンアップ完了');
+                } catch (error) {
+                    console.log('❌ クリーンアップエラー:', error);
+                }
             });
         }
     </script>

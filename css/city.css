@@ -94,6 +94,10 @@ body.dark-mode {
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Arial', 'Hiragino Sans', 'Yu Gothic', sans-serif;
     background-color: var(--bg-primary);
@@ -192,6 +196,26 @@ body {
     background: #1565c0; /* ホバー時は少し濃い青 */
 }
 
+/* 設定メニューボタン */
+.settings-menu {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 20px;
+    line-height: 1;
+    transition: transform 0.3s ease;
+    color: var(--text-primary);
+}
+
+.settings-menu:hover {
+    transform: rotate(90deg);
+}
+
+.settings-menu:active {
+    transform: scale(0.9);
+}
+
 .city-title {
     font-size: 1.5rem;
     font-weight: bold;
@@ -237,19 +261,18 @@ body {
    ======================================== */
 
 .category-bar {
-    background: var(--category-bg);
+    background: var(--bg-primary);
     border-bottom: 1px solid var(--card-border);
+    padding: 12px 0;
     overflow: hidden;
-    position: relative;
 }
 
 .category-tabs {
     display: flex;
-    gap: 0;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0;
-    position: relative;
+    padding: 0 16px;
     /* スクロールバーを非表示 */
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -260,45 +283,39 @@ body {
     display: none;
 }
 
-/* アクティブタブのインジケーター（下線） */
-.category-tabs::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: var(--accent-primary);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: left, width;
-}
-
 .category-tab {
     flex-shrink: 0;
-    padding: 14px 20px;
-    background: transparent;
-    border: none;
-    color: var(--category-text);
-    font-size: 0.95rem;
+    padding: 8px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     white-space: nowrap;
     -webkit-user-select: none;
-
     -moz-user-select: none;
-
     -ms-user-select: none;
-
     user-select: none;
 }
 
+.category-tab:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
 .category-tab:active {
-    background: var(--category-hover-bg);
+    transform: translateY(0);
 }
 
 .category-tab.active {
-    color: var(--accent-primary);
+    background: var(--accent-primary);
+    color: #ffffff;
     font-weight: 600;
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(0, 255, 255, 0.3);
 }
 
 /* ========================================
@@ -556,6 +573,84 @@ body {
     font-weight: 600;
 }
 
+/* お気に入りボタン */
+.favorite-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+    line-height: 1;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.2);
+}
+
+.favorite-btn:active {
+    transform: scale(0.9);
+}
+
+/* お気に入りリスト */
+.favorites-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 10px 0;
+}
+
+.favorites-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.favorite-room-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.favorite-room-item:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(5px);
+}
+
+.favorite-room-item:active {
+    transform: translateX(3px) scale(0.98);
+}
+
+.favorite-room-main {
+    flex: 1;
+}
+
+.favorite-room-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.favorite-room-category {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.favorite-room-users {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    margin-left: 10px;
+}
+
 /* ========================================
    チャットビュー
    ======================================== */
@@ -587,12 +682,15 @@ body {
     background: transparent;
     border: none;
     color: #2196f3;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 500;
     cursor: pointer;
     padding: 8px 12px;
     border-radius: 8px;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .back-button:hover {
@@ -817,7 +915,7 @@ body {
 /* メッセージ本文 */
 .message-content {
     padding: 8px 12px;
-    background: #f5f5f5;
+    background: #e1f5fe; /* 薄い水色 */
     border-left: 4px solid #1976d2; /* 太く濃く */
     border-radius: 12px;
     color: #212121; /* より濃い文字色 */
@@ -873,6 +971,77 @@ body {
 .message.own .message-content {
     background: #f3e5f5;
     border-left-color: #9c27b0;
+}
+
+/* 話題メッセージ（中央配置） */
+.message.topic {
+    align-self: center; /* 中央寄せ */
+    max-width: 85%; /* 幅を広げる */
+    margin: 15px 0; /* 上下に余白 */
+}
+
+.message.topic .message-header {
+    justify-content: center; /* ヘッダーも中央 */
+    gap: 8px;
+}
+
+.message.topic .message-username {
+    color: #666666; /* グレー */
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+
+.message.topic .message-time {
+    color: #999999;
+    font-size: 0.75rem;
+}
+
+.message.topic .message-content {
+    background: transparent; /* 背景なし */
+    border-left: none; /* 枠線なし */
+    border-radius: 0;
+    padding: 8px 0;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #333333; /* 通常の文字色 */
+    text-align: center; /* テキストを中央揃え */
+    box-shadow: none; /* 影なし */
+    width: 100%; /* 幅いっぱいに */
+}
+
+/* 話題メッセージはリアクションボタンを非表示 */
+.message.topic .message-reactions {
+    display: none;
+}
+
+/* 話題のリンクコンテナ */
+.topic-link-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* 話題のリンクボタン */
+.topic-link {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #1976d2;
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.topic-link:hover {
+    background: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.topic-link:active {
+    transform: translateY(0);
 }
 
 /* ========================================
@@ -1123,7 +1292,7 @@ body {
 }
 
 .send-button {
-    padding: 12px 30px;
+    padding: 12px 24px;
     background: #1976d2; /* より濃い青 */
     border: none;
     border-radius: 25px;
@@ -1131,6 +1300,10 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .send-button:hover {
@@ -1509,15 +1682,16 @@ body {
     width: 250px;
     height: 100vh;
     background: #ffffff;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     z-index: 2001;
-    transition: left 0.3s ease;
+    transition: left 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .sidebar-menu.active {
     left: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
@@ -1977,6 +2151,36 @@ body.neon-mode .message.own .message-username {
 body.neon-mode .message.own .message-content {
     background: rgba(139, 92, 246, 0.15);
     border-left-color: rgba(139, 92, 246, 0.8);
+}
+
+/* ネオンモード：話題メッセージ */
+body.neon-mode .message.topic .message-username {
+    color: #888888; /* グレー */
+}
+
+body.neon-mode .message.topic .message-time {
+    color: #666666;
+}
+
+body.neon-mode .message.topic .message-content {
+    background: transparent; /* 背景なし */
+    border-left: none; /* 枠線なし */
+    color: #cccccc; /* ダークモード用の明るい文字色 */
+    box-shadow: none; /* 影なし */
+}
+
+/* ネオンモード：話題リンクボタン */
+body.neon-mode .topic-link {
+    background: rgba(0, 255, 255, 0.2);
+    color: #00ffff !important;
+    border: 1px solid rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+body.neon-mode .topic-link:hover {
+    background: rgba(0, 255, 255, 0.3);
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
 }
 
 body.neon-mode .message-link {
@@ -2674,4 +2878,95 @@ body.dark-mode .room-divider {
 
 body.neon-mode .room-divider {
     background: #00ffff;
+}
+
+/* ========================================
+   下部ナビゲーションバー
+   ======================================== */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--card-border);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    color: var(--text-secondary);
+}
+
+.nav-item:active {
+    transform: scale(0.95);
+}
+
+.nav-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.nav-icon i {
+    display: block;
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.nav-item.active {
+    color: var(--accent-primary);
+}
+
+.nav-item.active .nav-icon {
+    transform: scale(1.1);
+}
+
+.nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 20%;
+    background: #ef5350;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+}
+
+.nav-badge:empty {
+    display: none;
+}
+
+/* ルーム一覧ビューの下部余白を調整（ナビゲーションバーの高さ分） */
+.room-list-view {
+    padding-bottom: 70px;
+}
+
+/* 既存の浮いているボタンを非表示（下部ナビに統合したため） */
+.floating-create-btn {
+    display: none;
 }

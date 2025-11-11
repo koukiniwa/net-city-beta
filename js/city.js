@@ -122,6 +122,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     let roomsCache = {};
     let selectedEmoji = '🏠'; // 選択された絵文字（デフォルト）
     let selectedCategory = 'main'; // 選択されたカテゴリ（デフォルト：メイン）
+
+    // ルームキャッシュをグローバルに公開（favorites.jsで使う）
+    window.getRoomsCache = function() {
+        return roomsCache;
+    };
+
     let roomUserListeners = {}; // 各ルームタブのユーザー数リスナーを管理
     let lastScrollLeft = 0; // スクロール位置の記録（スクロール検出用）
     let isScrolling = false; // スクロール中フラグ（グローバルで管理）
@@ -150,6 +156,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         // カテゴリーバーを表示
         document.querySelector('.category-bar').style.display = 'block';
 
+        // 下部ナビを表示
+        const bottomNav = document.getElementById('bottomNav');
+        if (bottomNav) {
+            bottomNav.style.display = 'flex';
+        }
+
         console.log('ルーム一覧ビューを表示');
     }
 
@@ -163,8 +175,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // カテゴリーバーを非表示
         document.querySelector('.category-bar').style.display = 'none';
 
+        // 下部ナビを非表示
+        const bottomNav = document.getElementById('bottomNav');
+        if (bottomNav) {
+            bottomNav.style.display = 'none';
+        }
+
         console.log('チャットビューを表示:', roomName);
     }
+
+    // グローバルに公開（favorites.jsで使う）
+    window.showChatView = showChatView;
 
     // 戻るボタンのクリックイベント
     backToRoomList.addEventListener('click', async () => {
@@ -529,6 +550,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         card.className = 'room-card';
         card.dataset.roomId = room.id;
         card.dataset.category = room.category; // カテゴリー情報を追加
+        card.dataset.creator = room.creatorNumber || ''; // 作成者情報を追加（番号）
 
         // ユーザー数を取得
         const currentUsers = room.currentUsers || 0;
@@ -969,6 +991,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    // グローバルに公開（favorites.jsで使う）
+    window.joinRoom = joinRoom;
+
     // ルームから退出
     async function leaveRoom(roomId) {
         const userRef = ref(database, `roomUsers/${roomId}/${userId}`);
@@ -1277,11 +1302,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         messageDiv.className = 'message';
         messageDiv.dataset.messageId = messageId; // メッセージIDを保存
 
+        // 話題メッセージかどうかをチェック
+        const isTopic = message.isTopic === true;
+        if (isTopic) {
+            messageDiv.classList.add('topic'); // 話題メッセージには'topic'クラスを追加
+        }
+
         // 自分のメッセージかどうかをチェック（固有IDで判定）
         const isOwnMessage = message.userId === userId;
-        console.log(`メッセージ表示: userId="${message.userId}", 自分="${userId}", isOwnMessage=${isOwnMessage}`);
-        if (isOwnMessage) {
-            messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加
+        console.log(`メッセージ表示: userId="${message.userId}", 自分="${userId}", isOwnMessage=${isOwnMessage}, isTopic=${isTopic}`);
+        if (isOwnMessage && !isTopic) {
+            messageDiv.classList.add('own'); // 自分のメッセージには'own'クラスを追加（話題は除く）
         }
 
         // 時刻をフォーマット（例: 14:30）
@@ -1300,11 +1331,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             // テキストメッセージの場合
             const escapedText = escapeHtml(message.text);
             const linkedText = linkifyText(escapedText);
-            contentHTML = `
-                <div class="message-content">
-                    ${linkedText}
-                </div>
-            `;
+
+            // 話題メッセージでURLがある場合
+            if (isTopic && message.topicUrl) {
+                contentHTML = `
+                    <div class="message-content">
+                        ${linkedText}
+                        <div class="topic-link-container">
+                            <a href="${escapeHtml(message.topicUrl)}" target="_blank" rel="noopener noreferrer" class="topic-link">
+                                🔗 記事を読む
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentHTML = `
+                    <div class="message-content">
+                        ${linkedText}
+                    </div>
+                `;
+            }
         }
 
         // メッセージのHTML構造を作成
@@ -1990,7 +2036,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const rooms = roomsSnapshot.val();
             const now = Date.now();
-            const oneDayInMs = 24 * 60 * 60 * 1000; // 24時間
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; // 7日間
 
             for (const roomId in rooms) {
@@ -1999,25 +2044,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // 固定ルーム（広場）はスキップ
                 if (room.isPermanent) continue;
 
-                // ルームのユーザー数を取得
-                const roomUserRef = ref(database, `roomUsers/${roomId}`);
-                const usersSnapshot = await get(roomUserRef);
-                const users = usersSnapshot.val();
-                const userCount = users ? Object.keys(users).length : 0;
-
-                // 削除条件1: 24時間以上誰もいない
-                const isEmptyForOneDay = userCount === 0 && (now - room.createdAt) > oneDayInMs;
-
-                // 削除条件2: 作成から7日間経過（expiresAtがある場合はそれを優先）
+                // 削除条件: 作成から7日間経過（expiresAtがある場合はそれを優先）
                 const isExpired = room.expiresAt ? now > room.expiresAt : (now - room.createdAt) > sevenDaysInMs;
 
-                if (isEmptyForOneDay || isExpired) {
+                if (isExpired) {
                     // ルームを削除
                     await remove(ref(database, `rooms/${roomId}`));
                     await remove(ref(database, `roomUsers/${roomId}`));
                     await remove(ref(database, `roomMessages/${roomId}`));
 
-                    console.log(`ルーム「${room.name}」を自動削除しました（理由: ${isExpired ? '期限切れ' : '24時間以上空室'}）`);
+                    console.log(`ルーム「${room.name}」を自動削除しました（理由: 7日間経過）`);
                 }
             }
         } catch (error) {
@@ -2133,6 +2169,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!confirm('キャッシュをクリアしてページを再読み込みしますか？\n最新の状態に更新されます。')) {
             return;
         }
+
+        // ニュースキャッシュをクリア
+        localStorage.removeItem('netcity_news_cache');
+        console.log('✅ ニュースキャッシュをクリアしました');
+
+        // Gemini話題キャッシュをクリア
+        const categories = ['main', 'hobby', 'consultation', 'night', 'news'];
+        categories.forEach(cat => {
+            localStorage.removeItem(`netcity_gemini_topics_${cat}`);
+        });
+        console.log('✅ Gemini話題キャッシュをクリアしました');
 
         // Service Workerにキャッシュクリアを指示
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -2480,20 +2527,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (roomSnapshot.exists()) {
                     const currentRoom = roomSnapshot.val();
                     category = currentRoom.category || 'main';
-
-                    // 時事カテゴリの場合はニュースを取得（50%の確率）
-                    if (category === 'news' && Math.random() > 0.5) {
-                        console.log('📰 ニュース話題を取得中...');
-                        const newsTopics = await window.getNewsTopics();
-                        topics = newsTopics.slice(0, 3);
-                    }
                 }
             }
 
-            // ニュースが取得されなかった場合は通常の話題を取得
-            if (topics.length === 0) {
-                topics = window.getRandomTopics(category);
-            }
+            // Gemini APIを使って話題を生成（フロントエンドから直接）
+            console.log(`🤖 Gemini APIで話題を生成中... (カテゴリ: ${category})`);
+            topics = await window.generateTopicsWithGemini(category);
 
             // 話題オプションを表示
             const content = topicModal.querySelector('.topic-modal-content');
@@ -2507,18 +2546,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const option = document.createElement('div');
                 option.className = 'topic-option';
 
+                // オブジェクト形式の場合と文字列形式の場合に対応
+                const topicTitle = typeof topic === 'object' ? topic.title : topic;
+                const topicUrl = typeof topic === 'object' ? topic.url : null;
+
                 // ニュースの場合はバッジを追加
-                const isNews = topic.startsWith('📰');
+                const isNews = topicTitle.startsWith('📰');
 
                 option.innerHTML = `
                     <div class="topic-option-number">${index + 1}️⃣</div>
-                    <div class="topic-option-text">${topic.replace('📰 ', '')}</div>
+                    <div class="topic-option-text">${topicTitle.replace('📰 ', '')}</div>
                     ${isNews ? '<span class="topic-news-badge">NEWS</span>' : ''}
                 `;
 
                 option.addEventListener('click', () => {
-                    const cleanTopic = topic.replace('📰 ', '');
-                    postTopicToChat(cleanTopic);
+                    const cleanTopic = topicTitle.replace('📰 ', '');
+                    console.log('📰 話題投稿:', { topic: cleanTopic, url: topicUrl });
+
+                    // 使用済みとしてマーク
+                    markTopicAsUsed(currentRoomId, cleanTopic);
+
+                    postTopicToChat(cleanTopic, topicUrl);
                     closeTopicModal();
                 });
 
@@ -2546,6 +2594,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     /**
+     * 使用済み話題を管理する関数
+     */
+    function getUsedTopics(roomId) {
+        const key = `netcity_used_topics_${roomId}`;
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function markTopicAsUsed(roomId, topic) {
+        const key = `netcity_used_topics_${roomId}`;
+        const used = getUsedTopics(roomId);
+        if (!used.includes(topic)) {
+            used.push(topic);
+            localStorage.setItem(key, JSON.stringify(used));
+        }
+    }
+
+    function resetUsedTopics(roomId) {
+        const key = `netcity_used_topics_${roomId}`;
+        localStorage.removeItem(key);
+        console.log('✨ 使用済み話題をリセットしました');
+    }
+
+    /**
      * 話題モーダルを閉じる
      */
     function closeTopicModal() {
@@ -2563,8 +2635,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     /**
      * 話題をチャットに投稿
      * @param {string} topic - 話題テキスト
+     * @param {string|null} url - ニュースのURL（任意）
      */
-    function postTopicToChat(topic) {
+    function postTopicToChat(topic, url = null) {
         if (!currentRoomId || !database) {
             console.error('ルームが選択されていません');
             return;
@@ -2580,6 +2653,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             timestamp: Date.now(),
             isTopic: true
         };
+
+        // URLがある場合は追加
+        if (url) {
+            messageData.topicUrl = url;
+        }
 
         push(messagesRef, messageData)
             .then(() => {
