@@ -2677,4 +2677,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 入力欄にフォーカス
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
+    // ========================================
+    // スプラッシュスクリーン非表示
+    // ========================================
+
+    // ページ読み込み完了後にスプラッシュスクリーンを非表示
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splashScreen = document.getElementById('splashScreen');
+            if (splashScreen) {
+                splashScreen.classList.add('fade-out');
+                // アニメーション完了後に要素を削除
+                setTimeout(() => {
+                    splashScreen.remove();
+                }, 500);
+            }
+        }, 500); // 最低0.5秒は表示
+    });
+
 });

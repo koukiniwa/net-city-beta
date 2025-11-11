@@ -49,12 +49,27 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=315">
+    <link rel="stylesheet" href="../css/city.css?v=317">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+    <!-- スプラッシュスクリーン -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fa-solid fa-city"></i>
+            </div>
+            <h1 class="splash-title">NET CITY β</h1>
+            <div class="splash-loader">
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 街の背景 -->
     <div class="city-background">
         <!-- シンプルなグラデーション背景 -->
@@ -67,7 +82,7 @@
             <button class="settings-menu" id="hamburgerMenu" aria-label="設定を開く">
                 <i class="fa-solid fa-gear"></i>
             </button>
-            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v316</span></h1>
+            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v317</span></h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
@@ -291,16 +306,16 @@
     </div>
 
     <!-- 話題データベースを読み込み -->
-    <script src="../js/topics.js?v=315"></script>
+    <script src="../js/topics.js?v=317"></script>
 
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="../js/city.js?v=315"></script>
+    <script type="module" src="../js/city.js?v=317"></script>
 
     <!-- お気に入り機能のJavaScriptを読み込み -->
-    <script src="../js/favorites.js?v=315"></script>
+    <script src="../js/favorites.js?v=317"></script>
 
     <!-- マイルーム機能のJavaScriptを読み込み -->
-    <script src="../js/myrooms.js?v=315"></script>
+    <script src="../js/myrooms.js?v=317"></script>
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
