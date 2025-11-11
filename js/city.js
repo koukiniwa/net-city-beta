@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=318');
+    await loadScript('../js/topics.js?v=319');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=318');
+    await loadScript('../js/favorites.js?v=319');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=318');
+    await loadScript('../js/myrooms.js?v=319');
     myroomsLoaded = true;
 }
 
@@ -384,6 +384,50 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 固定ルームのIDリスト
     const permanentRoomIds = permanentRooms.map(r => r.id);
+
+    /**
+     * 固定ルームを即座に表示（ハードコーディング）
+     * Firebase同期前にDOMに描画することで高速表示を実現
+     */
+    function displayPermanentRoomsImmediately() {
+        const roomListContainer = document.getElementById('roomListContainer');
+        if (!roomListContainer) return;
+
+        // 既存のルームカードをクリア
+        roomListContainer.innerHTML = '';
+
+        // 固定ルームを即座に描画
+        permanentRooms.forEach(room => {
+            const roomCard = createRoomCard({
+                id: room.id,
+                name: room.name,
+                emoji: room.emoji,
+                category: room.category,
+                description: room.description,
+                currentUsers: 0, // 初期値
+                maxUsers: room.maxUsers,
+                isPermanent: true
+            });
+            roomListContainer.appendChild(roomCard);
+
+            // キャッシュにも追加
+            roomsCache[room.id] = {
+                id: room.id,
+                name: room.name,
+                emoji: room.emoji,
+                category: room.category,
+                description: room.description,
+                currentUsers: 0,
+                maxUsers: room.maxUsers,
+                isPermanent: true
+            };
+        });
+
+        console.log(`⚡ 固定ルーム${permanentRooms.length}件を即座に表示しました`);
+
+        // 初期表示はメインカテゴリのみ
+        updateRoomDisplay('main');
+    }
 
     // ルームの初期化
     async function initializeRooms() {
@@ -2742,8 +2786,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 初期化
     // ========================================
 
-    // ルーム機能を初期化
-    initializeRooms();
+    // 固定ルームを即座に表示（ハードコーディング）
+    console.log('⚡ 固定ルームを即座に表示');
+    displayPermanentRoomsImmediately();
+
+    // ルーム機能を初期化（バックグラウンドで実行）
+    console.log('🔄 バックグラウンドでFirebase同期開始');
+    initializeRooms().catch(err => {
+        console.error('Firebase同期エラー:', err);
+    });
 
     // 入力欄にフォーカス
     messageInput.focus(); // カーソルを入力欄に自動で移動
