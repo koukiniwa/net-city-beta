@@ -7,6 +7,75 @@ import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestam
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
 
 // ========================================
+// 遅延読み込みヘルパー
+// ========================================
+
+// スクリプトの読み込み状態を管理
+const loadedScripts = new Set();
+
+/**
+ * スクリプトを動的に読み込む
+ * @param {string} src - スクリプトのパス
+ * @returns {Promise<void>}
+ */
+async function loadScript(src) {
+    // 既に読み込み済みの場合はスキップ
+    if (loadedScripts.has(src)) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => {
+            loadedScripts.add(src);
+            console.log(`✅ 読み込み完了: ${src}`);
+            resolve();
+        };
+        script.onerror = () => {
+            console.error(`❌ 読み込み失敗: ${src}`);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
+        document.body.appendChild(script);
+    });
+}
+
+// 各機能の読み込み状態を管理
+let topicsLoaded = false;
+let favoritesLoaded = false;
+let myroomsLoaded = false;
+
+/**
+ * 話題機能を読み込む
+ */
+async function loadTopicsModule() {
+    if (topicsLoaded) return;
+    console.log('📥 話題機能を読み込み中...');
+    await loadScript('../js/topics.js?v=318');
+    topicsLoaded = true;
+}
+
+/**
+ * お気に入り機能を読み込む
+ */
+async function loadFavoritesModule() {
+    if (favoritesLoaded) return;
+    console.log('📥 お気に入り機能を読み込み中...');
+    await loadScript('../js/favorites.js?v=318');
+    favoritesLoaded = true;
+}
+
+/**
+ * マイルーム機能を読み込む
+ */
+async function loadMyroomsModule() {
+    if (myroomsLoaded) return;
+    console.log('📥 マイルーム機能を読み込み中...');
+    await loadScript('../js/myrooms.js?v=318');
+    myroomsLoaded = true;
+}
+
+// ========================================
 // 初期化処理
 // ========================================
 
@@ -2463,6 +2532,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 話題ボタンクリック
     if (topicButton) {
         topicButton.addEventListener('click', async () => {
+            // 話題機能を遅延読み込み
+            await loadTopicsModule();
             await showTopicModal();
         });
     }
@@ -2678,21 +2749,44 @@ document.addEventListener('DOMContentLoaded', async function() {
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
     // ========================================
+    // 下部ナビゲーションの遅延読み込み対応
+    // ========================================
+
+    // 下部ナビゲーションのボタンにイベントリスナーを設定
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        const originalClick = item.onclick;
+        item.addEventListener('click', async (e) => {
+            const tab = item.dataset.tab;
+
+            // お気に入りタブがクリックされたら遅延読み込み
+            if (tab === 'favorites' && !favoritesLoaded) {
+                console.log('📥 お気に入り機能を読み込み中...');
+                await loadFavoritesModule();
+            }
+
+            // マイルームタブがクリックされたら遅延読み込み
+            if (tab === 'myrooms' && !myroomsLoaded) {
+                console.log('📥 マイルーム機能を読み込み中...');
+                await loadMyroomsModule();
+            }
+        });
+    });
+
+    // ========================================
     // スプラッシュスクリーン非表示
     // ========================================
 
-    // ページ読み込み完了後にスプラッシュスクリーンを非表示
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const splashScreen = document.getElementById('splashScreen');
-            if (splashScreen) {
-                splashScreen.classList.add('fade-out');
-                // アニメーション完了後に要素を削除
-                setTimeout(() => {
-                    splashScreen.remove();
-                }, 500);
-            }
-        }, 500); // 最低0.5秒は表示
-    });
+    // 初期化完了後、スプラッシュスクリーンを非表示
+    setTimeout(() => {
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            splashScreen.classList.add('fade-out');
+            // アニメーション完了後に要素を削除
+            setTimeout(() => {
+                splashScreen.remove();
+            }, 500);
+        }
+    }, 300); // 最低0.3秒は表示（早く表示できるようになった）
 
 });
