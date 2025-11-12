@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=320');
+    await loadScript('../js/topics.js?v=322');
     topicsLoaded = true;
 }
 
@@ -222,6 +222,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         roomListView.style.display = 'block';
         chatView.style.display = 'none';
 
+        // 入力エリアを非表示
+        const inputArea = document.getElementById('inputArea');
+        if (inputArea) {
+            inputArea.style.display = 'none';
+        }
+
         // カテゴリーバーを表示
         document.querySelector('.category-bar').style.display = 'block';
 
@@ -240,6 +246,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         chatView.style.display = 'flex';
         chatRoomName.textContent = roomName;
         chatRoomEmoji.textContent = roomEmoji;
+
+        // 入力エリアを表示
+        const inputArea = document.getElementById('inputArea');
+        if (inputArea) {
+            inputArea.style.display = 'flex';
+        }
 
         // カテゴリーバーを非表示
         document.querySelector('.category-bar').style.display = 'none';
@@ -2817,22 +2829,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 下部ナビゲーションのボタンにイベントリスナーを設定
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        const originalClick = item.onclick;
-        item.addEventListener('click', async (e) => {
-            const tab = item.dataset.tab;
-
-            // お気に入りタブがクリックされたら遅延読み込み
-            if (tab === 'favorites' && !favoritesLoaded) {
-                console.log('📥 お気に入り機能を読み込み中...');
-                await loadFavoritesModule();
-            }
-
-            // マイルームタブがクリックされたら遅延読み込み
-            if (tab === 'myrooms' && !myroomsLoaded) {
-                console.log('📥 マイルーム機能を読み込み中...');
-                await loadMyroomsModule();
-            }
-        });
+        // お気に入りとマイルームは最初から読み込まれているため、遅延読み込み不要
     });
 
 });

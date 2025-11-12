@@ -49,7 +49,7 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=320">
+    <link rel="stylesheet" href="../css/city.css?v=322">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -194,21 +194,21 @@
             <div class="messages-area" id="messagesArea">
                 <!-- ここにメッセージが表示される -->
             </div>
+        </div>
 
-            <!-- メッセージ入力エリア -->
-            <div class="input-area">
-                <textarea
-                    id="messageInput"
-                    class="message-input"
-                    placeholder="メッセージを入力..."
-                    maxlength="200"
-                    autocomplete="off"
-                    rows="1"
-                ></textarea>
-                <button id="sendButton" class="send-button">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
+        <!-- メッセージ入力エリア（チャットビューの外に配置） -->
+        <div class="input-area" id="inputArea" style="display: none;">
+            <textarea
+                id="messageInput"
+                class="message-input"
+                placeholder="メッセージを入力..."
+                maxlength="200"
+                autocomplete="off"
+                rows="1"
+            ></textarea>
+            <button id="sendButton" class="send-button">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 
@@ -305,11 +305,13 @@
         </div>
     </div>
 
-    <!-- チャット機能のJavaScriptを読み込み（必須機能のみ） -->
-    <script type="module" src="../js/city.js?v=320"></script>
+    <!-- チャット機能のJavaScriptを読み込み -->
+    <script type="module" src="../js/city.js?v=322"></script>
+    <script src="../js/favorites.js?v=322"></script>
+    <script src="../js/myrooms.js?v=322"></script>
 
-    <!-- 以下のスクリプトは必要になったタイミングで動的に読み込まれます -->
-    <!-- topics.js, favorites.js, myrooms.js -->
+    <!-- topics.jsは話題ボタンクリック時に動的読み込み -->
+    <!-- topics.js -->
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
