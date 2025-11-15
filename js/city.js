@@ -2856,30 +2856,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             const viewport = window.visualViewport;
 
             function updateInputPosition() {
-                // トランジションを一時的に無効化（スライドを防ぐ）
-                inputArea.style.transition = 'none';
-
-                // viewport.offsetTopでスクロール位置を考慮
-                // スクロールしても入力欄はviewportの底に固定される
+                // position:fixedはVisual Viewportを基準にするため
+                // bottomを0に設定するだけでキーボードの上に自動配置される
                 inputArea.style.position = 'fixed';
                 inputArea.style.bottom = '0px';
                 inputArea.style.left = '0px';
                 inputArea.style.right = '0px';
+                inputArea.style.transform = 'none';
 
-                // viewport.offsetTopの分だけtransformで補正（スクロール時の位置ずれを防ぐ）
-                const offsetY = -viewport.offsetTop;
-                inputArea.style.transform = `translateY(${offsetY}px)`;
-
-                console.log('📱 Viewport:', {
-                    height: viewport.height,
-                    offsetTop: viewport.offsetTop,
-                    offsetY: offsetY
-                });
-
-                // 次のフレームでトランジションを復元（必要に応じて）
-                requestAnimationFrame(() => {
-                    inputArea.style.transition = '';
-                });
+                console.log('📱 Viewport高さ:', viewport.height, 'Window高さ:', window.innerHeight);
             }
 
             // 初期位置を設定
