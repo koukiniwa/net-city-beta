@@ -7,6 +7,20 @@ import { ref, push, onChildAdded, onChildChanged, onChildRemoved, serverTimestam
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
 
 // ========================================
+// バイブレーション機能
+// ========================================
+
+/**
+ * バイブレーションを実行（対応端末のみ）
+ * @param {number|number[]} pattern - 振動パターン（ミリ秒）
+ */
+function vibrate(pattern = 10) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+    }
+}
+
+// ========================================
 // 遅延読み込みヘルパー
 // ========================================
 
@@ -1349,6 +1363,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             messageInput.value = ''; // 入力欄をクリア
             messageInput.style.height = 'auto'; // 高さをリセット
 
+            // バイブレーション（送信完了）
+            vibrate(30);
+
             // コメント履歴を記録
             if (currentRoomId) {
                 saveRecentlyCommentedRoom(currentRoomId);
@@ -1772,6 +1789,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!isOwnMessage || message.imageUrl) {
             return;
         }
+
+        // バイブレーション（メニュー表示）
+        vibrate(20);
 
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
