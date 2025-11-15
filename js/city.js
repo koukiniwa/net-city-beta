@@ -1331,6 +1331,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // メッセージを送信する関数
     // ========================================
     async function sendMessage() {
+        // 送信中の場合は処理しない（連投防止）
+        if (sendButton.disabled) {
+            return;
+        }
+
         // 入力されたメッセージを取得（前後の空白を削除）
         const messageText = messageInput.value.trim();
 
@@ -1350,6 +1355,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // サニタイズ（XSS対策）
         const sanitizedText = sanitizeInput(messageText);
+
+        // 送信ボタンを無効化（連投防止）
+        sendButton.disabled = true;
+        sendButton.classList.add('sending');
+        const originalIcon = sendButton.innerHTML;
+        sendButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
         try {
             // Cloud Functionを呼び出してメッセージを送信（IPアドレスも記録される）
@@ -1376,6 +1387,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) {
             console.error('送信エラー:', error);
             alert('メッセージの送信に失敗しました。もう一度お試しください。');
+        } finally {
+            // 送信ボタンを再有効化（500ms後）
+            setTimeout(() => {
+                sendButton.disabled = false;
+                sendButton.classList.remove('sending');
+                sendButton.innerHTML = originalIcon;
+            }, 500);
         }
     }
 
