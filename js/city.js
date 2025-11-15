@@ -14,9 +14,12 @@ import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/
  * バイブレーションを実行（対応端末のみ）
  * @param {number|number[]} pattern - 振動パターン（ミリ秒）
  */
-function vibrate(pattern = 10) {
+function vibrate(pattern = 50) {
     if ('vibrate' in navigator) {
+        console.log('📳 バイブ実行:', pattern);
         navigator.vibrate(pattern);
+    } else {
+        console.log('❌ Vibration API非対応');
     }
 }
 
@@ -1364,7 +1367,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             messageInput.style.height = 'auto'; // 高さをリセット
 
             // バイブレーション（送信完了）
-            vibrate(30);
+            vibrate(50);
 
             // コメント履歴を記録
             if (currentRoomId) {
@@ -1791,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // バイブレーション（メニュー表示）
-        vibrate(20);
+        vibrate(30);
 
         // 既存のメニューを閉じる
         if (currentMessageMenu) {
