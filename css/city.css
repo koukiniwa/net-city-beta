@@ -1235,7 +1235,11 @@ body {
     z-index: 1000;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
     pointer-events: auto;
-    /* トランジション削除: 完全固定のため */
+    /* スクロール時も完全固定 */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .image-button {
