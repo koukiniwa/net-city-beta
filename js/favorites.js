@@ -87,18 +87,25 @@ window.favoritesManager = new FavoritesManager();
         });
     }
 
+    // モーダルを閉じる関数
+    function closeFavoritesModalFunc() {
+        favoritesModal.classList.remove('active');
+        // ボタンのアクティブ状態を解除
+        if (favoritesBtn) {
+            favoritesBtn.classList.remove('active');
+        }
+    }
+
     // モーダルを閉じる
     if (closeFavoritesModal) {
-        closeFavoritesModal.addEventListener('click', function() {
-            favoritesModal.classList.remove('active');
-        });
+        closeFavoritesModal.addEventListener('click', closeFavoritesModalFunc);
     }
 
     // モーダルの外側をクリックしても閉じる
     if (favoritesModal) {
         favoritesModal.addEventListener('click', function(e) {
             if (e.target === favoritesModal) {
-                favoritesModal.classList.remove('active');
+                closeFavoritesModalFunc();
             }
         });
     }

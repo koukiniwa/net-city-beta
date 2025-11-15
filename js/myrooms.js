@@ -26,14 +26,27 @@
             e.preventDefault();
             e.stopPropagation();
 
-            // アクティブ状態を切り替え
-            navItems.forEach(n => n.classList.remove('active'));
-            this.classList.add('active');
+            // マイルームタブの場合は一時的にアクティブにして、すぐ戻す
+            if (tab === 'myrooms') {
+                // アクティブ状態を一時的に切り替え
+                navItems.forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
 
-            currentTab = tab;
+                // 表示を更新
+                updateRoomDisplay(tab);
 
-            // 表示を更新
-            updateRoomDisplay(tab);
+                // 500ms後にホームタブに戻す（視覚的フィードバックのため）
+                setTimeout(() => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    currentTab = 'home';
+                }, 500);
+            } else {
+                // その他のタブは通常通り
+                navItems.forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                currentTab = tab;
+                updateRoomDisplay(tab);
+            }
         });
     });
 
