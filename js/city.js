@@ -860,9 +860,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const deleteBtn = roomItem.querySelector('.delete-room-btn');
             deleteBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                if (confirm(`ルーム「${room.name}」を削除しますか？\nこの操作は取り消せません。`)) {
-                    await deleteRoom(room.id);
-                }
+                await deleteRoom(room.id);
             });
 
             // ルーム名クリックで移動
@@ -1902,10 +1900,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // メッセージを削除する
     async function deleteMessage(messageId) {
-        if (!confirm('このメッセージを削除しますか？')) {
-            return;
-        }
-
         try {
             // メッセージを完全に削除（onChildRemovedが画面からも削除してくれる）
             const messageRef = ref(database, `roomMessages/${currentRoomId}/${messageId}`);
