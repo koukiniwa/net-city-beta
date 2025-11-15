@@ -1538,6 +1538,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             showReactionPicker(messageId, addReactionBtn);
         });
 
+        // メンションのクリックイベントを設定
+        const mentions = messageDiv.querySelectorAll('.mention-clickable');
+        mentions.forEach(mentionSpan => {
+            mentionSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const mentionedUser = mentionSpan.dataset.mention; // @No.7
+                scrollToUserMessage(mentionedUser);
+            });
+        });
+
         // 長押しでメニュー表示（LINEスタイル）
         let longPressTimer = null;
         let touchMoved = false;
@@ -1624,6 +1634,38 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // ========================================
+    // メンションクリックで該当メッセージにスクロール
+    // ========================================
+
+    function scrollToUserMessage(mentionedUser) {
+        // @No.7 から No.7 を取得
+        const userDisplay = mentionedUser.replace('@', '');
+
+        // 該当ユーザーのメッセージを全て取得（下から順に探す）
+        const allMessages = Array.from(messagesArea.querySelectorAll('.message'));
+
+        // 最新のメッセージから探す（逆順）
+        for (let i = allMessages.length - 1; i >= 0; i--) {
+            const messageDiv = allMessages[i];
+            const usernameSpan = messageDiv.querySelector('.message-username');
+            if (usernameSpan && usernameSpan.textContent === userDisplay) {
+                // 見つかったメッセージにスクロール
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // ハイライトアニメーション
+                messageDiv.classList.add('message-highlight');
+                setTimeout(() => {
+                    messageDiv.classList.remove('message-highlight');
+                }, 2000);
+
+                // バイブレーション
+                vibrate(20);
+                break;
+            }
+        }
+    }
+
+    // ========================================
     // URLを自動リンク化する関数
     // ========================================
 
@@ -1639,17 +1681,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="message-link">${url}</a>`;
         });
 
-        // メンションをハイライト表示
+        // メンションをハイライト表示（クリック可能に）
         result = result.replace(mentionPattern, (mention) => {
             const currentUserMention = `@${displayNumber}`; // 自分のメンション
             const isMentioned = mention === currentUserMention; // 自分がメンションされているか
+            const mentionNumber = mention; // @No.7形式
 
             if (isMentioned) {
                 // 自分がメンションされている場合は強調表示
-                return `<span class="mention mention-me">${mention}</span>`;
+                return `<span class="mention mention-me mention-clickable" data-mention="${mentionNumber}">${mention}</span>`;
             } else {
                 // 他のユーザーのメンション
-                return `<span class="mention">${mention}</span>`;
+                return `<span class="mention mention-clickable" data-mention="${mentionNumber}">${mention}</span>`;
             }
         });
 

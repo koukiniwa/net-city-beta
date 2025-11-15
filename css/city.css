@@ -955,6 +955,30 @@ body {
     font-weight: 700;
 }
 
+.mention-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mention-clickable:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* メッセージハイライトアニメーション */
+.message-highlight {
+    animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(255, 235, 59, 0.3);
+    }
+}
+
 /* 画像メッセージ */
 .message-image {
     max-width: 300px;
