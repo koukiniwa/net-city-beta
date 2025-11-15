@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=326');
+    await loadScript('../js/topics.js?v=327');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=326');
+    await loadScript('../js/favorites.js?v=327');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=326');
+    await loadScript('../js/myrooms.js?v=327');
     myroomsLoaded = true;
 }
 
@@ -2841,34 +2841,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
     // ========================================
-    // iOS対策: キーボード表示時のスクロール問題を解決
+    // キーボード表示時に入力エリアをキーボードの上に固定
     // ========================================
 
-    if (messageInput) {
-        // iOSかどうかを判定
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (messageInput && inputArea) {
+        // Visual Viewport APIでキーボード表示を検出
+        if (window.visualViewport) {
+            const updateInputAreaPosition = () => {
+                const viewport = window.visualViewport;
+                const offsetY = viewport.height + viewport.offsetTop;
 
-        if (isIOS) {
-            // フォーカス時に入力欄までスクロール
-            messageInput.addEventListener('focus', function() {
-                setTimeout(() => {
-                    // 入力欄を画面に表示
-                    this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300); // キーボード表示を待つ
-            });
+                // キーボードが表示されている場合（viewport高さが小さくなる）
+                inputArea.style.transform = `translateY(${viewport.offsetTop}px)`;
+                inputArea.style.bottom = `${window.innerHeight - offsetY}px`;
+            };
 
-            // ブラー時にスクロールをリセット
-            messageInput.addEventListener('blur', function() {
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                }, 100);
-            });
+            window.visualViewport.addEventListener('resize', updateInputAreaPosition);
+            window.visualViewport.addEventListener('scroll', updateInputAreaPosition);
         }
 
         // 入力中の自動リサイズ（複数行対応）
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        // モバイルでのスクロール最適化
+        messageInput.addEventListener('focus', function() {
+            // フォーカス時に少し待ってから位置を調整
+            setTimeout(() => {
+                this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
         });
     }
 
