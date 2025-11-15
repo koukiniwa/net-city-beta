@@ -3,7 +3,7 @@
 // オフライン対応とキャッシュ管理
 // ========================================
 
-const CACHE_NAME = 'net-city-v2';
+const CACHE_NAME = 'net-city-v301';
 const urlsToCache = [
   './',
   './index.html',

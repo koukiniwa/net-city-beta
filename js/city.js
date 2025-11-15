@@ -2841,7 +2841,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
     // ========================================
-    // モバイル対応: 入力欄の最適化
+    // LINE風: キーボード表示時に入力欄をキーボード上に固定
     // ========================================
 
     if (messageInput && inputArea) {
@@ -2851,13 +2851,31 @@ document.addEventListener('DOMContentLoaded', async function() {
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
 
-        // モバイルでの入力欄フォーカス時の処理
-        messageInput.addEventListener('focus', function() {
-            // フォーカス時に入力欄までスクロール
-            setTimeout(() => {
-                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-        });
+        // Visual Viewport APIでキーボードを検出してLINE風に固定
+        if ('visualViewport' in window) {
+            const viewport = window.visualViewport;
+
+            function updateInputPosition() {
+                const viewportHeight = viewport.height;
+                const windowHeight = window.innerHeight;
+                const keyboardHeight = windowHeight - viewportHeight;
+
+                if (keyboardHeight > 0) {
+                    // キーボードが表示されている場合
+                    inputArea.style.position = 'fixed';
+                    inputArea.style.bottom = `${keyboardHeight}px`;
+                    inputArea.style.transform = 'translateY(0)';
+                } else {
+                    // キーボードが非表示の場合
+                    inputArea.style.position = 'fixed';
+                    inputArea.style.bottom = '0px';
+                    inputArea.style.transform = 'translateY(0)';
+                }
+            }
+
+            viewport.addEventListener('resize', updateInputPosition);
+            viewport.addEventListener('scroll', updateInputPosition);
+        }
     }
 
     // ========================================

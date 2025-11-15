@@ -119,14 +119,14 @@
 <div class="cover">
     <h1>NET CITY β</h1>
     <div class="subtitle">システム仕様書</div>
-    <div class="version">Version 1.1.0</div>
+    <div class="version">Version 1.2.0</div>
     <div style="margin-top: 50px;">
         <p>リアルタイムチャットアプリケーション</p>
         <p>技術仕様・データ管理・運用ガイド</p>
     </div>
     <div style="margin-top: 100px; font-size: 12pt;">
         <p>作成者: koukiniwa</p>
-        <p>最終更新: 2025年10月30日</p>
+        <p>最終更新: 2025年11月9日</p>
     </div>
 </div>
 
@@ -146,6 +146,7 @@
     <li>運用・保守</li>
     <li>今後の拡張計画</li>
     <li>v1.1.0アップデート内容</li>
+    <li>v1.2.0アップデート内容（IPログ管理・UI改善）</li>
     <li>変更履歴</li>
 </ol>
 
@@ -199,6 +200,7 @@
     <li><strong>オンライン人数表示</strong> - 各ルームの現在の人数をリアルタイム表示</li>
     <li><strong>自動メッセージ削除</strong> - 24時間経過したメッセージを自動削除</li>
     <li><strong>ルーム作成制限</strong> - 1ユーザー1ルームまで（不正対策強化済み）</li>
+    <li><strong>IPアドレス記録</strong> - メッセージ送信時のIPアドレスを自動記録（管理者のみ閲覧可能、v1.2.0新機能）</li>
     <li><strong>登録不要</strong> - メールアドレスやアカウント登録なしで利用可能</li>
     <li><strong>PWA対応</strong> - ホーム画面に追加してアプリのように使用可能</li>
     <li><strong>マルチプラットフォーム</strong> - Web、iOS、Android対応</li>
@@ -1874,8 +1876,460 @@ firebase database:get / > backup_YYYYMMDD.json
 
 <div class="page-break"></div>
 
-<!-- 12. 変更履歴 -->
-<h1>12. 変更履歴</h1>
+<!-- 12. v1.2.0アップデート内容 -->
+<h1>12. v1.2.0アップデート内容（IPログ管理・UI改善）</h1>
+
+<h2>12.1 アップデート概要</h2>
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>バージョン</td>
+        <td>1.2.0</td>
+    </tr>
+    <tr>
+        <td>リリース日</td>
+        <td>2025年11月9日</td>
+    </tr>
+    <tr>
+        <td>主な変更</td>
+        <td>IPアドレス記録機能の追加、カテゴリUI改善、セキュリティ強化</td>
+    </tr>
+</table>
+
+<h2>12.2 新機能</h2>
+
+<h3>12.2.1 IPアドレス記録機能</h3>
+<div class="highlight">
+メッセージ送信時にIPアドレスを自動記録し、管理者のみが閲覧できる機能を実装しました。
+</div>
+
+<table>
+    <tr>
+        <th style="width: 25%;">項目</th>
+        <th>詳細</th>
+    </tr>
+    <tr>
+        <td>実装方法</td>
+        <td>Firebase Cloud Functions を使用</td>
+    </tr>
+    <tr>
+        <td>記録内容</td>
+        <td>IPアドレス、ユーザー番号、メッセージ内容、ルームID、投稿日時</td>
+    </tr>
+    <tr>
+        <td>保存先</td>
+        <td>Firestore（Realtime Databaseとは別）</td>
+    </tr>
+    <tr>
+        <td>保存期間</td>
+        <td>1年間（自動削除）</td>
+    </tr>
+    <tr>
+        <td>アクセス制限</td>
+        <td>管理者権限（admin: true）を持つユーザーのみ閲覧可能</td>
+    </tr>
+    <tr>
+        <td>管理画面URL</td>
+        <td>https://net-city-beta.web.app/tools/admin-ip-logs.html</td>
+    </tr>
+    <tr>
+        <td>自動削除機能</td>
+        <td>毎日午前3時（JST）に期限切れログを自動削除</td>
+    </tr>
+</table>
+
+<h3>12.2.2 Cloud Functions</h3>
+<p>以下の3つのCloud Functionsを実装しました：</p>
+
+<table>
+    <tr>
+        <th style="width: 30%;">関数名</th>
+        <th>機能</th>
+    </tr>
+    <tr>
+        <td>sendMessage</td>
+        <td>メッセージ送信時にIPアドレスを記録<br>Realtime DatabaseとFirestoreに同時保存</td>
+    </tr>
+    <tr>
+        <td>cleanupOldIpLogs</td>
+        <td>期限切れIPログの自動削除（毎日3時実行）</td>
+    </tr>
+    <tr>
+        <td>getIpLogs</td>
+        <td>管理者によるIPログ取得API<br>ルームID、ユーザーIDでフィルタリング可能</td>
+    </tr>
+</table>
+
+<h3>12.2.3 管理者認証システム</h3>
+<ul>
+    <li><strong>認証方式</strong>: Firebase Authentication（Email/Password）</li>
+    <li><strong>カスタムクレーム</strong>: admin: true で管理者権限を付与</li>
+    <li><strong>認証情報管理</strong>: ADMIN_CREDENTIALS.md に保存（Git除外設定済み）</li>
+    <li><strong>管理者アカウント作成</strong>: scripts/create-admin.js で自動作成可能</li>
+</ul>
+
+<h2>12.3 UI/UX改善</h2>
+
+<h3>12.3.1 カテゴリ並び替え</h3>
+<p>カテゴリタブの順序を使いやすさを考慮して変更しました：</p>
+<div class="code">
+変更前: メイン → 趣味 → 相談 → 夜 → ニュース
+変更後: メイン → ニュース → 夜 → 相談 → 趣味
+</div>
+
+<h3>12.3.2 ニュースカテゴリの整理</h3>
+<ul>
+    <li>「世界のニュース」ルームを削除</li>
+    <li>「今の話題」を「ニュース談義」に名称変更</li>
+    <li>より分かりやすいルーム構成に改善</li>
+</ul>
+
+<h3>12.3.3 ルーム区切り線の追加</h3>
+<ul>
+    <li>固定ルームと作成ルームの間に青い区切り線を追加</li>
+    <li>視覚的にルームの種類を区別しやすく改善</li>
+    <li>ライトモード: #1976d2、ダークモード: #1976d2、ネオンモード: #00ffff</li>
+</ul>
+
+<h2>12.4 セキュリティ強化</h2>
+
+<h3>12.4.1 Firestoreセキュリティルール</h3>
+<div class="code">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // IPログは管理者のみ読み取り可能、書き込みは不可
+    match /ipLogs/{logId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;  // Cloud Functions経由のみ
+    }
+  }
+}
+</div>
+
+<h3>12.4.2 Cloud Functionsのセキュリティ</h3>
+<ul>
+    <li>匿名認証必須（request.auth チェック）</li>
+    <li>管理者権限確認（request.auth.token.admin）</li>
+    <li>入力値のバリデーション（文字数制限、型チェック）</li>
+    <li>エラーハンドリングの実装</li>
+</ul>
+
+<h2>12.5 技術スタック追加</h2>
+
+<h3>12.5.1 新規導入技術</h3>
+<table>
+    <tr>
+        <th style="width: 30%;">技術</th>
+        <th style="width: 20%;">バージョン</th>
+        <th>用途</th>
+    </tr>
+    <tr>
+        <td>Firebase Cloud Functions</td>
+        <td>v6.0.1</td>
+        <td>サーバーサイド処理（IP記録、自動削除）</td>
+    </tr>
+    <tr>
+        <td>Firebase Firestore</td>
+        <td>-</td>
+        <td>IPログの永続化保存</td>
+    </tr>
+    <tr>
+        <td>Firebase Authentication</td>
+        <td>-</td>
+        <td>管理者認証、匿名認証</td>
+    </tr>
+    <tr>
+        <td>Node.js</td>
+        <td>22</td>
+        <td>Cloud Functions実行環境</td>
+    </tr>
+</table>
+
+<h3>12.5.2 リージョン設定</h3>
+<ul>
+    <li>Cloud Functionsリージョン: asia-northeast1（東京）</li>
+    <li>Realtime Databaseリージョン: asia-southeast1（シンガポール）</li>
+    <li>最適なレイテンシーを実現</li>
+</ul>
+
+<h2>12.6 ファイル構造の変更</h2>
+
+<h3>12.6.1 新規追加ファイル</h3>
+<div class="code">
+netcityB/
+├── functions/                          # Cloud Functions（新規）
+│   ├── index.js                        # メイン処理
+│   ├── package.json                    # 依存関係設定
+│   └── node_modules/                   # npmパッケージ
+│
+├── tools/                              # 管理ツール
+│   └── admin-ip-logs.html              # IPログ管理画面（新規）
+│
+├── scripts/                            # スクリプト
+│   └── create-admin.js                 # 管理者作成スクリプト（新規）
+│
+├── firestore.rules                     # Firestoreセキュリティルール（新規）
+├── ADMIN_CREDENTIALS.md                # 管理者認証情報（新規、Git除外）
+└── IP_LOGGING_SETUP.md                 # IPログ設定ドキュメント（新規）
+</div>
+
+<h2>12.7 運用・管理</h2>
+
+<h3>12.7.1 IPログ管理画面の使い方</h3>
+
+<h4>アクセス方法</h4>
+<ol>
+    <li>ブラウザで https://net-city-beta.web.app/tools/admin-ip-logs.html にアクセス</li>
+    <li>管理者メールアドレスとパスワードでログイン</li>
+    <li>IPログ一覧が表示される</li>
+</ol>
+
+<h4>機能</h4>
+<ul>
+    <li><strong>ログ一覧表示</strong>: 最新100件のIPログを表示</li>
+    <li><strong>フィルタリング</strong>: ルームID、ユーザーIDで絞り込み可能</li>
+    <li><strong>表示内容</strong>:
+        <ul>
+            <li>IPアドレス</li>
+            <li>ユーザー番号（表示用）</li>
+            <li>ルームID</li>
+            <li>メッセージ内容</li>
+            <li>メッセージID</li>
+            <li>投稿日時</li>
+            <li>有効期限（投稿から1年後）</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>12.7.2 管理者認証情報の管理</h3>
+
+<div class="highlight">
+<strong>⚠️ 重要な注意事項</strong>
+</div>
+
+<ul>
+    <li><strong>保存場所</strong>: プロジェクトルートの ADMIN_CREDENTIALS.md</li>
+    <li><strong>Git管理</strong>: .gitignore で除外設定済み（GitHubにプッシュされない）</li>
+    <li><strong>パスワード変更</strong>: 3ヶ月に1回変更を推奨</li>
+    <li><strong>バックアップ</strong>: パスワードマネージャーへの保存を推奨</li>
+    <li><strong>共有禁止</strong>: 第三者に見せない、スクリーンショットを撮らない</li>
+</ul>
+
+<h4>ADMIN_CREDENTIALS.md の内容</h4>
+<div class="code">
+# 管理者認証情報
+
+## IPログ管理画面
+### アクセスURL
+https://net-city-beta.web.app/tools/admin-ip-logs.html
+
+### 管理者ログイン情報
+**メールアドレス**: `kouki.n11@icloud.com`
+**パスワード**: `[パスワードをここに記入]`
+
+---
+
+## Firebase Console
+**URL**: https://console.firebase.google.com/project/net-city-beta
+**ログイン**: Googleアカウント（kouki.n11@icloud.com）
+</div>
+
+<h3>12.7.3 定期メンテナンスタスク</h3>
+
+<table>
+    <tr>
+        <th style="width: 30%;">タスク</th>
+        <th style="width: 20%;">頻度</th>
+        <th>内容</th>
+    </tr>
+    <tr>
+        <td>IPログ確認</td>
+        <td>週1回</td>
+        <td>不正な投稿がないか確認<br>必要に応じて対処</td>
+    </tr>
+    <tr>
+        <td>Cloud Functions使用量確認</td>
+        <td>月1回</td>
+        <td>Firebase Console で呼び出し回数を確認<br>無料枠を超えないか監視</td>
+    </tr>
+    <tr>
+        <td>Firestore使用量確認</td>
+        <td>月1回</td>
+        <td>ストレージ容量、読み取り/書き込み回数を確認</td>
+    </tr>
+    <tr>
+        <td>管理者パスワード変更</td>
+        <td>3ヶ月に1回</td>
+        <td>Firebase Console でパスワードを変更<br>ADMIN_CREDENTIALS.md を更新</td>
+    </tr>
+</table>
+
+<h2>12.8 デプロイ手順</h2>
+
+<h3>12.8.1 Cloud Functionsのデプロイ</h3>
+
+<div class="highlight">
+<strong>注意</strong>: WSL環境の場合、/mnt/c/ ではなくWSLネイティブファイルシステム（~/）からデプロイしてください。
+</div>
+
+<div class="code">
+# 1. functionsディレクトリに移動
+cd ~/netcityB-wsl/functions
+
+# 2. 依存関係をインストール
+npm install
+
+# 3. Firebaseにログイン
+firebase login
+
+# 4. Cloud FunctionsとFirestoreルールをデプロイ
+firebase deploy --only functions,firestore:rules
+
+# 成功例:
+# ✔ Deploy complete!
+# ✔ functions[sendMessage(asia-northeast1)]
+# ✔ functions[getIpLogs(asia-northeast1)]
+# ✔ functions[cleanupOldIpLogs(asia-northeast1)]
+</div>
+
+<h3>12.8.2 管理者アカウントの作成</h3>
+
+<div class="code">
+# 1. scriptsディレクトリに移動
+cd ~/netcityB-wsl/scripts
+
+# 2. 管理者作成スクリプトを実行
+node create-admin.js
+
+# 3. プロンプトに従って入力
+# Email: kouki.n11@icloud.com
+# Password: [パスワード]
+
+# 成功例:
+# ✅ 管理者ユーザーを作成しました
+# ✅ 管理者権限を付与しました
+</div>
+
+<h2>12.9 トラブルシューティング</h2>
+
+<h3>12.9.1 よくある問題と解決策</h3>
+
+<table>
+    <tr>
+        <th style="width: 30%;">問題</th>
+        <th>原因</th>
+        <th>解決策</th>
+    </tr>
+    <tr>
+        <td>IPログ管理画面でログインできない</td>
+        <td>Email/Password認証が無効化されている</td>
+        <td>Firebase Console → Authentication → Sign-in method でEmail/Passwordを有効化</td>
+    </tr>
+    <tr>
+        <td>「管理者権限が必要です」エラー</td>
+        <td>カスタムクレームが設定されていない</td>
+        <td>create-admin.js を再実行して管理者権限を付与</td>
+    </tr>
+    <tr>
+        <td>Cloud Functionsデプロイがタイムアウト</td>
+        <td>WSLの/mnt/c/からデプロイしている</td>
+        <td>WSLネイティブファイルシステム（~/）にコピーしてデプロイ</td>
+    </tr>
+    <tr>
+        <td>メッセージが送信できない</td>
+        <td>Cloud Functionsのエラー</td>
+        <td>Firebase Console → Functions → Logs でエラー確認</td>
+    </tr>
+    <tr>
+        <td>IPログが記録されない</td>
+        <td>匿名認証が無効化されている</td>
+        <td>Firebase Console → Authentication でAnonymous認証を有効化</td>
+    </tr>
+</table>
+
+<h2>12.10 プライバシーとコンプライアンス</h2>
+
+<h3>12.10.1 IPアドレス記録に関する法的考慮事項</h3>
+
+<div class="highlight">
+<strong>重要</strong>: IPアドレスは個人情報として扱われる場合があります。
+</div>
+
+<ul>
+    <li><strong>利用目的の明示</strong>: プライバシーポリシーに記載
+        <ul>
+            <li>不正利用の防止</li>
+            <li>荒らし行為の特定と対処</li>
+            <li>利用規約違反の調査</li>
+        </ul>
+    </li>
+    <li><strong>データ保護</strong>:
+        <ul>
+            <li>管理者のみアクセス可能</li>
+            <li>Firestoreセキュリティルールで保護</li>
+            <li>1年後に自動削除</li>
+        </ul>
+    </li>
+    <li><strong>法令遵守</strong>:
+        <ul>
+            <li>個人情報保護法の遵守</li>
+            <li>不正アクセス禁止法の遵守</li>
+            <li>必要最小限の収集</li>
+        </ul>
+    </li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- 13. 変更履歴 -->
+<h1>13. 変更履歴</h1>
+
+<h2>Version 1.2.0（2025年11月9日）</h2>
+<h3>新機能</h3>
+<ul>
+    <li>✨ IPアドレス記録機能を追加（Cloud Functions使用）</li>
+    <li>✨ IPログ管理画面を実装（管理者専用）</li>
+    <li>✨ 管理者認証システムを導入（Email/Password + カスタムクレーム）</li>
+    <li>✨ IPログ自動削除機能（1年後に自動削除）</li>
+</ul>
+
+<h3>機能改善</h3>
+<ul>
+    <li>🔧 カテゴリタブの順序を変更（メイン → ニュース → 夜 → 相談 → 趣味）</li>
+    <li>🔧 「今の話題」を「ニュース談義」に名称変更</li>
+    <li>🎨 固定ルームと作成ルームの間に区切り線を追加</li>
+</ul>
+
+<h3>削除</h3>
+<ul>
+    <li>🗑️ 「世界のニュース」ルームを削除</li>
+</ul>
+
+<h3>セキュリティ</h3>
+<ul>
+    <li>🔒 Firestoreセキュリティルールを追加（IPログは管理者のみ閲覧可能）</li>
+    <li>🔒 Cloud Functionsにバリデーションとエラーハンドリングを実装</li>
+    <li>🔒 匿名認証を導入（Cloud Functions呼び出しに必要）</li>
+</ul>
+
+<h3>技術スタック</h3>
+<ul>
+    <li>📦 Firebase Cloud Functions v6.0.1 を導入</li>
+    <li>📦 Firebase Firestore を導入</li>
+    <li>📦 Firebase Authentication を導入</li>
+    <li>📦 Node.js 22 にアップデート</li>
+</ul>
+
+<h3>ドキュメント</h3>
+<ul>
+    <li>📝 ADMIN_CREDENTIALS.md を作成（Git除外設定済み）</li>
+    <li>📝 IP_LOGGING_SETUP.md を作成</li>
+    <li>📝 システム仕様書を v1.2.0 に更新</li>
+</ul>
 
 <h2>Version 1.1.0（2025年10月30日）</h2>
 <h3>新機能</h3>
@@ -2040,9 +2494,9 @@ firebase database:get / > backup_YYYYMMDD.json
 
 <div style="text-align: center; margin-top: 50px;">
     <h2>NET CITY β - システム仕様書</h2>
-    <p style="font-size: 12pt; color: #666;">Version 1.1.0</p>
+    <p style="font-size: 12pt; color: #666;">Version 1.2.0</p>
     <p style="font-size: 10pt; color: #999;">© 2025 koukiniwa. All rights reserved.</p>
-    <p style="font-size: 10pt; color: #999;">最終更新: 2025年10月30日</p>
+    <p style="font-size: 10pt; color: #999;">最終更新: 2025年11月9日</p>
 </div>
 
 </body>

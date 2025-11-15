@@ -30,6 +30,7 @@
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "firebase-functions": "^6.6.0",
     "sharp": "^0.34.4"
   },
   "devDependencies": {
