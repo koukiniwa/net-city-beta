@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=322');
+    await loadScript('../js/topics.js?v=323');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=322');
+    await loadScript('../js/favorites.js?v=323');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=322');
+    await loadScript('../js/myrooms.js?v=323');
     myroomsLoaded = true;
 }
 
@@ -403,11 +403,13 @@ document.addEventListener('DOMContentLoaded', async function() {
      * Firebase同期前にDOMに描画することで高速表示を実現
      */
     function displayPermanentRoomsImmediately() {
-        const roomListContainer = document.getElementById('roomListContainer');
-        if (!roomListContainer) return;
+        if (!roomCardsContainer) {
+            console.error('❌ roomCardsContainerが見つかりません');
+            return;
+        }
 
         // 既存のルームカードをクリア
-        roomListContainer.innerHTML = '';
+        roomCardsContainer.innerHTML = '';
 
         // 固定ルームを即座に描画
         permanentRooms.forEach(room => {
@@ -421,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 maxUsers: room.maxUsers,
                 isPermanent: true
             });
-            roomListContainer.appendChild(roomCard);
+            roomCardsContainer.appendChild(roomCard);
 
             // キャッシュにも追加
             roomsCache[room.id] = {
@@ -438,8 +440,23 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         console.log(`⚡ 固定ルーム${permanentRooms.length}件を即座に表示しました`);
 
-        // 初期表示はメインカテゴリのみ
-        updateRoomDisplay('main');
+        // 初期表示はメインカテゴリのみ（カテゴリフィルタリング）
+        filterRoomsByCategory('main');
+    }
+
+    /**
+     * カテゴリでルームをフィルタリング
+     */
+    function filterRoomsByCategory(category) {
+        const allCards = roomCardsContainer.querySelectorAll('.room-card');
+        allCards.forEach(card => {
+            const cardCategory = card.dataset.category;
+            if (cardCategory === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 
     // ルームの初期化
