@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=323');
+    await loadScript('../js/topics.js?v=324');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=323');
+    await loadScript('../js/favorites.js?v=324');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=323');
+    await loadScript('../js/myrooms.js?v=324');
     myroomsLoaded = true;
 }
 
@@ -2841,13 +2841,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     messageInput.focus(); // カーソルを入力欄に自動で移動
 
     // ========================================
-    // 下部ナビゲーションの遅延読み込み対応
+    // 下部ナビゲーションの初期化
     // ========================================
 
-    // 下部ナビゲーションのボタンにイベントリスナーを設定
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        // お気に入りとマイルームは最初から読み込まれているため、遅延読み込み不要
+    // お気に入り機能とマイルーム機能を即座に読み込み（必須機能のため）
+    console.log('📥 お気に入り・マイルーム機能を読み込み中...');
+    Promise.all([
+        loadFavoritesModule(),
+        loadMyroomsModule()
+    ]).then(() => {
+        console.log('✅ 下部ナビゲーション機能の読み込み完了');
+    }).catch(err => {
+        console.error('❌ 下部ナビゲーション機能の読み込みエラー:', err);
     });
 
 });

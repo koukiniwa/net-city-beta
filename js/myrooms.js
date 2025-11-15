@@ -2,8 +2,8 @@
 // NET CITY β - マイルーム機能
 // ========================================
 
-// ページ読み込み時の初期化
-document.addEventListener('DOMContentLoaded', function() {
+// 初期化関数（即座に実行）
+(function initMyrooms() {
     console.log('✅ マイルーム機能を初期化');
 
     // 下部ナビゲーションのタブ切り替え
@@ -112,4 +112,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-});
+})(); // 即座に実行

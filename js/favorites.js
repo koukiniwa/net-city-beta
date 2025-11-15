@@ -66,8 +66,8 @@ class FavoritesManager {
 // グローバルインスタンス
 window.favoritesManager = new FavoritesManager();
 
-// ページ読み込み時の初期化
-document.addEventListener('DOMContentLoaded', function() {
+// 初期化関数（即座に実行）
+(function initFavorites() {
     console.log('✅ お気に入り機能を初期化');
 
     // モーダル関連の要素
@@ -259,4 +259,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初期表示は通常のカテゴリフィルタリング（メインカテゴリ）
     console.log('初期表示: メインカテゴリを表示');
-});
+})(); // 即座に実行
