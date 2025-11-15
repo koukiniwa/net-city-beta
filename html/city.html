@@ -49,10 +49,11 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=322">
+    <link rel="stylesheet" href="../css/city.css?v=323">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Awesome - 遅延読み込み（起動をブロックしない） -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
 </head>
 <body>
     <!-- スプラッシュスクリーン -->
@@ -82,7 +83,7 @@
             <button class="settings-menu" id="hamburgerMenu" aria-label="設定を開く">
                 <i class="fa-solid fa-gear"></i>
             </button>
-            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v320</span></h1>
+            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v321</span></h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
@@ -233,24 +234,25 @@
             appId: "1:134573205357:web:59080845633bf5e39b9c64"
         };
 
-        // Firebaseを初期化
+        // Firebaseを同期的に初期化（即座に利用可能）
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const storage = getStorage(app);
         const functions = getFunctions(app, 'asia-northeast1'); // 東京リージョン
         const auth = getAuth(app);
 
-        // 匿名認証（Cloud Functions呼び出しに必要）
-        signInAnonymously(auth).catch((error) => {
-            console.error('匿名認証エラー:', error);
-        });
-
-        // グローバルに公開（city.jsで使う）
+        // グローバルに公開（city.jsで使う） - 即座に公開
         window.firebaseApp = app;
         window.firebaseDatabase = database;
         window.firebaseStorage = storage;
         window.firebaseFunctions = functions;
         window.firebaseAuth = auth;
+        window.firebaseReady = true; // 初期化完了フラグ
+
+        // 匿名認証（バックグラウンドで実行、起動をブロックしない）
+        signInAnonymously(auth).catch((error) => {
+            console.error('匿名認証エラー:', error);
+        });
     </script>
 
     <!-- ルーム作成モーダル -->
@@ -306,37 +308,37 @@
     </div>
 
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="../js/city.js?v=322"></script>
-    <script src="../js/favorites.js?v=322"></script>
-    <script src="../js/myrooms.js?v=322"></script>
-
-    <!-- topics.jsは話題ボタンクリック時に動的読み込み -->
-    <!-- topics.js -->
+    <script type="module" src="../js/city.js?v=323"></script>
+    <!-- favorites.js, myrooms.js, topics.jsは必要時に動的読み込み -->
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
-        // 既存のService Workerとキャッシュを削除
+        // 既存のService Workerとキャッシュを削除（非同期、起動をブロックしない）
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    // 全てのService Workerを削除
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (let registration of registrations) {
-                        await registration.unregister();
-                        console.log('🗑️ Service Workerを削除しました');
-                    }
+            // DOMContentLoaded後に実行（loadより早い）
+            document.addEventListener('DOMContentLoaded', () => {
+                // さらに遅延させて起動に影響を与えない
+                setTimeout(async () => {
+                    try {
+                        // 全てのService Workerを削除
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let registration of registrations) {
+                            await registration.unregister();
+                            console.log('🗑️ Service Workerを削除しました');
+                        }
 
-                    // 全てのキャッシュを削除
-                    const cacheNames = await caches.keys();
-                    for (let cacheName of cacheNames) {
-                        await caches.delete(cacheName);
-                        console.log('🗑️ キャッシュを削除:', cacheName);
-                    }
+                        // 全てのキャッシュを削除
+                        const cacheNames = await caches.keys();
+                        for (let cacheName of cacheNames) {
+                            await caches.delete(cacheName);
+                            console.log('🗑️ キャッシュを削除:', cacheName);
+                        }
 
-                    console.log('✅ キャッシュクリーンアップ完了');
-                } catch (error) {
-                    console.log('❌ クリーンアップエラー:', error);
-                }
+                        console.log('✅ キャッシュクリーンアップ完了');
+                    } catch (error) {
+                        console.log('❌ クリーンアップエラー:', error);
+                    }
+                }, 1000); // 1秒後に実行
             });
         }
     </script>

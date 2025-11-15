@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=322');
+    await loadScript('../js/topics.js?v=323');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=320');
+    await loadScript('../js/favorites.js?v=323');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=320');
+    await loadScript('../js/myrooms.js?v=323');
     myroomsLoaded = true;
 }
 
@@ -151,18 +151,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Firebase Databaseの参照を取得
     // ========================================
 
-    // Firebaseの初期化を待機
+    // Firebaseの初期化を待機（高速化版）
     function waitForFirebase() {
         return new Promise((resolve) => {
-            if (window.firebaseDatabase) {
+            if (window.firebaseReady && window.firebaseDatabase) {
                 resolve();
             } else {
+                // MutationObserverの代わりにより高速なチェック
                 const checkInterval = setInterval(() => {
-                    if (window.firebaseDatabase) {
+                    if (window.firebaseReady && window.firebaseDatabase) {
                         clearInterval(checkInterval);
                         resolve();
                     }
-                }, 50); // 50msごとにチェック
+                }, 10); // 10msごとにチェック（より高速）
             }
         });
     }

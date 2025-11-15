@@ -92,28 +92,32 @@
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
     <script>
-        // 既存のService Workerとキャッシュを削除
+        // 既存のService Workerとキャッシュを削除（非同期、起動をブロックしない）
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    // 全てのService Workerを削除
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (let registration of registrations) {
-                        await registration.unregister();
-                        console.log('🗑️ Service Workerを削除しました');
-                    }
+            // DOMContentLoaded後に実行（loadより早い）
+            document.addEventListener('DOMContentLoaded', () => {
+                // さらに遅延させて起動に影響を与えない
+                setTimeout(async () => {
+                    try {
+                        // 全てのService Workerを削除
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let registration of registrations) {
+                            await registration.unregister();
+                            console.log('🗑️ Service Workerを削除しました');
+                        }
 
-                    // 全てのキャッシュを削除
-                    const cacheNames = await caches.keys();
-                    for (let cacheName of cacheNames) {
-                        await caches.delete(cacheName);
-                        console.log('🗑️ キャッシュを削除:', cacheName);
-                    }
+                        // 全てのキャッシュを削除
+                        const cacheNames = await caches.keys();
+                        for (let cacheName of cacheNames) {
+                            await caches.delete(cacheName);
+                            console.log('🗑️ キャッシュを削除:', cacheName);
+                        }
 
-                    console.log('✅ キャッシュクリーンアップ完了');
-                } catch (error) {
-                    console.log('❌ クリーンアップエラー:', error);
-                }
+                        console.log('✅ キャッシュクリーンアップ完了');
+                    } catch (error) {
+                        console.log('❌ クリーンアップエラー:', error);
+                    }
+                }, 1000); // 1秒後に実行
             });
         }
     </script>
