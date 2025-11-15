@@ -49,7 +49,7 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=342">
+    <link rel="stylesheet" href="../css/city.css?v=343">
 
     <!-- Font Awesome - 遅延読み込み（起動をブロックしない） -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -83,7 +83,7 @@
             <button class="settings-menu" id="hamburgerMenu" aria-label="設定を開く">
                 <i class="fa-solid fa-gear"></i>
             </button>
-            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v342</span></h1>
+            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v343</span></h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
@@ -326,15 +326,6 @@
                 </div>
 
                 <div class="help-section">
-                    <h3><i class="fa-solid fa-at"></i> メンション機能</h3>
-                    <ul>
-                        <li><strong>メンション追加：</strong>他人のメッセージを長押し/右クリック → 「@ メンション」を選択</li>
-                        <li><strong>メンションジャンプ：</strong>@No.7 をタップでその人のメッセージにジャンプ</li>
-                        <li><strong>自分宛メンション：</strong>オレンジ色で強調表示されます</li>
-                    </ul>
-                </div>
-
-                <div class="help-section">
                     <h3><i class="fa-solid fa-trash"></i> 削除機能</h3>
                     <ul>
                         <li><strong>メッセージ削除：</strong>自分のメッセージを長押し/右クリック → 「🗑️ 削除」</li>
@@ -366,6 +357,15 @@
                         <li><strong>番号変更：</strong>設定メニューから1日1回変更可能</li>
                     </ul>
                 </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-at"></i> メンション機能</h3>
+                    <ul>
+                        <li><strong>メンション追加：</strong>他人のメッセージを長押し/右クリック → 「@ メンション」を選択</li>
+                        <li><strong>メンションジャンプ：</strong>@No.7 をタップでその人のメッセージにジャンプ</li>
+                        <li><strong>自分宛メンション：</strong>オレンジ色で強調表示されます</li>
+                    </ul>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn-primary" id="closeHelpModal">閉じる</button>
@@ -374,7 +374,7 @@
     </div>
 
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="../js/city.js?v=342"></script>
+    <script type="module" src="../js/city.js?v=343"></script>
     <!-- favorites.js, myrooms.js, topics.jsは必要時に動的読み込み -->
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->
