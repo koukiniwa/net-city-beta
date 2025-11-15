@@ -2856,22 +2856,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             const viewport = window.visualViewport;
 
             function updateInputPosition() {
-                // Visual Viewportの実際の高さを使用
-                const viewportHeight = viewport.height;
-
                 // トランジションを一時的に無効化（スライドを防ぐ）
                 inputArea.style.transition = 'none';
 
-                // bottomをviewportの底からの距離として設定
-                // viewport.heightが小さくなる = キーボードが表示されている
-                // bottomを0にすることでviewportの底（キーボードの上）に配置
+                // viewport.offsetTopでスクロール位置を考慮
+                // スクロールしても入力欄はviewportの底に固定される
                 inputArea.style.position = 'fixed';
                 inputArea.style.bottom = '0px';
                 inputArea.style.left = '0px';
                 inputArea.style.right = '0px';
-                inputArea.style.transform = 'translateY(0)';
 
-                console.log('📱 Viewport高さ:', viewportHeight, 'Window高さ:', window.innerHeight);
+                // viewport.offsetTopの分だけtransformで補正（スクロール時の位置ずれを防ぐ）
+                const offsetY = -viewport.offsetTop;
+                inputArea.style.transform = `translateY(${offsetY}px)`;
+
+                console.log('📱 Viewport:', {
+                    height: viewport.height,
+                    offsetTop: viewport.offsetTop,
+                    offsetY: offsetY
+                });
 
                 // 次のフレームでトランジションを復元（必要に応じて）
                 requestAnimationFrame(() => {
@@ -2882,8 +2885,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             // 初期位置を設定
             updateInputPosition();
 
-            // リサイズイベントのみ監視（scrollは除外）
+            // resizeとscrollの両方を監視
             viewport.addEventListener('resize', updateInputPosition);
+            viewport.addEventListener('scroll', updateInputPosition);
         }
     }
 
