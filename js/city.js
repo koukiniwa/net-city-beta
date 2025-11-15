@@ -2856,24 +2856,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             const viewport = window.visualViewport;
 
             function updateInputPosition() {
+                // Visual Viewportの実際の高さを使用
                 const viewportHeight = viewport.height;
-                const windowHeight = window.innerHeight;
-                const keyboardHeight = windowHeight - viewportHeight;
 
                 // トランジションを一時的に無効化（スライドを防ぐ）
                 inputArea.style.transition = 'none';
 
-                if (keyboardHeight > 0) {
-                    // キーボードが表示されている場合
-                    inputArea.style.position = 'fixed';
-                    inputArea.style.bottom = `${keyboardHeight}px`;
-                    inputArea.style.transform = 'translateY(0)';
-                } else {
-                    // キーボードが非表示の場合
-                    inputArea.style.position = 'fixed';
-                    inputArea.style.bottom = '0px';
-                    inputArea.style.transform = 'translateY(0)';
-                }
+                // bottomをviewportの底からの距離として設定
+                // viewport.heightが小さくなる = キーボードが表示されている
+                // bottomを0にすることでviewportの底（キーボードの上）に配置
+                inputArea.style.position = 'fixed';
+                inputArea.style.bottom = '0px';
+                inputArea.style.left = '0px';
+                inputArea.style.right = '0px';
+                inputArea.style.transform = 'translateY(0)';
+
+                console.log('📱 Viewport高さ:', viewportHeight, 'Window高さ:', window.innerHeight);
 
                 // 次のフレームでトランジションを復元（必要に応じて）
                 requestAnimationFrame(() => {
