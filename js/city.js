@@ -1573,6 +1573,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             clearTimeout(longPressTimer);
         }, { passive: true });
 
+        // 右クリックでメニュー表示（PC用）
+        messageDiv.addEventListener('contextmenu', (e) => {
+            // リアクションボタンや他のボタンを右クリックした場合は無視
+            if (e.target.closest('.add-reaction-btn') ||
+                e.target.closest('.reaction-item') ||
+                e.target.closest('.message-link')) {
+                return;
+            }
+
+            e.preventDefault(); // デフォルトの右クリックメニューを無効化
+            showLongPressMenu(messageId, message, isOwnMessage, e.clientX, e.clientY);
+        });
+
         // 自動的に一番下までスクロール（新しいメッセージが見えるように）
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
