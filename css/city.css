@@ -940,6 +940,21 @@ body {
     color: #0d47a1;
 }
 
+/* メンション */
+.mention {
+    color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.mention-me {
+    color: #ff6b00;
+    background-color: rgba(255, 107, 0, 0.15);
+    font-weight: 700;
+}
+
 /* 画像メッセージ */
 .message-image {
     max-width: 300px;

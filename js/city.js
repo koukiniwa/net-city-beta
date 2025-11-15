@@ -1631,10 +1631,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         // URL検出用の正規表現（http/https URL）
         const urlPattern = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
 
+        // メンション検出用の正規表現（@No.数字）
+        const mentionPattern = /(@No\.\d+)/g;
+
         // URLをリンクタグに置き換え
-        return text.replace(urlPattern, (url) => {
+        let result = text.replace(urlPattern, (url) => {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="message-link">${url}</a>`;
         });
+
+        // メンションをハイライト表示
+        result = result.replace(mentionPattern, (mention) => {
+            const currentUserMention = `@${displayNumber}`; // 自分のメンション
+            const isMentioned = mention === currentUserMention; // 自分がメンションされているか
+
+            if (isMentioned) {
+                // 自分がメンションされている場合は強調表示
+                return `<span class="mention mention-me">${mention}</span>`;
+            } else {
+                // 他のユーザーのメンション
+                return `<span class="mention">${mention}</span>`;
+            }
+        });
+
+        return result;
     }
 
     // ========================================
@@ -1799,10 +1818,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let currentMessageMenu = null;
 
-    // 長押しメニューを表示（削除のみ）
+    // 長押しメニューを表示（削除・メンション）
     function showLongPressMenu(messageId, message, isOwnMessage, x, y) {
-        // 自分のメッセージでない場合は何もしない
-        if (!isOwnMessage || message.imageUrl) {
+        // 画像メッセージの場合は何もしない
+        if (message.imageUrl) {
             return;
         }
 
@@ -1819,13 +1838,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         const menu = document.createElement('div');
         menu.className = 'long-press-menu active';
 
-        // 削除オプションのみ
-        menu.innerHTML = `
-            <div class="message-menu-item delete" data-action="delete">
-                <span class="menu-icon">🗑️</span>
-                <span class="menu-text">削除</span>
-            </div>
-        `;
+        // メニューアイテムを構築
+        let menuItems = '';
+
+        // メンションオプション（全メッセージに表示、自分以外）
+        if (!isOwnMessage) {
+            const mentionText = message.displayNumber || `No.${message.userNumber}`;
+            menuItems += `
+                <div class="message-menu-item mention" data-action="mention" data-mention="${mentionText}">
+                    <span class="menu-icon">@</span>
+                    <span class="menu-text">メンション</span>
+                </div>
+            `;
+        }
+
+        // 削除オプション（自分のメッセージのみ）
+        if (isOwnMessage) {
+            menuItems += `
+                <div class="message-menu-item delete" data-action="delete">
+                    <span class="menu-icon">🗑️</span>
+                    <span class="menu-text">削除</span>
+                </div>
+            `;
+        }
+
+        menu.innerHTML = menuItems;
 
         // bodyに一旦追加してサイズを取得
         document.body.appendChild(menu);
@@ -1858,6 +1895,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const action = e.currentTarget.dataset.action;
                 if (action === 'delete') {
                     deleteMessage(messageId);
+                } else if (action === 'mention') {
+                    // メンションを入力欄に追加
+                    const mentionText = e.currentTarget.dataset.mention;
+                    const currentText = messageInput.value;
+                    // 入力欄の最後に@No.7を追加（既に文字がある場合はスペースを追加）
+                    messageInput.value = currentText + (currentText ? ' ' : '') + `@${mentionText} `;
+                    messageInput.focus();
+                    // バイブレーション
+                    vibrate(20);
                 }
                 menu.remove();
                 currentMessageMenu = null;
