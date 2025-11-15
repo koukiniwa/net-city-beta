@@ -96,6 +96,8 @@ body.dark-mode {
 
 html {
     overflow-x: hidden;
+    /* iOS Safari対策: アドレスバー分の高さを確保 */
+    height: -webkit-fill-available;
 }
 
 body {
@@ -104,6 +106,8 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
+    /* iOS Safari対策: 100vhの代わりに-webkit-fill-availableを使用 */
+    height: -webkit-fill-available;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -249,7 +253,7 @@ body {
     top: 60px; /* ヘッダーの真下に配置 */
     left: 0;
     width: 100%; /* 画面幅いっぱい */
-    height: calc(100vh - 60px); /* ヘッダー分を引いた高さ */
+    height: calc(100vh - 60px - 78px); /* ヘッダーと入力エリア分を引いた高さ */
     background: var(--bg-primary); /* ダークブルー背景 */
     display: flex;
     flex-direction: column;
@@ -1221,7 +1225,8 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 20px;
+    padding: 15px;
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
     background: #fafafa;
     border-top: 1px solid #cccccc;
     display: flex;
@@ -2520,11 +2525,12 @@ body.neon-mode .delete-room-btn:hover {
 
     .chat-container {
         top: 50px; /* ヘッダーの真下 */
-        height: calc(100vh - 50px); /* ヘッダー分を引いた高さ */
+        height: calc(100vh - 50px - 68px); /* スマホ用：ヘッダーと入力エリア分を引いた高さ */
     }
 
     .input-area {
-        padding: 15px;
+        padding: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
     }
 
     .send-button {

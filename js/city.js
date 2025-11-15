@@ -51,7 +51,7 @@ let myroomsLoaded = false;
 async function loadTopicsModule() {
     if (topicsLoaded) return;
     console.log('📥 話題機能を読み込み中...');
-    await loadScript('../js/topics.js?v=325');
+    await loadScript('../js/topics.js?v=326');
     topicsLoaded = true;
 }
 
@@ -61,7 +61,7 @@ async function loadTopicsModule() {
 async function loadFavoritesModule() {
     if (favoritesLoaded) return;
     console.log('📥 お気に入り機能を読み込み中...');
-    await loadScript('../js/favorites.js?v=325');
+    await loadScript('../js/favorites.js?v=326');
     favoritesLoaded = true;
 }
 
@@ -71,7 +71,7 @@ async function loadFavoritesModule() {
 async function loadMyroomsModule() {
     if (myroomsLoaded) return;
     console.log('📥 マイルーム機能を読み込み中...');
-    await loadScript('../js/myrooms.js?v=325');
+    await loadScript('../js/myrooms.js?v=326');
     myroomsLoaded = true;
 }
 
@@ -2839,6 +2839,38 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 入力欄にフォーカス
     messageInput.focus(); // カーソルを入力欄に自動で移動
+
+    // ========================================
+    // iOS対策: キーボード表示時のスクロール問題を解決
+    // ========================================
+
+    if (messageInput) {
+        // iOSかどうかを判定
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+            // フォーカス時に入力欄までスクロール
+            messageInput.addEventListener('focus', function() {
+                setTimeout(() => {
+                    // 入力欄を画面に表示
+                    this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300); // キーボード表示を待つ
+            });
+
+            // ブラー時にスクロールをリセット
+            messageInput.addEventListener('blur', function() {
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                }, 100);
+            });
+        }
+
+        // 入力中の自動リサイズ（複数行対応）
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+    }
 
     // ========================================
     // 下部ナビゲーションの初期化
