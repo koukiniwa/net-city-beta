@@ -2414,6 +2414,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     sidebarOverlay.addEventListener('click', closeSidebar);
 
     // 番号変更メニュークリック
+    // ヘルプボタン
+    const helpMenu = document.getElementById('helpMenu');
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpModal = document.getElementById('closeHelpModal');
+
+    helpMenu.addEventListener('click', function() {
+        closeSidebar();
+        helpModal.classList.add('active');
+    });
+
+    closeHelpModal.addEventListener('click', function() {
+        helpModal.classList.remove('active');
+    });
+
+    // ヘルプモーダル外をクリックで閉じる
+    helpModal.addEventListener('click', function(e) {
+        if (e.target === helpModal) {
+            helpModal.classList.remove('active');
+        }
+    });
+
     editNumberMenu.addEventListener('click', function() {
         closeSidebar();
         handleNumberChange();

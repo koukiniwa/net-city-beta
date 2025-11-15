@@ -49,7 +49,7 @@
     <link rel="apple-touch-icon" sizes="512x512" href="../icons/icon-512.webp">
 
     <!-- スタイルシートを読み込み -->
-    <link rel="stylesheet" href="../css/city.css?v=341">
+    <link rel="stylesheet" href="../css/city.css?v=342">
 
     <!-- Font Awesome - 遅延読み込み（起動をブロックしない） -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -83,7 +83,7 @@
             <button class="settings-menu" id="hamburgerMenu" aria-label="設定を開く">
                 <i class="fa-solid fa-gear"></i>
             </button>
-            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v341</span></h1>
+            <h1 class="city-title">NET CITY β <span style="font-size: 10px; color: #0ff;">v342</span></h1>
         </div>
         <div class="header-right">
             <span class="username-display" id="usernameDisplay">ゲスト</span>
@@ -97,6 +97,10 @@
             <button class="close-menu" id="closeMenu" aria-label="メニューを閉じる">✕</button>
         </div>
         <div class="sidebar-content">
+            <div class="menu-item" id="helpMenu">
+                <span class="menu-icon"><i class="fa-solid fa-circle-question"></i></span>
+                <span class="menu-text">使い方ガイド</span>
+            </div>
             <div class="menu-item" id="editNumberMenu">
                 <span class="menu-icon"><i class="fa-solid fa-hashtag"></i></span>
                 <span class="menu-text">番号を変更</span>
@@ -307,8 +311,70 @@
         </div>
     </div>
 
+    <!-- ヘルプモーダル -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content help-modal">
+            <h2 class="modal-title">📱 NET CITY β 使い方ガイド</h2>
+            <div class="help-content">
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-comment"></i> 基本操作</h3>
+                    <ul>
+                        <li><strong>メッセージ送信：</strong>入力欄にメッセージを入力して📤ボタンをタップ</li>
+                        <li><strong>ルーム移動：</strong>左上の←ボタンでルーム一覧に戻る</li>
+                        <li><strong>ルーム作成：</strong>下部の＋ボタンから新規ルーム作成</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-at"></i> メンション機能</h3>
+                    <ul>
+                        <li><strong>メンション追加：</strong>他人のメッセージを長押し/右クリック → 「@ メンション」を選択</li>
+                        <li><strong>メンションジャンプ：</strong>@No.7 をタップでその人のメッセージにジャンプ</li>
+                        <li><strong>自分宛メンション：</strong>オレンジ色で強調表示されます</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-trash"></i> 削除機能</h3>
+                    <ul>
+                        <li><strong>メッセージ削除：</strong>自分のメッセージを長押し/右クリック → 「🗑️ 削除」</li>
+                        <li><strong>PC版：</strong>メッセージを右クリックでメニュー表示</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-heart"></i> リアクション</h3>
+                    <ul>
+                        <li><strong>追加方法：</strong>メッセージの＋ボタンをタップ</li>
+                        <li><strong>使える絵文字：</strong>👍 ❤️ 😊 🎉 🔥 👏 😮 😢 😂 🤔</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-star"></i> お気に入り・マイルーム</h3>
+                    <ul>
+                        <li><strong>お気に入り：</strong>下部の⭐ボタンで登録したルームを表示</li>
+                        <li><strong>マイルーム：</strong>下部の📑ボタンで自分が作成したルームを表示</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3><i class="fa-solid fa-clock"></i> その他</h3>
+                    <ul>
+                        <li><strong>メッセージ保存期間：</strong>7日間で自動削除されます</li>
+                        <li><strong>バイブ機能：</strong>送信時・メニュー表示時に振動します</li>
+                        <li><strong>番号変更：</strong>設定メニューから1日1回変更可能</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="closeHelpModal">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <!-- チャット機能のJavaScriptを読み込み -->
-    <script type="module" src="../js/city.js?v=341"></script>
+    <script type="module" src="../js/city.js?v=342"></script>
     <!-- favorites.js, myrooms.js, topics.jsは必要時に動的読み込み -->
 
     <!-- Service Worker クリーンアップ（キャッシュ問題解決のため無効化） -->

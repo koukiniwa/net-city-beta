@@ -1416,6 +1416,50 @@ body {
     font-weight: bold;
 }
 
+/* ヘルプモーダル専用 */
+.help-modal {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.help-content {
+    text-align: left;
+}
+
+.help-section {
+    margin-bottom: 24px;
+}
+
+.help-section h3 {
+    color: #1976d2;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.help-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-section li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    line-height: 1.6;
+}
+
+.help-section li:last-child {
+    border-bottom: none;
+}
+
+.help-section strong {
+    color: #333;
+}
+
 .form-group {
     margin-bottom: 20px;
 }
