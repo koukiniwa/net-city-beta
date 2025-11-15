@@ -2860,6 +2860,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const windowHeight = window.innerHeight;
                 const keyboardHeight = windowHeight - viewportHeight;
 
+                // トランジションを一時的に無効化（スライドを防ぐ）
+                inputArea.style.transition = 'none';
+
                 if (keyboardHeight > 0) {
                     // キーボードが表示されている場合
                     inputArea.style.position = 'fixed';
@@ -2871,10 +2874,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                     inputArea.style.bottom = '0px';
                     inputArea.style.transform = 'translateY(0)';
                 }
+
+                // 次のフレームでトランジションを復元（必要に応じて）
+                requestAnimationFrame(() => {
+                    inputArea.style.transition = '';
+                });
             }
 
+            // 初期位置を設定
+            updateInputPosition();
+
+            // リサイズイベントのみ監視（scrollは除外）
             viewport.addEventListener('resize', updateInputPosition);
-            viewport.addEventListener('scroll', updateInputPosition);
         }
     }
 

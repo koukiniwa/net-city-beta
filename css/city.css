@@ -1235,9 +1235,7 @@ body {
     z-index: 1000;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
     pointer-events: auto;
-    /* LINE風のスムーズな動き */
-    transition: bottom 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
-    will-change: bottom;
+    /* トランジション削除: 完全固定のため */
 }
 
 .image-button {
