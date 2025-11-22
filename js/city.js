@@ -483,29 +483,29 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('固定ルーム定義:', permanentRooms);
             console.log('固定ルームID:', permanentRoomIds);
 
-            // 固定ルーム以外の全ルームを削除
-            console.log('🗑️ 固定ルーム以外を削除中...');
-            const allRoomsRef = ref(database, 'rooms');
-            const allRoomsSnapshot = await get(allRoomsRef);
+            // 固定ルーム以外の全ルームを削除（コメントアウト - カスタムルームを保持）
+            // console.log('🗑️ 固定ルーム以外を削除中...');
+            // const allRoomsRef = ref(database, 'rooms');
+            // const allRoomsSnapshot = await get(allRoomsRef);
 
-            let deletedCount = 0;
-            if (allRoomsSnapshot.exists()) {
-                const allRooms = allRoomsSnapshot.val();
-                for (const roomId in allRooms) {
-                    // 固定ルームでない場合は削除
-                    if (!permanentRoomIds.includes(roomId)) {
-                        try {
-                            const roomRef = ref(database, `rooms/${roomId}`);
-                            await set(roomRef, null);
-                            console.log(`✅ ${roomId} (${allRooms[roomId].name || 'unknown'}) を削除しました`);
-                            deletedCount++;
-                        } catch (deleteError) {
-                            console.error(`❌ ${roomId} の削除エラー:`, deleteError);
-                        }
-                    }
-                }
-            }
-            console.log(`📊 削除完了: ${deletedCount}件`);
+            // let deletedCount = 0;
+            // if (allRoomsSnapshot.exists()) {
+            //     const allRooms = allRoomsSnapshot.val();
+            //     for (const roomId in allRooms) {
+            //         // 固定ルームでない場合は削除
+            //         if (!permanentRoomIds.includes(roomId)) {
+            //             try {
+            //                 const roomRef = ref(database, `rooms/${roomId}`);
+            //                 await set(roomRef, null);
+            //                 console.log(`✅ ${roomId} (${allRooms[roomId].name || 'unknown'}) を削除しました`);
+            //                 deletedCount++;
+            //             } catch (deleteError) {
+            //                 console.error(`❌ ${roomId} の削除エラー:`, deleteError);
+            //             }
+            //         }
+            //     }
+            // }
+            // console.log(`📊 削除完了: ${deletedCount}件`);
 
             // 固定ルームを全て作成または確認
             let createdCount = 0;
@@ -2294,6 +2294,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // モーダルを閉じる
             createRoomModal.style.display = 'none';
+
+            // 作成したルームのカテゴリに自動的に切り替え
+            if (selectedCategory !== roomCategory) {
+                selectedCategory = roomCategory;
+                // カテゴリタブを更新
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    if (tab.dataset.category === roomCategory) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                // ルーム一覧を更新
+                updateRoomCards(roomsCache);
+            }
 
             // 作成したルームに自動的に入室
             await joinRoom(roomId);
